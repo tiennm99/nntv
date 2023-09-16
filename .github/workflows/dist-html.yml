@@ -22,10 +22,14 @@ jobs:
       - name: Build HTML Version
         run: ./gradlew html:dist
 
-      - name: Create Dist Branch
+      - name: Delete Dist Branch
         run: |
           git config --global user.email "bot@miti99.dev"
           git config --global user.name "MiTiBot"
+          git branch -d dist-html
+
+      - name: Create Dist Branch
+        run: |
           git checkout -b dist-html
           git push origin dist-html
 
