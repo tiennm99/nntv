@@ -1,0 +1,38 @@
+name: Dist HTML Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dist-html:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'oracle'
+
+      - name: Build HTML Version
+        run: ./gradlew html:dist
+
+      - name: Create Dist Branch
+        run: |
+          git checkout -b dist-html
+          git push origin dist-html
+
+      - name: Deploy HTML Version
+        run: |
+          git checkout dist-html
+          rm -rf ./dist
+          mkdir ./dist
+          cp -r html/build/dist/* ./dist
+          git add .
+          git commit -m "[GitHub Actions] (Build) Deploy HTML Version"
+          git push origin dist-html
