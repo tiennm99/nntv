@@ -1,45 +1,31 @@
-name: Dist HTML Version
-
+name: Publish to Cloudflare Pages
 on:
   push:
     branches:
       - main
-
 jobs:
-  dist-html:
+  publish:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      deployments: write
+    name: Publish to Cloudflare Pages
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'oracle'
-
       - name: Build HTML Version
         run: ./gradlew html:dist
-
-      - name: Delete Dist Branch
-        run: |
-          git config --global user.email "bot@miti99.dev"
-          git config --global user.name "MiTiBot"
-          git branch -D dist-html &>/dev/null || true
-          git push origin --delete dist-html
-
-      - name: Create Dist Branch
-        run: |
-          git checkout -b dist-html
-          git push origin dist-html
-
-      - name: Deploy HTML Version
-        run: |
-          git checkout dist-html
-          rm -rf ./dist
-          mkdir ./dist
-          cp -r html/build/dist/* ./dist
-          git add .
-          git commit -m "[GitHub Actions] (Build) Deploy HTML Version"
-          git push origin dist-html
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 7774466151858e13a3c482af5f9ccd6b
+          projectName: nntv
+          directory: html/build/dist
+          # Optional: Enable this if you want to have GitHub Deployments triggered
+#          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
