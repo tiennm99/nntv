@@ -27,6 +27,7 @@ jobs:
           git config --global user.email "bot@miti99.dev"
           git config --global user.name "MiTiBot"
           git branch -D dist-html &>/dev/null || true
+          git push origin --delete dist-html
 
       - name: Create Dist Branch
         run: |
