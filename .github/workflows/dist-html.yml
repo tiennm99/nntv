@@ -24,6 +24,8 @@ jobs:
 
       - name: Create Dist Branch
         run: |
+          git config --global user.email "bot@miti99.dev"
+          git config --global user.name "MiTiBot"
           git checkout -b dist-html
           git push origin dist-html
 
