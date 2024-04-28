@@ -20,8 +20,10 @@ jobs:
           distribution: 'temurin'
       - name: Build HTML Version
         run: ./gradlew html:dist
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./html/build/dist
   deploy:
