@@ -3,12 +3,23 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+permissions:
+  contents: read
+  deployments: write
+  id-token: write
+  pages: write
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write
     name: Build LibGDX Website
     steps:
       - name: Checkout
