@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '11'
-          distribution: 'corretto'
+          distribution: 'temurin'
       - name: Build HTML Version
         run: ./gradlew html:dist
       - name: Setup Pages
