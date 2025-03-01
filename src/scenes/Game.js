@@ -34,20 +34,40 @@ export class Game extends Phaser.Scene {
       const buttonSize = 50;
       const buttonColor = 0xaa00ff;
 
-      // Create up button
-      this.buttons.up = this.add.rectangle(700, 500 - buttonSize, buttonSize, buttonSize, buttonColor).setInteractive();
+      // Create up button (triangle pointing up)
+      this.buttons.up = this.add.triangle(
+          700, 425 - buttonSize / 2,
+          -buttonSize / 2, buttonSize / 2,
+          buttonSize / 2, buttonSize / 2,
+          0, -buttonSize / 2
+      ).setInteractive().setFillStyle(buttonColor);
       this.buttons.up.on('pointerdown', () => this.movePlayer('up'));
 
-      // Create down button
-      this.buttons.down = this.add.rectangle(700, 500 + buttonSize, buttonSize, buttonSize, buttonColor).setInteractive();
+      // Create down button (triangle pointing down)
+      this.buttons.down = this.add.triangle(
+          700, 575 - buttonSize / 2,
+          -buttonSize / 2, -buttonSize / 2,
+          buttonSize / 2, -buttonSize / 2,
+          0, buttonSize / 2
+      ).setInteractive().setFillStyle(buttonColor);
       this.buttons.down.on('pointerdown', () => this.movePlayer('down'));
 
-      // Create left button
-      this.buttons.left = this.add.rectangle(700 - buttonSize, 500, buttonSize, buttonSize, buttonColor).setInteractive();
+      // Create left button (triangle pointing left)
+      this.buttons.left = this.add.triangle(
+          650 - buttonSize / 2, 500,
+          buttonSize / 2, -buttonSize / 2,
+          buttonSize / 2, buttonSize / 2,
+          -buttonSize / 2, 0
+      ).setInteractive().setFillStyle(buttonColor);
       this.buttons.left.on('pointerdown', () => this.movePlayer('left'));
 
-      // Create right button
-      this.buttons.right = this.add.rectangle(700 + buttonSize, 500, buttonSize, buttonSize, buttonColor).setInteractive();
+      // Create right button (triangle pointing right)
+      this.buttons.right = this.add.triangle(
+          750 + buttonSize / 2, 500,
+          -buttonSize / 2, -buttonSize / 2,
+          -buttonSize / 2, buttonSize / 2,
+          buttonSize / 2, 0
+      ).setInteractive().setFillStyle(buttonColor);
       this.buttons.right.on('pointerdown', () => this.movePlayer('right'));
   }
 
