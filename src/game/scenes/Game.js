@@ -374,6 +374,60 @@ export class Game extends Phaser.Scene {
         return this.grid.pixelToGrid(x - this.gridOffsetX, y - this.gridOffsetY);
     }
 
+    // Hiển thị popup khi người chơi bị phát hiện
+    showDetectionPopup() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // Tạm dừng game
+        this.isPaused = true;
+        this.inputEnabled = false;
+
+        // Tạo container cho popup
+        this.detectionPopup = this.add.container(width / 2, height / 2);
+        this.detectionPopup.setDepth(100);
+
+        // Background
+        const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8);
+
+        // Thông báo
+        const title = this.add.text(0, -60, 'Bạn đã bị phát hiện!', {
+            font: 'bold 28px Arial',
+            fill: '#FF0000'
+        });
+        title.setOrigin(0.5, 0.5);
+
+        // Nút chơi lại
+        const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
+        const restartText = this.add.text(0, 20, 'CHƠI LẠI', {
+            font: '20px Arial',
+            fill: '#ffffff'
+        });
+        restartText.setOrigin(0.5, 0.5);
+
+        // Thêm các phần tử vào container
+        this.detectionPopup.add([bg, title, restartButton, restartText]);
+
+        // Làm cho nút có thể tương tác
+        restartButton.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => restartButton.fillColor = 0x666666)
+            .on('pointerout', () => restartButton.fillColor = 0x444444)
+            .on('pointerdown', () => {
+                this.closeDetectionPopup();
+                this.handlePlayerCaught();
+            });
+    }
+
+    // Đóng popup phát hiện
+    closeDetectionPopup() {
+        if (this.detectionPopup) {
+            this.detectionPopup.destroy();
+            this.detectionPopup = null;
+            this.isPaused = false;
+            this.inputEnabled = true;
+        }
+    }
+
     // Xử lý khi người chơi bị bắt
     handlePlayerCaught() {
         this.livesRemaining--;
