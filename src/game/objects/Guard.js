@@ -16,23 +16,22 @@ export class Guard {
         // Lấy vị trí pixel từ tọa độ lưới
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
 
-        // Tạo sprite trạm gác (hình tam giác)
-        // Sử dụng kích thước nhỏ hơn để đảm bảo tam giác vừa vặn trong ô
-        const size = this.grid.cellSize * 0.3;
+        // Tạo sprite trạm gác (hình tròn)
+        // Sử dụng kích thước phù hợp để đảm bảo hình tròn vừa vặn trong ô
+        const radius = this.grid.cellSize * 0.25; // Kích thước phù hợp để hình tròn vừa vặn trong ô
 
-        // Tạo hình tam giác đều
-        // Sử dụng Phaser.GameObjects.Triangle thay vì Polygon
-        // Triangle tự động căn chỉnh tâm ở vị trí (x,y)
-        this.sprite = this.scene.add.triangle(
-            x, y,                 // Vị trí trung tâm
-            0, -size * 0.8,       // Đỉnh trên (điều chỉnh để cân bằng hơn)
-            -size, size * 0.8,    // Đỉnh dưới bên trái
-            size, size * 0.8,     // Đỉnh dưới bên phải
-            this.color
+        // Tạo hình tròn với màu tương ứng
+        // Sử dụng Phaser.GameObjects.Circle
+        // Circle tự động căn chỉnh tâm ở vị trí (x,y)
+        this.sprite = this.scene.add.circle(
+            x,                  // Vị trí x
+            y,                  // Vị trí y
+            radius,             // Bán kính
+            this.color          // Màu sắc
         );
 
-        // Đảm bảo tam giác nằm chính giữa ô
-        // Triangle đã tự động đặt origin ở (0.5, 0.5)
+        // Đảm bảo hình tròn nằm chính giữa ô
+        // Circle đã tự động đặt origin ở (0.5, 0.5)
     }
 
     // Cập nhật ánh sáng
@@ -86,6 +85,17 @@ export class RotatingGuard extends Guard {
             { row: 1, col: 0 },  // down
             { row: 0, col: -1 }  // left
         ];
+
+        // Tạo chỉ báo hướng (một đường thẳng từ tâm đến rìa hình tròn)
+        const { x, y } = this.scene.gridToScreen(this.row, this.col);
+        const radius = this.grid.cellSize * 0.25;
+        this.directionIndicator = this.scene.add.line(
+            x, y,                 // Vị trí trung tâm
+            0, 0,                 // Điểm bắt đầu (tâm)
+            0, -radius,           // Điểm kết thúc (hướng lên trên)
+            0xFFFFFF              // Màu trắng
+        );
+
         this.updateSpriteRotation();
     }
 
@@ -108,10 +118,20 @@ export class RotatingGuard extends Guard {
     }
 
     updateSpriteRotation() {
-        // Xoay sprite theo hướng
-        // Phaser.GameObjects.Triangle xoay quanh tâm của nó
+        // Xoay chỉ báo hướng theo hướng hiện tại
         // Mỗi hướng xoay 90 độ (PI/2 radian)
-        this.sprite.rotation = this.direction * Math.PI / 2;
+        this.directionIndicator.rotation = this.direction * Math.PI / 2;
+    }
+
+    // Override phương thức update để cập nhật cả sprite và chỉ báo hướng
+    update() {
+        // Gọi phương thức update của lớp cha để cập nhật vị trí sprite
+        super.update();
+
+        // Cập nhật vị trí của chỉ báo hướng
+        const { x, y } = this.scene.gridToScreen(this.row, this.col);
+        this.directionIndicator.x = x;
+        this.directionIndicator.y = y;
     }
 }
 
