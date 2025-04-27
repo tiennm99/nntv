@@ -97,6 +97,21 @@ export class Game extends Phaser.Scene {
 
         // Render the grid
         this.grid.render();
+
+        // Debug: Visualize cell centers (uncomment for debugging)
+        // this.visualizeCellCenters();
+    }
+
+    // Helper method to visualize the center of each cell (for debugging)
+    visualizeCellCenters() {
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const { x, y } = this.gridToScreen(row, col);
+                // Draw a small dot at the center of each cell
+                const centerMarker = this.add.circle(x, y, 2, 0xFF0000);
+                centerMarker.setDepth(100); // Ensure it's visible above other elements
+            }
+        }
     }
 
     createPlayer(row, col) {
