@@ -152,6 +152,12 @@ export class LevelManager {
         // Vẽ lại lưới
         this.scene.grid.render();
 
+        // Setup camera to follow player after level is loaded
+        // Add a small delay to ensure everything is properly initialized
+        this.scene.time.delayedCall(100, () => {
+            this.scene.setupCamera();
+        });
+
         return true;
     }
 

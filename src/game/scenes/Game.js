@@ -26,6 +26,7 @@ export class Game extends Phaser.Scene {
         this.inputCooldown = 0;
         this.isPaused = false;
         this.isFinalLevel = false;
+        this.cameraFollowsPlayer = true; // Enable camera following player
     }
 
     init(data) {
@@ -35,10 +36,17 @@ export class Game extends Phaser.Scene {
     }
 
     create() {
-        // Calculate grid position to center it
+        // Get screen dimensions
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
+        // Create a container for the game world
+        this.worldContainer = this.add.container(0, 0);
+
+        // Create a camera for the game world
+        this.gameCamera = this.cameras.main;
+
+        // Calculate grid position to center it
         this.gridOffsetX = (width - (this.gridSize * this.cellSize)) / 2;
         this.gridOffsetY = (height - (this.gridSize * this.cellSize)) / 2;
 
@@ -66,7 +74,7 @@ export class Game extends Phaser.Scene {
         // Setup input
         this.setupInput();
 
-        // Create UI
+        // Create UI (fixed to camera, not in world container)
         this.createUI();
 
         // Create mobile controls if needed
@@ -74,6 +82,51 @@ export class Game extends Phaser.Scene {
 
         // Load level
         this.levelManager.loadLevel(this.currentLevel);
+
+        // Setup camera to follow player after level is loaded
+        this.setupCamera();
+    }
+
+    setupCamera() {
+        // Make sure player exists
+        if (!this.player || !this.player.sprite) {
+            console.log("Cannot setup camera: player or player sprite is null");
+            return;
+        }
+
+        // Get the game dimensions
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // Reset the main camera
+        this.cameras.main.resetFX();
+        this.cameras.main.stopFollow();
+
+        // Set the camera bounds to the entire world
+        const worldWidth = Math.max(width, this.gridSize * this.cellSize + this.gridOffsetX * 2);
+        const worldHeight = Math.max(height, this.gridSize * this.cellSize + this.gridOffsetY * 2);
+
+        // Set world bounds
+        this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
+
+        // Set camera bounds
+        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+
+        // Start following the player
+        this.cameras.main.startFollow(
+            this.player.sprite,  // Target to follow
+            true,                // Round pixels
+            0.1,                 // Lerp X (smoothing)
+            0.1                  // Lerp Y (smoothing)
+        );
+
+        // No deadzone - camera always centers on player
+        this.cameras.main.setDeadzone(0, 0);
+
+        // Set follow offset to center the player
+        this.cameras.main.followOffset.set(0, 0);
+
+        console.log("Camera setup complete - following player");
     }
 
     update() {
@@ -86,6 +139,18 @@ export class Game extends Phaser.Scene {
             if (this.isFinalLevel) {
                 this.checkFinalLevelCondition();
             }
+
+            // Make sure player exists
+            if (this.player && this.player.sprite) {
+                // Update player position
+                this.player.update();
+
+                // Check if camera is not following the player
+                if (!this.cameras.main.following) {
+                    console.log("Camera not following - restarting follow");
+                    this.setupCamera();
+                }
+            }
         }
     }
 
@@ -95,6 +160,9 @@ export class Game extends Phaser.Scene {
         // Position the grid in the center of the screen
         this.grid.graphics.x = this.gridOffsetX;
         this.grid.graphics.y = this.gridOffsetY;
+
+        // Add grid graphics to world container
+        this.worldContainer.add(this.grid.graphics);
 
         // Render the grid
         this.grid.render();
@@ -186,11 +254,16 @@ export class Game extends Phaser.Scene {
         // Create UI elements
         const width = this.cameras.main.width;
 
+        // Create a UI container that will be fixed to the camera
+        this.uiContainer = this.add.container(0, 0);
+        this.uiContainer.setScrollFactor(0); // Fix to camera (don't move with world)
+
         // Lives display
         this.livesText = this.add.text(20, 20, `${getText('lives')}${this.livesRemaining}`, {
             font: '18px Arial',
             fill: '#ffffff'
         });
+        this.livesText.setScrollFactor(0); // Fix to camera
 
         // Level display
         this.levelText = this.add.text(width - 20, 20, `${getText('level')}${this.currentLevel}`, {
@@ -198,16 +271,19 @@ export class Game extends Phaser.Scene {
             fill: '#ffffff'
         });
         this.levelText.setOrigin(1, 0);
+        this.levelText.setScrollFactor(0); // Fix to camera
 
         // Pause button
         this.pauseButton = this.add.rectangle(width - 20, 60, 100, 30, 0x444444);
         this.pauseButton.setOrigin(1, 0);
+        this.pauseButton.setScrollFactor(0); // Fix to camera
 
         this.pauseText = this.add.text(width - 70, 75, getText('pause'), {
             font: '16px Arial',
             fill: '#ffffff'
         });
         this.pauseText.setOrigin(0.5, 0.5);
+        this.pauseText.setScrollFactor(0); // Fix to camera
 
         this.pauseButton.setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
@@ -217,12 +293,14 @@ export class Game extends Phaser.Scene {
         // Return to Main Menu button
         this.returnButton = this.add.rectangle(width - 20, 100, 100, 30, 0x444444);
         this.returnButton.setOrigin(1, 0);
+        this.returnButton.setScrollFactor(0); // Fix to camera
 
         this.returnText = this.add.text(width - 70, 115, getText('menu'), {
             font: '16px Arial',
             fill: '#ffffff'
         });
         this.returnText.setOrigin(0.5, 0.5);
+        this.returnText.setScrollFactor(0); // Fix to camera
 
         this.returnButton.setInteractive({ useHandCursor: true })
             .on('pointerover', () => this.returnButton.fillColor = 0x666666)
@@ -230,6 +308,16 @@ export class Game extends Phaser.Scene {
             .on('pointerdown', () => {
                 this.scene.start('MainMenu');
             });
+
+        // Add all UI elements to the UI container
+        this.uiContainer.add([
+            this.livesText,
+            this.levelText,
+            this.pauseButton,
+            this.pauseText,
+            this.returnButton,
+            this.returnText
+        ]);
 
         // Create pause menu (initially hidden)
         this.createPauseMenu();
@@ -241,6 +329,7 @@ export class Game extends Phaser.Scene {
 
         // Create container for pause menu
         this.pauseMenu = this.add.container(width / 2, height / 2);
+        this.pauseMenu.setScrollFactor(0); // Fix to camera (don't move with world)
 
         // Background
         const bg = this.add.rectangle(0, 0, 300, 250, 0x000000, 0.8);
@@ -248,7 +337,8 @@ export class Game extends Phaser.Scene {
         // Title
         const title = this.add.text(0, -100, getText('paused'), {
             font: 'bold 32px Arial',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            wordWrap: { width: 280 } // Enable text wrapping
         });
         title.setOrigin(0.5, 0.5);
 
@@ -256,7 +346,8 @@ export class Game extends Phaser.Scene {
         const resumeButton = this.add.rectangle(0, -40, 200, 40, 0x444444);
         const resumeText = this.add.text(0, -40, getText('resume'), {
             font: '20px Arial',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            wordWrap: { width: 180 } // Enable text wrapping
         });
         resumeText.setOrigin(0.5, 0.5);
 
@@ -264,7 +355,8 @@ export class Game extends Phaser.Scene {
         const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
         const restartText = this.add.text(0, 20, getText('restartLevel'), {
             font: '20px Arial',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            wordWrap: { width: 180 } // Enable text wrapping
         });
         restartText.setOrigin(0.5, 0.5);
 
@@ -272,7 +364,8 @@ export class Game extends Phaser.Scene {
         const menuButton = this.add.rectangle(0, 80, 200, 40, 0x444444);
         const menuText = this.add.text(0, 80, getText('mainMenu'), {
             font: '20px Arial',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            wordWrap: { width: 180 } // Enable text wrapping
         });
         menuText.setOrigin(0.5, 0.5);
 
@@ -319,6 +412,8 @@ export class Game extends Phaser.Scene {
 
         // Container for mobile controls
         this.mobileControls = this.add.container(width / 2, height - 100);
+        this.mobileControls.setScrollFactor(0); // Fix to camera (don't move with world)
+        this.mobileControls.setDepth(1000); // Ensure controls are above other elements
 
         // Create directional buttons
         const buttonSize = 60;
@@ -424,6 +519,7 @@ export class Game extends Phaser.Scene {
         // Tạo container cho popup
         this.detectionPopup = this.add.container(width / 2, height / 2);
         this.detectionPopup.setDepth(100);
+        this.detectionPopup.setScrollFactor(0); // Fix to camera (don't move with world)
         this.detectionPopup.popup = 'detection'; // Đánh dấu container
 
         // Background
@@ -433,7 +529,8 @@ export class Game extends Phaser.Scene {
         // Thông báo
         const title = this.add.text(0, -60, getText('detected'), {
             font: 'bold 28px Arial',
-            fill: '#FF0000'
+            fill: '#FF0000',
+            wordWrap: { width: 280 } // Enable text wrapping
         });
         title.setOrigin(0.5, 0.5);
         title.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
@@ -444,7 +541,8 @@ export class Game extends Phaser.Scene {
 
         const restartText = this.add.text(0, 20, getText('playAgain'), {
             font: '20px Arial',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            wordWrap: { width: 180 } // Enable text wrapping
         });
         restartText.setOrigin(0.5, 0.5);
         restartText.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
@@ -568,10 +666,12 @@ export class Game extends Phaser.Scene {
                 font: 'bold 20px Arial',
                 fill: '#FF0000',
                 backgroundColor: '#000000',
-                padding: { x: 10, y: 5 }
+                padding: { x: 10, y: 5 },
+                wordWrap: { width: width * 0.8 } // Enable text wrapping with 80% of screen width
             });
             this.finalLevelMessage.setOrigin(0.5, 0.5);
             this.finalLevelMessage.setDepth(100);
+            this.finalLevelMessage.setScrollFactor(0); // Fix to camera (don't move with world)
         }
 
         // Bật sáng toàn bộ các ô
