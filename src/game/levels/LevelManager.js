@@ -20,7 +20,7 @@ export class LevelManager {
 
         // Cập nhật UI
         this.scene.levelText.setText(`Level: ${levelId}`);
-        
+
         // Xóa các trạm gác hiện tại
         if (this.scene.guards) {
             this.scene.guards.forEach(guard => {
@@ -36,17 +36,17 @@ export class LevelManager {
         if (gridSize !== this.scene.gridSize) {
             this.scene.gridSize = gridSize;
             this.scene.grid.resize(gridSize, gridSize);
-            
+
             // Tính toán lại vị trí lưới để căn giữa
             const width = this.scene.cameras.main.width;
             const height = this.scene.cameras.main.height;
             this.scene.gridOffsetX = (width - (gridSize * this.scene.cellSize)) / 2;
             this.scene.gridOffsetY = (height - (gridSize * this.scene.cellSize)) / 2;
-            
+
             // Cập nhật vị trí của graphics
             this.scene.grid.graphics.x = this.scene.gridOffsetX;
             this.scene.grid.graphics.y = this.scene.gridOffsetY;
-            
+
             if (this.scene.lightSystem) {
                 this.scene.lightSystem.graphics.x = this.scene.gridOffsetX;
                 this.scene.lightSystem.graphics.y = this.scene.gridOffsetY;
@@ -76,7 +76,8 @@ export class LevelManager {
 
         // Thiết lập vị trí người chơi
         if (levelData.player) {
-            this.scene.player.moveTo(levelData.player.row, levelData.player.col);
+            // Sử dụng skipDetectionCheck = true để tránh kiểm tra phát hiện khi tải lại màn chơi
+            this.scene.player.moveTo(levelData.player.row, levelData.player.col, true);
         }
 
         // Thiết lập các ô sáng cố định (nếu có)
@@ -90,7 +91,7 @@ export class LevelManager {
         if (levelData.guards) {
             levelData.guards.forEach(guardData => {
                 let guard = null;
-                
+
                 switch (guardData.type) {
                     case 'static':
                         guard = new this.scene.StaticGuard(
@@ -130,7 +131,7 @@ export class LevelManager {
                         );
                         break;
                 }
-                
+
                 if (guard) {
                     this.scene.guards.push(guard);
                 }
