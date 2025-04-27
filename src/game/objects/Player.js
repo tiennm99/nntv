@@ -41,7 +41,14 @@ export class Player {
             x: x,
             y: y,
             duration: 100,
-            ease: 'Linear'
+            ease: 'Linear',
+            onComplete: () => {
+                // Kiểm tra xem người chơi có đang ở ô sáng không sau khi di chuyển
+                if (this.isInLitCell()) {
+                    // Người chơi bị phát hiện
+                    this.scene.showDetectionPopup();
+                }
+            }
         });
 
         return true;
