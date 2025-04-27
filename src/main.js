@@ -6,6 +6,7 @@ import { LevelSelect } from './game/scenes/LevelSelect';
 import { Game } from './game/scenes/Game';
 import { GameOver } from './game/scenes/GameOver';
 import { Settings } from './game/scenes/Settings';
+import { Guide } from './game/scenes/Guide';
 
 const config = {
   type: Phaser.AUTO,
@@ -13,7 +14,7 @@ const config = {
   height: 600,
   parent: 'app',
   backgroundColor: '#333333',
-  scene: [Boot, Preloader, MainMenu, LevelSelect, Game, GameOver, Settings],
+  scene: [Boot, Preloader, MainMenu, LevelSelect, Game, GameOver, Settings, Guide],
   physics: {
     default: 'arcade',
     arcade: {

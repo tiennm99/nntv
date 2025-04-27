@@ -37,9 +37,17 @@ export class MainMenu extends Phaser.Scene {
         });
         levelText.setOrigin(0.5, 0.5);
 
+        // Add guide button
+        const guideButton = this.add.rectangle(width / 2, height / 2 + 140, 200, 50, 0x444444);
+        const guideText = this.add.text(width / 2, height / 2 + 140, getText('guide'), {
+            font: '24px Arial',
+            fill: '#ffffff'
+        });
+        guideText.setOrigin(0.5, 0.5);
+
         // Add settings button
-        const settingsButton = this.add.rectangle(width / 2, height / 2 + 140, 200, 50, 0x444444);
-        const settingsText = this.add.text(width / 2, height / 2 + 140, getText('settings'), {
+        const settingsButton = this.add.rectangle(width / 2, height / 2 + 200, 200, 50, 0x444444);
+        const settingsText = this.add.text(width / 2, height / 2 + 200, getText('settings'), {
             font: '24px Arial',
             fill: '#ffffff'
         });
@@ -58,6 +66,13 @@ export class MainMenu extends Phaser.Scene {
             .on('pointerout', () => levelButton.fillColor = 0x444444)
             .on('pointerdown', () => {
                 this.scene.start('LevelSelect');
+            });
+
+        guideButton.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => guideButton.fillColor = 0x666666)
+            .on('pointerout', () => guideButton.fillColor = 0x444444)
+            .on('pointerdown', () => {
+                this.scene.start('Guide');
             });
 
         settingsButton.setInteractive({ useHandCursor: true })
