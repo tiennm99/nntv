@@ -82,22 +82,6 @@ export class MainMenu extends Phaser.Scene {
                 this.scene.start('Settings');
             });
 
-        // Add game description
-        const description = this.add.text(width / 2, height * 0.8,
-            getText('gameDescription'), {
-            font: '18px Arial',
-            fill: '#cccccc',
-            align: 'center'
-        });
-        description.setOrigin(0.5, 0.5);
 
-        // Add instructions
-        const instructions = this.add.text(width / 2, height * 0.9,
-            getText('instructions'), {
-            font: '16px Arial',
-            fill: '#aaaaaa',
-            align: 'center'
-        });
-        instructions.setOrigin(0.5, 0.5);
     }
 }
