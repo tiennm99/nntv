@@ -5,6 +5,7 @@ import { TurnManager } from '../objects/TurnManager';
 import { LightingSystem } from '../objects/LightingSystem';
 import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard } from '../objects/Guard';
 import { LevelManager } from '../levels/LevelManager';
+import { getText } from '../localization';
 
 export class Game extends Phaser.Scene {
     constructor() {
@@ -186,13 +187,13 @@ export class Game extends Phaser.Scene {
         const width = this.cameras.main.width;
 
         // Lives display
-        this.livesText = this.add.text(20, 20, `Lives: ${this.livesRemaining}`, {
+        this.livesText = this.add.text(20, 20, `${getText('lives')}${this.livesRemaining}`, {
             font: '18px Arial',
             fill: '#ffffff'
         });
 
         // Level display
-        this.levelText = this.add.text(width - 20, 20, `Level: ${this.currentLevel}`, {
+        this.levelText = this.add.text(width - 20, 20, `${getText('level')}${this.currentLevel}`, {
             font: '18px Arial',
             fill: '#ffffff'
         });
@@ -202,7 +203,7 @@ export class Game extends Phaser.Scene {
         this.pauseButton = this.add.rectangle(width - 20, 60, 100, 30, 0x444444);
         this.pauseButton.setOrigin(1, 0);
 
-        this.pauseText = this.add.text(width - 70, 75, 'PAUSE', {
+        this.pauseText = this.add.text(width - 70, 75, getText('pause'), {
             font: '16px Arial',
             fill: '#ffffff'
         });
@@ -211,6 +212,23 @@ export class Game extends Phaser.Scene {
         this.pauseButton.setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
                 this.togglePause();
+            });
+
+        // Return to Main Menu button
+        this.returnButton = this.add.rectangle(width - 20, 100, 100, 30, 0x444444);
+        this.returnButton.setOrigin(1, 0);
+
+        this.returnText = this.add.text(width - 70, 115, getText('menu'), {
+            font: '16px Arial',
+            fill: '#ffffff'
+        });
+        this.returnText.setOrigin(0.5, 0.5);
+
+        this.returnButton.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.returnButton.fillColor = 0x666666)
+            .on('pointerout', () => this.returnButton.fillColor = 0x444444)
+            .on('pointerdown', () => {
+                this.scene.start('MainMenu');
             });
 
         // Create pause menu (initially hidden)
@@ -228,7 +246,7 @@ export class Game extends Phaser.Scene {
         const bg = this.add.rectangle(0, 0, 300, 250, 0x000000, 0.8);
 
         // Title
-        const title = this.add.text(0, -100, 'PAUSED', {
+        const title = this.add.text(0, -100, getText('paused'), {
             font: 'bold 32px Arial',
             fill: '#ffffff'
         });
@@ -236,7 +254,7 @@ export class Game extends Phaser.Scene {
 
         // Resume button
         const resumeButton = this.add.rectangle(0, -40, 200, 40, 0x444444);
-        const resumeText = this.add.text(0, -40, 'RESUME', {
+        const resumeText = this.add.text(0, -40, getText('resume'), {
             font: '20px Arial',
             fill: '#ffffff'
         });
@@ -244,7 +262,7 @@ export class Game extends Phaser.Scene {
 
         // Restart button
         const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
-        const restartText = this.add.text(0, 20, 'RESTART LEVEL', {
+        const restartText = this.add.text(0, 20, getText('restartLevel'), {
             font: '20px Arial',
             fill: '#ffffff'
         });
@@ -252,7 +270,7 @@ export class Game extends Phaser.Scene {
 
         // Main menu button
         const menuButton = this.add.rectangle(0, 80, 200, 40, 0x444444);
-        const menuText = this.add.text(0, 80, 'MAIN MENU', {
+        const menuText = this.add.text(0, 80, getText('mainMenu'), {
             font: '20px Arial',
             fill: '#ffffff'
         });
@@ -413,7 +431,7 @@ export class Game extends Phaser.Scene {
         bg.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
 
         // Thông báo
-        const title = this.add.text(0, -60, 'Bạn đã bị phát hiện!', {
+        const title = this.add.text(0, -60, getText('detected'), {
             font: 'bold 28px Arial',
             fill: '#FF0000'
         });
@@ -424,7 +442,7 @@ export class Game extends Phaser.Scene {
         const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
         restartButton.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
 
-        const restartText = this.add.text(0, 20, 'CHƠI LẠI', {
+        const restartText = this.add.text(0, 20, getText('playAgain'), {
             font: '20px Arial',
             fill: '#ffffff'
         });
@@ -469,7 +487,7 @@ export class Game extends Phaser.Scene {
 
         // Cập nhật hiển thị số mạng
         if (this.livesText) {
-            this.livesText.setText(`Lives: ${this.livesRemaining}`);
+            this.livesText.setText(`${getText('lives')}${this.livesRemaining}`);
         }
 
         // Đảm bảo tất cả các popup đã được đóng
@@ -546,7 +564,7 @@ export class Game extends Phaser.Scene {
 
         if (!this.finalLevelMessage) {
             this.finalLevelMessage = this.add.text(width / 2, height / 4,
-                'Công chúa phát hiện ra ninja! Toàn bộ cung điện sáng đèn!', {
+                getText('princessDetected'), {
                 font: 'bold 20px Arial',
                 fill: '#FF0000',
                 backgroundColor: '#000000',
