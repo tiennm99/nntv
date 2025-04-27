@@ -17,21 +17,22 @@ export class Guard {
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
 
         // Tạo sprite trạm gác (hình tam giác)
-        const size = this.grid.cellSize / 3; // Giảm kích thước để vừa với ô
+        // Sử dụng kích thước nhỏ hơn để đảm bảo tam giác vừa vặn trong ô
+        const size = this.grid.cellSize * 0.3;
 
-        // Tạo hình tam giác
-        this.sprite = this.scene.add.polygon(
-            x, y,
-            [
-                { x: 0, y: -size },
-                { x: -size, y: size },
-                { x: size, y: size }
-            ],
+        // Tạo hình tam giác đều
+        // Sử dụng Phaser.GameObjects.Triangle thay vì Polygon
+        // Triangle tự động căn chỉnh tâm ở vị trí (x,y)
+        this.sprite = this.scene.add.triangle(
+            x, y,                 // Vị trí trung tâm
+            0, -size * 0.8,       // Đỉnh trên (điều chỉnh để cân bằng hơn)
+            -size, size * 0.8,    // Đỉnh dưới bên trái
+            size, size * 0.8,     // Đỉnh dưới bên phải
             this.color
         );
 
-        // Đảm bảo tam giác nằm ở chính giữa ô
-        this.sprite.setOrigin(0.5, 0.5);
+        // Đảm bảo tam giác nằm chính giữa ô
+        // Triangle đã tự động đặt origin ở (0.5, 0.5)
     }
 
     // Cập nhật ánh sáng
@@ -108,6 +109,8 @@ export class RotatingGuard extends Guard {
 
     updateSpriteRotation() {
         // Xoay sprite theo hướng
+        // Phaser.GameObjects.Triangle xoay quanh tâm của nó
+        // Mỗi hướng xoay 90 độ (PI/2 radian)
         this.sprite.rotation = this.direction * Math.PI / 2;
     }
 }
