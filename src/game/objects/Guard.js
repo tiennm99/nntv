@@ -30,6 +30,14 @@ export class Guard {
             this.color          // Màu sắc
         );
 
+        // Add guard sprite to world container if it exists
+        if (this.scene.worldContainer) {
+            this.scene.worldContainer.add(this.sprite);
+        }
+
+        // Set depth to ensure guard is visible above grid but below player
+        this.sprite.setDepth(5);
+
         // Đảm bảo hình tròn nằm chính giữa ô
         // Circle đã tự động đặt origin ở (0.5, 0.5)
     }
@@ -95,6 +103,14 @@ export class RotatingGuard extends Guard {
             0, -radius,           // Điểm kết thúc (hướng lên trên)
             0xFFFFFF              // Màu trắng
         );
+
+        // Add direction indicator to world container if it exists
+        if (this.scene.worldContainer) {
+            this.scene.worldContainer.add(this.directionIndicator);
+        }
+
+        // Set depth to ensure direction indicator is visible above guard
+        this.directionIndicator.setDepth(6);
 
         this.updateSpriteRotation();
     }

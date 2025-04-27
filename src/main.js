@@ -14,6 +14,10 @@ const config = {
   height: 600,
   parent: 'app',
   backgroundColor: '#333333',
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   scene: [Boot, Preloader, MainMenu, LevelSelect, Game, GameOver, Settings, Guide],
   physics: {
     default: 'arcade',

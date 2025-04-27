@@ -21,6 +21,14 @@ export class Player {
             this.grid.cellSize / 3,
             0x000000
         );
+
+        // Add player sprite to world container if it exists
+        if (this.scene.worldContainer) {
+            this.scene.worldContainer.add(this.sprite);
+        }
+
+        // Set depth to ensure player is visible above other elements
+        this.sprite.setDepth(10);
     }
 
     // Di chuyển đến vị trí mới
@@ -92,6 +100,8 @@ export class Player {
     // Cập nhật vị trí sprite
     update() {
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
+
+        // Update position
         this.sprite.x = x;
         this.sprite.y = y;
     }
