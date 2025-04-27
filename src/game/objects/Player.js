@@ -25,7 +25,8 @@ export class Player {
 
     // Di chuyển đến vị trí mới
     moveTo(row, col) {
-        if (!this.grid.isValidPosition(row, col)) {
+        // Kiểm tra vị trí hợp lệ và không phải là tường
+        if (!this.grid.isValidPosition(row, col) || this.grid.isWall(row, col)) {
             return false;
         }
 
