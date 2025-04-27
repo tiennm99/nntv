@@ -150,9 +150,8 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 1, col: 6 },
                 litCells: [
-                    // Removed ALL lit cells to make level 5 completable
-                    // { row: 1, col: 5 },
-                    // { row: 1, col: 7 }
+                    // Adding back one lit cell with a path still possible
+                    { row: 1, col: 7 }
                 ]
             },
             {
@@ -230,9 +229,8 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 1, col: 5 },
                 litCells: [
-                    // Removed ALL lit cells to make level 7 completable
-                    // { row: 1, col: 4 },
-                    // { row: 1, col: 6 }
+                    // Adding back one lit cell with a path still possible
+                    { row: 1, col: 6 }
                 ]
             },
             {
@@ -244,9 +242,8 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 5, col: 2 },
                 litCells: [
-                    // Removed ALL lit cells to make level 7 completable
-                    // { row: 5, col: 1 },
-                    // { row: 5, col: 3 }
+                    // Adding back one lit cell with a path still possible
+                    { row: 5, col: 1 }
                 ]
             }
         ]
