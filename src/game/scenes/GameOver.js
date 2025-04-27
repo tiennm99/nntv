@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { getText } from '../localization';
 
 export class GameOver extends Phaser.Scene {
     constructor() {
@@ -13,16 +14,16 @@ export class GameOver extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Different message based on whether this is the final level or not
-        let message = 'GAME OVER';
-        let description = 'You were caught in the light!';
-        
+        let message = getText('gameOver');
+        let description = getText('caughtInLight');
+
         if (this.isLastLevel) {
-            message = 'THE END';
-            description = 'Thật tiếc, kiếp này ninja không thể giải cứu công chúa rồi.';
+            message = getText('theEnd');
+            description = getText('ninjaFailed');
         }
-        
+
         // Add game over title
         const title = this.add.text(width / 2, height / 3, message, {
             font: 'bold 48px Arial',
@@ -30,7 +31,7 @@ export class GameOver extends Phaser.Scene {
             align: 'center'
         });
         title.setOrigin(0.5, 0.5);
-        
+
         // Add description
         const descText = this.add.text(width / 2, height / 2, description, {
             font: '24px Arial',
@@ -38,15 +39,15 @@ export class GameOver extends Phaser.Scene {
             align: 'center'
         });
         descText.setOrigin(0.5, 0.5);
-        
+
         // Add restart button
         const restartButton = this.add.rectangle(width / 2, height * 0.7, 200, 50, 0x444444);
-        const restartText = this.add.text(width / 2, height * 0.7, 'TRY AGAIN', {
+        const restartText = this.add.text(width / 2, height * 0.7, getText('tryAgain'), {
             font: '24px Arial',
             fill: '#ffffff'
         });
         restartText.setOrigin(0.5, 0.5);
-        
+
         // Make button interactive
         restartButton.setInteractive({ useHandCursor: true })
             .on('pointerover', () => restartButton.fillColor = 0x666666)
@@ -60,15 +61,15 @@ export class GameOver extends Phaser.Scene {
                     this.scene.start('Game', { level: this.finalLevel, lives: 3 });
                 }
             });
-            
+
         // Add main menu button
         const menuButton = this.add.rectangle(width / 2, height * 0.8, 200, 50, 0x444444);
-        const menuText = this.add.text(width / 2, height * 0.8, 'MAIN MENU', {
+        const menuText = this.add.text(width / 2, height * 0.8, getText('mainMenu'), {
             font: '24px Arial',
             fill: '#ffffff'
         });
         menuText.setOrigin(0.5, 0.5);
-        
+
         // Make button interactive
         menuButton.setInteractive({ useHandCursor: true })
             .on('pointerover', () => menuButton.fillColor = 0x666666)

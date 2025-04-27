@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { initLanguage } from '../localization';
 
 export class Boot extends Phaser.Scene {
     constructor() {
@@ -8,6 +9,9 @@ export class Boot extends Phaser.Scene {
     preload() {
         // Load any assets needed for the preloader scene
         // For this game, we don't need any fancy preloader assets
+
+        // Initialize language settings
+        initLanguage();
     }
 
     create() {
