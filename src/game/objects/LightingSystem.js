@@ -4,8 +4,10 @@ export class LightingSystem {
     constructor(scene, grid) {
         this.scene = scene;
         this.grid = grid;
+        // Create graphics object for rendering light effects
+        this.graphics = this.scene.add.graphics();
     }
-    
+
     // Xóa tất cả ánh sáng trên lưới
     clearAllLight() {
         for (let row = 0; row < this.grid.rows; row++) {
@@ -14,11 +16,11 @@ export class LightingSystem {
             }
         }
     }
-    
+
     // Cập nhật ánh sáng từ tất cả các trạm gác
     updateLightFromGuards(guards) {
         this.clearAllLight();
-        
+
         if (guards && Array.isArray(guards)) {
             guards.forEach(guard => {
                 guard.updateLight();

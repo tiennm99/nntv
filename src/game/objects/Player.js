@@ -13,12 +13,12 @@ export class Player {
     createSprite() {
         // Lấy vị trí pixel từ tọa độ lưới
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
-        
+
         // Tạo sprite người chơi (hình tròn đen)
         this.sprite = this.scene.add.circle(
-            x, 
-            y, 
-            this.grid.cellSize / 3, 
+            x,
+            y,
+            this.grid.cellSize / 3,
             0x000000
         );
     }
@@ -31,10 +31,10 @@ export class Player {
 
         this.row = row;
         this.col = col;
-        
+
         // Lấy vị trí pixel mới
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
-        
+
         // Tạo hiệu ứng di chuyển
         this.scene.tweens.add({
             targets: this.sprite,
@@ -43,7 +43,7 @@ export class Player {
             duration: 100,
             ease: 'Linear'
         });
-        
+
         return true;
     }
 
@@ -51,7 +51,7 @@ export class Player {
     move(direction) {
         let newRow = this.row;
         let newCol = this.col;
-        
+
         switch (direction) {
             case 'up':
                 newRow--;
@@ -66,18 +66,18 @@ export class Player {
                 newCol++;
                 break;
         }
-        
+
         return this.moveTo(newRow, newCol);
     }
 
     // Kiểm tra xem người chơi có đang ở ô sáng không
     isInLitCell() {
-        return this.grid.getCell(this.row, this.col).isLit;
+        return this.grid.isLight(this.row, this.col);
     }
 
     // Kiểm tra xem người chơi có đến đích không
     isAtGoal() {
-        return this.grid.getCell(this.row, this.col).isGoal;
+        return this.grid.isGoal(this.row, this.col);
     }
 
     // Cập nhật vị trí sprite
