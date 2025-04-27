@@ -1,8 +1,11 @@
 import { Boot } from './scenes/Boot';
 import { Game as MainGame } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
+import { Guide } from './scenes/Guide';
+import { LevelSelect } from './scenes/LevelSelect';
 import { MainMenu } from './scenes/MainMenu';
 import { Preloader } from './scenes/Preloader';
+import { Settings } from './scenes/Settings';
 import { AUTO, Game } from 'phaser';
 
 //  Find out more information about the Game Config at:
@@ -21,8 +24,11 @@ const config = {
         Boot,
         Preloader,
         MainMenu,
+        LevelSelect,
+        Settings,
         MainGame,
-        GameOver
+        GameOver,
+        Guide
     ]
 };
 

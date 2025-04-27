@@ -3,6 +3,7 @@
   "startGame": "BẮT ĐẦU CHƠI",
   "levelSelect": "CHỌN CẤP ĐỘ",
   "settings": "CÀI ĐẶT",
+  "guide": "HƯỚNG DẪN",
   "gameDescription": "Dẫn dắt ninja qua bóng tối.\nTránh ánh sáng bằng mọi giá.\nCứu công chúa... nếu bạn có thể.",
   "instructions": "Sử dụng phím mũi tên, WASD, hoặc chạm để di chuyển.",
   "languageSettings": "Ngôn ngữ",
@@ -26,5 +27,12 @@
   "caughtInLight": "Bạn đã bị bắt trong ánh sáng!",
   "ninjaFailed": "Thật tiếc, kiếp này ninja không thể giải cứu công chúa rồi.",
   "tryAgain": "THỬ LẠI",
-  "mainMenu": "MENU CHÍNH"
+  "mainMenu": "MENU CHÍNH",
+  "guideTitle": "HƯỚNG DẪN GAME",
+  "levelObjectives": "MỤC TIÊU CÁC CẤP ĐỘ",
+  "levelObjectivesContent": "- Cấp độ 1: Di chuyển qua khu vườn trong khi tránh lính canh và ánh sáng.\n- Cấp độ 2: Xâm nhập vào tường ngoài của cung điện và tìm lối vào bí mật.\n- Cấp độ 3: Di chuyển qua các hành lang cung điện để đến phòng của công chúa.\n- Cấp độ 4: Giải cứu công chúa và thoát qua lối đi bí mật.",
+  "movementControls": "ĐIỀU KHIỂN DI CHUYỂN",
+  "movementControlsContent": "- Phím mũi tên: Di chuyển theo bốn hướng\n- Phím WASD: Điều khiển di chuyển thay thế\n- Chạm/Nhấn: Trên thiết bị di động, chạm vào nơi bạn muốn di chuyển\n- Phím Space/Enter: Tương tác với các vật thể",
+  "enemyTypes": "CÁC LOẠI KẺ ĐỊCH",
+  "enemyTypesContent": "- Lính canh: Tuần tra theo tuyến đường cố định. Tránh tầm nhìn của họ.\n- Đèn pha: Nguồn sáng di chuyển sẽ phát hiện bạn nếu bạn bị bắt trong đó.\n- Chó: Có thể phát hiện bạn ngay cả trong bóng tối nếu bạn đến quá gần.\n- Bẫy: Nguy hiểm ẩn có thể kết thúc nhiệm vụ của bạn ngay lập tức."
 }
