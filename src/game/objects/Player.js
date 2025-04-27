@@ -24,7 +24,7 @@ export class Player {
     }
 
     // Di chuyển đến vị trí mới
-    moveTo(row, col) {
+    moveTo(row, col, skipDetectionCheck = false) {
         // Kiểm tra vị trí hợp lệ và không phải là tường
         if (!this.grid.isValidPosition(row, col) || this.grid.isWall(row, col)) {
             return false;
@@ -45,7 +45,8 @@ export class Player {
             ease: 'Linear',
             onComplete: () => {
                 // Kiểm tra xem người chơi có đang ở ô sáng không sau khi di chuyển
-                if (this.isInLitCell()) {
+                // Bỏ qua kiểm tra nếu skipDetectionCheck = true (khi đang tải lại màn chơi)
+                if (!skipDetectionCheck && this.isInLitCell()) {
                     // Người chơi bị phát hiện
                     this.scene.showDetectionPopup();
                 }

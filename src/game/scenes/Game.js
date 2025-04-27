@@ -376,6 +376,11 @@ export class Game extends Phaser.Scene {
 
     // Hiển thị popup khi người chơi bị phát hiện
     showDetectionPopup() {
+        // Kiểm tra xem popup đã tồn tại chưa, nếu có thì không tạo mới
+        if (this.detectionPopup) {
+            return; // Đã có popup, không tạo thêm
+        }
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
@@ -386,9 +391,11 @@ export class Game extends Phaser.Scene {
         // Tạo container cho popup
         this.detectionPopup = this.add.container(width / 2, height / 2);
         this.detectionPopup.setDepth(100);
+        this.detectionPopup.popup = 'detection'; // Đánh dấu container
 
         // Background
         const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8);
+        bg.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
 
         // Thông báo
         const title = this.add.text(0, -60, 'Bạn đã bị phát hiện!', {
@@ -396,14 +403,18 @@ export class Game extends Phaser.Scene {
             fill: '#FF0000'
         });
         title.setOrigin(0.5, 0.5);
+        title.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
 
         // Nút chơi lại
         const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
+        restartButton.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
+
         const restartText = this.add.text(0, 20, 'CHƠI LẠI', {
             font: '20px Arial',
             fill: '#ffffff'
         });
         restartText.setOrigin(0.5, 0.5);
+        restartText.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
 
         // Thêm các phần tử vào container
         this.detectionPopup.add([bg, title, restartButton, restartText]);
@@ -421,10 +432,19 @@ export class Game extends Phaser.Scene {
     // Đóng popup phát hiện
     closeDetectionPopup() {
         if (this.detectionPopup) {
+            // Đảm bảo tất cả các phần tử con cũng được hủy
+            this.detectionPopup.removeAll(true);
             this.detectionPopup.destroy();
             this.detectionPopup = null;
             this.isPaused = false;
             this.inputEnabled = true;
+
+            // Đảm bảo rằng tất cả các phần tử liên quan đến popup đã được xóa
+            this.children.list.forEach(child => {
+                if (child.popup && child.popup === 'detection') {
+                    child.destroy();
+                }
+            });
         }
     }
 
@@ -435,6 +455,11 @@ export class Game extends Phaser.Scene {
         // Cập nhật hiển thị số mạng
         if (this.livesText) {
             this.livesText.setText(`Lives: ${this.livesRemaining}`);
+        }
+
+        // Đảm bảo tất cả các popup đã được đóng
+        if (this.detectionPopup) {
+            this.closeDetectionPopup();
         }
 
         if (this.livesRemaining <= 0) {
