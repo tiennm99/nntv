@@ -1,28 +1,418 @@
-import { Scene } from 'phaser';
+import Phaser from 'phaser';
+import { GridSystem } from '../objects/GridSystem';
+import { Player } from '../objects/Player';
+import { TurnManager } from '../objects/TurnManager';
+import { LightingSystem } from '../objects/LightingSystem';
+import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard } from '../objects/Guard';
+import { LevelManager } from '../levels/LevelManager';
 
-export class Game extends Scene
-{
-    constructor ()
-    {
+export class Game extends Phaser.Scene {
+    constructor() {
         super('Game');
+        this.player = null;
+        this.grid = null;
+        this.lightSystem = null;
+        this.turnManager = null;
+        this.guards = [];
+        this.levelManager = null;
+        this.currentLevel = 1;
+        this.livesRemaining = 3;
+        this.gridSize = 8; // Default grid size
+        this.cellSize = 50; // Default cell size
+        this.gridOffsetX = 0;
+        this.gridOffsetY = 0;
+        this.inputEnabled = true;
+        this.inputCooldown = 0;
+        this.isPaused = false;
+        this.isFinalLevel = false;
     }
 
-    create ()
-    {
-        this.cameras.main.setBackgroundColor(0x00ff00);
+    init(data) {
+        // Initialize with data passed from previous scene
+        this.currentLevel = data.level || 1;
+        this.livesRemaining = data.lives || 3;
+    }
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+    create() {
+        // Calculate grid position to center it
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        this.gridOffsetX = (width - (this.gridSize * this.cellSize)) / 2;
+        this.gridOffsetY = (height - (this.gridSize * this.cellSize)) / 2;
+        
+        // Create grid system
+        this.createGridSystem();
+        
+        // Create lighting system
+        this.lightSystem = new LightingSystem(this, this.grid);
+        
+        // Make guard classes available to LevelManager
+        this.StaticGuard = StaticGuard;
+        this.RotatingGuard = RotatingGuard;
+        this.BlinkingGuard = BlinkingGuard;
+        this.PatrollingGuard = PatrollingGuard;
+        
+        // Create level manager
+        this.levelManager = new LevelManager(this);
+        
+        // Create turn manager
+        this.turnManager = new TurnManager(this);
+        
+        // Create player
+        this.createPlayer(0, 0); // Default position, will be updated by level data
+        
+        // Setup input
+        this.setupInput();
+        
+        // Create UI
+        this.createUI();
+        
+        // Create mobile controls if needed
+        this.createMobileControls();
+        
+        // Load level
+        this.levelManager.loadLevel(this.currentLevel);
+    }
 
-        this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5);
+    update() {
+        // Only process input if game is not paused
+        if (!this.isPaused) {
+            // Check for keyboard input
+            this.handleKeyboardInput();
+        }
+    }
 
-        this.input.once('pointerdown', () => {
+    createGridSystem() {
+        this.grid = new GridSystem(this, this.gridSize, this.gridSize, this.cellSize);
+        
+        // Position the grid in the center of the screen
+        this.grid.graphics.x = this.gridOffsetX;
+        this.grid.graphics.y = this.gridOffsetY;
+        
+        // Render the grid
+        this.grid.render();
+    }
 
-            this.scene.start('GameOver');
+    createPlayer(row, col) {
+        this.player = new Player(this, this.grid, row, col);
+    }
 
+    setupInput() {
+        // Setup keyboard input
+        this.cursors = this.input.keyboard.createCursorKeys();
+        
+        // WASD keys
+        this.wasd = {
+            up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+        };
+        
+        // Add click/tap input for grid cells
+        this.input.on('pointerdown', (pointer) => {
+            if (this.isPaused || !this.inputEnabled || !this.turnManager.isPlayerTurn) return;
+            
+            // Convert screen coordinates to grid coordinates
+            const gridPos = this.screenToGrid(pointer.x, pointer.y);
+            
+            // Check if the clicked position is adjacent to the player
+            const rowDiff = Math.abs(gridPos.row - this.player.row);
+            const colDiff = Math.abs(gridPos.col - this.player.col);
+            
+            // Only allow moving to adjacent cells (not diagonally)
+            if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+                if (this.player.moveTo(gridPos.row, gridPos.col)) {
+                    this.turnManager.nextTurn();
+                }
+            }
         });
+    }
+
+    handleKeyboardInput() {
+        // Only process input during player's turn and when input is enabled
+        if (!this.inputEnabled || !this.turnManager.isPlayerTurn) return;
+        
+        // Use a cooldown to prevent multiple inputs in a single frame
+        if (this.inputCooldown > 0) {
+            this.inputCooldown--;
+            return;
+        }
+        
+        let direction = null;
+        
+        // Check arrow keys
+        if (this.cursors.up.isDown || this.wasd.up.isDown) {
+            direction = 'up';
+        } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
+            direction = 'down';
+        } else if (this.cursors.left.isDown || this.wasd.left.isDown) {
+            direction = 'left';
+        } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
+            direction = 'right';
+        }
+        
+        if (direction) {
+            if (this.player.move(direction)) {
+                this.turnManager.nextTurn();
+                this.inputCooldown = 10; // Set cooldown to prevent multiple moves
+            }
+        }
+    }
+
+    createUI() {
+        // Create UI elements
+        const width = this.cameras.main.width;
+        
+        // Lives display
+        this.livesText = this.add.text(20, 20, `Lives: ${this.livesRemaining}`, {
+            font: '18px Arial',
+            fill: '#ffffff'
+        });
+        
+        // Level display
+        this.levelText = this.add.text(width - 20, 20, `Level: ${this.currentLevel}`, {
+            font: '18px Arial',
+            fill: '#ffffff'
+        });
+        this.levelText.setOrigin(1, 0);
+        
+        // Pause button
+        this.pauseButton = this.add.rectangle(width - 20, 60, 100, 30, 0x444444);
+        this.pauseButton.setOrigin(1, 0);
+        
+        this.pauseText = this.add.text(width - 70, 75, 'PAUSE', {
+            font: '16px Arial',
+            fill: '#ffffff'
+        });
+        this.pauseText.setOrigin(0.5, 0.5);
+        
+        this.pauseButton.setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.togglePause();
+            });
+            
+        // Create pause menu (initially hidden)
+        this.createPauseMenu();
+    }
+    
+    createPauseMenu() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Create container for pause menu
+        this.pauseMenu = this.add.container(width / 2, height / 2);
+        
+        // Background
+        const bg = this.add.rectangle(0, 0, 300, 250, 0x000000, 0.8);
+        
+        // Title
+        const title = this.add.text(0, -100, 'PAUSED', {
+            font: 'bold 32px Arial',
+            fill: '#ffffff'
+        });
+        title.setOrigin(0.5, 0.5);
+        
+        // Resume button
+        const resumeButton = this.add.rectangle(0, -40, 200, 40, 0x444444);
+        const resumeText = this.add.text(0, -40, 'RESUME', {
+            font: '20px Arial',
+            fill: '#ffffff'
+        });
+        resumeText.setOrigin(0.5, 0.5);
+        
+        // Restart button
+        const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
+        const restartText = this.add.text(0, 20, 'RESTART LEVEL', {
+            font: '20px Arial',
+            fill: '#ffffff'
+        });
+        restartText.setOrigin(0.5, 0.5);
+        
+        // Main menu button
+        const menuButton = this.add.rectangle(0, 80, 200, 40, 0x444444);
+        const menuText = this.add.text(0, 80, 'MAIN MENU', {
+            font: '20px Arial',
+            fill: '#ffffff'
+        });
+        menuText.setOrigin(0.5, 0.5);
+        
+        // Add all elements to container
+        this.pauseMenu.add([bg, title, resumeButton, resumeText, restartButton, restartText, menuButton, menuText]);
+        
+        // Make buttons interactive
+        resumeButton.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => resumeButton.fillColor = 0x666666)
+            .on('pointerout', () => resumeButton.fillColor = 0x444444)
+            .on('pointerdown', () => {
+                this.togglePause();
+            });
+            
+        restartButton.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => restartButton.fillColor = 0x666666)
+            .on('pointerout', () => restartButton.fillColor = 0x444444)
+            .on('pointerdown', () => {
+                this.togglePause();
+                this.levelManager.loadLevel(this.currentLevel);
+            });
+            
+        menuButton.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => menuButton.fillColor = 0x666666)
+            .on('pointerout', () => menuButton.fillColor = 0x444444)
+            .on('pointerdown', () => {
+                this.scene.start('MainMenu');
+            });
+            
+        // Hide pause menu initially
+        this.pauseMenu.setVisible(false);
+    }
+    
+    togglePause() {
+        this.isPaused = !this.isPaused;
+        this.pauseMenu.setVisible(this.isPaused);
+        this.inputEnabled = !this.isPaused;
+    }
+    
+    createMobileControls() {
+        // Create mobile control buttons
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Container for mobile controls
+        this.mobileControls = this.add.container(width / 2, height - 100);
+        
+        // Create directional buttons
+        const buttonSize = 60;
+        const buttonSpacing = 70;
+        
+        // Up button
+        const upButton = this.add.circle(0, -buttonSpacing, buttonSize / 2, 0x444444);
+        const upText = this.add.text(0, -buttonSpacing, '↑', { font: '32px Arial', fill: '#ffffff' });
+        upText.setOrigin(0.5, 0.5);
+        
+        // Left button
+        const leftButton = this.add.circle(-buttonSpacing, 0, buttonSize / 2, 0x444444);
+        const leftText = this.add.text(-buttonSpacing, 0, '←', { font: '32px Arial', fill: '#ffffff' });
+        leftText.setOrigin(0.5, 0.5);
+        
+        // Right button
+        const rightButton = this.add.circle(buttonSpacing, 0, buttonSize / 2, 0x444444);
+        const rightText = this.add.text(buttonSpacing, 0, '→', { font: '32px Arial', fill: '#ffffff' });
+        rightText.setOrigin(0.5, 0.5);
+        
+        // Down button
+        const downButton = this.add.circle(0, buttonSpacing, buttonSize / 2, 0x444444);
+        const downText = this.add.text(0, buttonSpacing, '↓', { font: '32px Arial', fill: '#ffffff' });
+        downText.setOrigin(0.5, 0.5);
+        
+        // Add buttons to container
+        this.mobileControls.add([upButton, upText, leftButton, leftText, rightButton, rightText, downButton, downText]);
+        
+        // Make buttons interactive
+        upButton.setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
+                    if (this.player.move('up')) {
+                        this.turnManager.nextTurn();
+                    }
+                }
+            });
+            
+        leftButton.setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
+                    if (this.player.move('left')) {
+                        this.turnManager.nextTurn();
+                    }
+                }
+            });
+            
+        rightButton.setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
+                    if (this.player.move('right')) {
+                        this.turnManager.nextTurn();
+                    }
+                }
+            });
+            
+        downButton.setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
+                    if (this.player.move('down')) {
+                        this.turnManager.nextTurn();
+                    }
+                }
+            });
+            
+        // Only show mobile controls on touch devices
+        this.mobileControls.setVisible(false);
+        
+        // Check if device has touch capability
+        if (this.sys.game.device.input.touch) {
+            this.mobileControls.setVisible(true);
+        }
+    }
+    
+    // Helper method to convert grid coordinates to screen coordinates
+    gridToScreen(row, col) {
+        const gridPos = this.grid.gridToPixel(row, col);
+        return {
+            x: gridPos.x + this.gridOffsetX,
+            y: gridPos.y + this.gridOffsetY
+        };
+    }
+    
+    // Helper method to convert screen coordinates to grid coordinates
+    screenToGrid(x, y) {
+        return this.grid.pixelToGrid(x - this.gridOffsetX, y - this.gridOffsetY);
+    }
+    
+    // Xử lý khi người chơi bị bắt
+    handlePlayerCaught() {
+        this.livesRemaining--;
+        
+        // Cập nhật hiển thị số mạng
+        if (this.livesText) {
+            this.livesText.setText(`Lives: ${this.livesRemaining}`);
+        }
+        
+        if (this.livesRemaining <= 0) {
+            // Hết mạng, game over
+            this.scene.start('GameOver', { 
+                level: this.currentLevel,
+                isLastLevel: false
+            });
+        } else {
+            // Còn mạng, reset màn chơi hiện tại
+            this.levelManager.loadLevel(this.currentLevel);
+        }
+    }
+    
+    // Xử lý khi người chơi hoàn thành màn chơi
+    handleLevelComplete() {
+        const nextLevel = this.currentLevel + 1;
+        
+        // Kiểm tra xem có phải màn cuối không
+        if (this.isFinalLevel) {
+            // Đây là màn cuối với cái kết đặc biệt
+            this.scene.start('GameOver', { 
+                level: this.currentLevel,
+                isLastLevel: true
+            });
+        } else if (nextLevel > this.levelManager.getTotalLevels()) {
+            // Đã hoàn thành tất cả các màn
+            this.scene.start('GameOver', { 
+                level: this.currentLevel,
+                isLastLevel: false
+            });
+        } else {
+            // Chuyển đến màn tiếp theo
+            this.scene.start('Game', { 
+                level: nextLevel,
+                lives: this.livesRemaining
+            });
+        }
     }
 }

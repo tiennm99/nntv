@@ -1,46 +1,44 @@
-import { Scene } from 'phaser';
+import Phaser from 'phaser';
 
-export class Preloader extends Scene
-{
-    constructor ()
-    {
+export class Preloader extends Phaser.Scene {
+    constructor() {
         super('Preloader');
     }
 
-    init ()
-    {
-        //  We loaded this image in our Boot Scene, so we can display it here
-        this.add.image(512, 384, 'background');
-
-        //  A simple progress bar. This is the outline of the bar.
-        this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff);
-
-        //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-        const bar = this.add.rectangle(512-230, 384, 4, 28, 0xffffff);
-
-        //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
-        this.load.on('progress', (progress) => {
-
-            //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
-            bar.width = 4 + (460 * progress);
-
+    preload() {
+        // Create loading bar
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        const progressBar = this.add.graphics();
+        const progressBox = this.add.graphics();
+        progressBox.fillStyle(0x222222, 0.8);
+        progressBox.fillRect(width / 4, height / 2 - 30, width / 2, 50);
+        
+        const loadingText = this.add.text(width / 2, height / 2 - 50, 'Loading...', {
+            font: '20px Arial',
+            fill: '#ffffff'
         });
+        loadingText.setOrigin(0.5, 0.5);
+        
+        // Update progress bar as assets load
+        this.load.on('progress', (value) => {
+            progressBar.clear();
+            progressBar.fillStyle(0xffffff, 1);
+            progressBar.fillRect(width / 4 + 10, height / 2 - 20, (width / 2 - 20) * value, 30);
+        });
+        
+        this.load.on('complete', () => {
+            progressBar.destroy();
+            progressBox.destroy();
+            loadingText.destroy();
+        });
+        
+        // Load any game assets here
+        // For this game, we're using simple shapes, so no image assets needed
     }
 
-    preload ()
-    {
-        //  Load the assets for the game - Replace with your own assets
-        this.load.setPath('assets');
-
-        this.load.image('logo', 'logo.png');
-    }
-
-    create ()
-    {
-        //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
-        //  For example, you can define global animations here, so we can use them in other scenes.
-
-        //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
+    create() {
         this.scene.start('MainMenu');
     }
 }
