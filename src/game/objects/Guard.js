@@ -15,10 +15,10 @@ export class Guard {
     createSprite() {
         // Lấy vị trí pixel từ tọa độ lưới
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
-        
+
         // Tạo sprite trạm gác (hình tam giác)
         const size = this.grid.cellSize / 3; // Giảm kích thước để vừa với ô
-        
+
         // Tạo hình tam giác
         this.sprite = this.scene.add.polygon(
             x, y,
@@ -29,8 +29,8 @@ export class Guard {
             ],
             this.color
         );
-        
-        // Đảm bảo tam giác nằm ở giữa ô
+
+        // Đảm bảo tam giác nằm ở chính giữa ô
         this.sprite.setOrigin(0.5, 0.5);
     }
 
@@ -93,7 +93,7 @@ export class RotatingGuard extends Guard {
         const dir = this.directions[this.direction];
         const litRow = this.row + dir.row;
         const litCol = this.col + dir.col;
-        
+
         if (this.grid.isValidPosition(litRow, litCol)) {
             this.grid.setLight(litRow, litCol, true);
         }
@@ -105,7 +105,7 @@ export class RotatingGuard extends Guard {
         this.updateSpriteRotation();
         this.updateLight();
     }
-    
+
     updateSpriteRotation() {
         // Xoay sprite theo hướng
         this.sprite.rotation = this.direction * Math.PI / 2;
@@ -118,7 +118,7 @@ export class BlinkingGuard extends Guard {
         super(scene, grid, row, col, 0xFFFF00); // Màu vàng
         this.litCells = litCells || [];
         this.isOn = startState !== undefined ? startState : true;
-        
+
         // Cập nhật màu sắc ban đầu dựa trên trạng thái
         if (!this.isOn) {
             this.sprite.fillColor = 0xAAAA00; // Màu vàng tối khi tắt
@@ -139,14 +139,14 @@ export class BlinkingGuard extends Guard {
     onTurnChange() {
         // Đảo trạng thái bật/tắt
         this.isOn = !this.isOn;
-        
+
         // Cập nhật màu sắc của sprite
         if (this.isOn) {
             this.sprite.fillColor = 0xFFFF00; // Màu vàng khi bật
         } else {
             this.sprite.fillColor = 0xAAAA00; // Màu vàng tối khi tắt
         }
-        
+
         this.updateLight();
     }
 }
@@ -163,7 +163,7 @@ export class PatrollingGuard extends Guard {
     updateLight() {
         // Chiếu sáng các ô xung quanh vị trí hiện tại
         this.litCells = [];
-        
+
         // Thêm 4 ô xung quanh vào danh sách chiếu sáng
         const directions = [
             { row: -1, col: 0 }, // up
@@ -171,11 +171,11 @@ export class PatrollingGuard extends Guard {
             { row: 1, col: 0 },  // down
             { row: 0, col: -1 }  // left
         ];
-        
+
         directions.forEach(dir => {
             const litRow = this.row + dir.row;
             const litCol = this.col + dir.col;
-            
+
             if (this.grid.isValidPosition(litRow, litCol)) {
                 this.grid.setLight(litRow, litCol, true);
                 this.litCells.push({ row: litRow, col: litCol });
@@ -188,14 +188,14 @@ export class PatrollingGuard extends Guard {
         if (this.path.length > 0) {
             this.currentPathIndex = (this.currentPathIndex + 1) % this.path.length;
             const nextPos = this.path[this.currentPathIndex];
-            
+
             this.row = nextPos.row;
             this.col = nextPos.col;
-            
+
             // Cập nhật vị trí sprite
             this.update();
         }
-        
+
         // Cập nhật ánh sáng
         this.updateLight();
     }
