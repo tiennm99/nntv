@@ -5,7 +5,7 @@
   "settings": "SETTINGS",
   "guide": "GUIDE",
   "gameDescription": "Guide the ninja through the shadows.\nAvoid light at all costs.\nRescue the princess... if you can.",
-  "instructions": "Use arrow keys, WASD, or tap to move.",
+  "instructions": "Use arrow keys or WASD to move.",
   "languageSettings": "Language",
   "english": "English",
   "vietnamese": "Vietnamese",
@@ -32,7 +32,7 @@
   "levelObjectives": "LEVEL OBJECTIVES",
   "levelObjectivesContent": "- Level 1: Navigate through the garden while avoiding guards and lights.\n- Level 2: Infiltrate the palace outer walls and find the secret entrance.\n- Level 3: Move through the palace corridors to reach the princess's chamber.\n- Level 4: Rescue the princess and escape through the secret passage.",
   "movementControls": "MOVEMENT CONTROLS",
-  "movementControlsContent": "- Arrow Keys: Move in four directions\n- WASD Keys: Alternative movement controls\n- Touch/Tap: On mobile, tap where you want to move\n- Space/Enter: Interact with objects",
+  "movementControlsContent": "- Arrow Keys: Move in four directions\n- WASD Keys: Alternative movement controls\n- Space/Enter: Interact with objects",
   "enemyTypes": "ENEMY TYPES",
   "enemyTypesContent": "- Guards: Patrol fixed routes. Avoid their line of sight.\n- Searchlights: Moving light sources that will detect you if you're caught in them.\n- Dogs: Can detect you even in darkness if you get too close.\n- Traps: Hidden dangers that can end your mission instantly."
 }

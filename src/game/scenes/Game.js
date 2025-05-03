@@ -77,9 +77,6 @@ export class Game extends Phaser.Scene {
         // Create UI (fixed to camera, not in world container)
         this.createUI();
 
-        // Create mobile controls if needed
-        this.createMobileControls();
-
         // Load level
         this.levelManager.loadLevel(this.currentLevel);
 
@@ -405,88 +402,7 @@ export class Game extends Phaser.Scene {
         this.inputEnabled = !this.isPaused;
     }
 
-    createMobileControls() {
-        // Create mobile control buttons
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
 
-        // Container for mobile controls
-        this.mobileControls = this.add.container(width / 2, height - 100);
-        this.mobileControls.setScrollFactor(0); // Fix to camera (don't move with world)
-        this.mobileControls.setDepth(1000); // Ensure controls are above other elements
-
-        // Create directional buttons
-        const buttonSize = 60;
-        const buttonSpacing = 70;
-
-        // Up button
-        const upButton = this.add.circle(0, -buttonSpacing, buttonSize / 2, 0x444444);
-        const upText = this.add.text(0, -buttonSpacing, '↑', { font: '32px Arial', fill: '#ffffff' });
-        upText.setOrigin(0.5, 0.5);
-
-        // Left button
-        const leftButton = this.add.circle(-buttonSpacing, 0, buttonSize / 2, 0x444444);
-        const leftText = this.add.text(-buttonSpacing, 0, '←', { font: '32px Arial', fill: '#ffffff' });
-        leftText.setOrigin(0.5, 0.5);
-
-        // Right button
-        const rightButton = this.add.circle(buttonSpacing, 0, buttonSize / 2, 0x444444);
-        const rightText = this.add.text(buttonSpacing, 0, '→', { font: '32px Arial', fill: '#ffffff' });
-        rightText.setOrigin(0.5, 0.5);
-
-        // Down button
-        const downButton = this.add.circle(0, buttonSpacing, buttonSize / 2, 0x444444);
-        const downText = this.add.text(0, buttonSpacing, '↓', { font: '32px Arial', fill: '#ffffff' });
-        downText.setOrigin(0.5, 0.5);
-
-        // Add buttons to container
-        this.mobileControls.add([upButton, upText, leftButton, leftText, rightButton, rightText, downButton, downText]);
-
-        // Make buttons interactive
-        upButton.setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
-                    if (this.player.move('up')) {
-                        this.turnManager.nextTurn();
-                    }
-                }
-            });
-
-        leftButton.setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
-                    if (this.player.move('left')) {
-                        this.turnManager.nextTurn();
-                    }
-                }
-            });
-
-        rightButton.setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
-                    if (this.player.move('right')) {
-                        this.turnManager.nextTurn();
-                    }
-                }
-            });
-
-        downButton.setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (!this.isPaused && this.inputEnabled && this.turnManager.isPlayerTurn) {
-                    if (this.player.move('down')) {
-                        this.turnManager.nextTurn();
-                    }
-                }
-            });
-
-        // Only show mobile controls on touch devices
-        this.mobileControls.setVisible(false);
-
-        // Check if device has touch capability
-        if (this.sys.game.device.input.touch) {
-            this.mobileControls.setVisible(true);
-        }
-    }
 
     // Helper method to convert grid coordinates to screen coordinates
     gridToScreen(row, col) {
