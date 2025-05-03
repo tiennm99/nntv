@@ -26,7 +26,7 @@ export class Game extends Phaser.Scene {
         this.inputCooldown = 0;
         this.isPaused = false;
         this.isFinalLevel = false;
-        this.cameraFollowsPlayer = true; // Enable camera following player
+        this.cameraFollowsPlayer = false; // Disable camera following player
     }
 
     init(data) {
@@ -113,21 +113,12 @@ export class Game extends Phaser.Scene {
         this.worldContainer.x = 0;
         this.worldContainer.y = 0;
 
-        // Start following the player
-        this.cameras.main.startFollow(
-            this.player.sprite,  // Target to follow
-            true,                // Round pixels
-            0.1,                 // Lerp X (smoothing)
-            0.1                  // Lerp Y (smoothing)
-        );
+        // Center the camera on the grid instead of following the player
+        const gridCenterX = this.gridOffsetX + (this.gridSize * this.cellSize) / 2;
+        const gridCenterY = this.gridOffsetY + (this.gridSize * this.cellSize) / 2;
+        this.cameras.main.centerOn(gridCenterX, gridCenterY);
 
-        // No deadzone - camera always centers on player
-        this.cameras.main.setDeadzone(0, 0);
-
-        // Set follow offset to center the player
-        this.cameras.main.followOffset.set(0, 0);
-
-        console.log("Camera setup complete - following player");
+        console.log("Camera setup complete - centered on grid");
     }
 
     update() {
@@ -146,11 +137,7 @@ export class Game extends Phaser.Scene {
                 // Update player position
                 this.player.update();
 
-                // Check if camera is not following the player
-                if (!this.cameras.main.following) {
-                    console.log("Camera not following - restarting follow");
-                    this.setupCamera();
-                }
+                // No need to check camera following anymore as we're using a static camera
             }
         }
     }
