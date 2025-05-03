@@ -7,6 +7,7 @@ import { Game } from './game/scenes/Game';
 import { GameOver } from './game/scenes/GameOver';
 import { Settings } from './game/scenes/Settings';
 import { Guide } from './game/scenes/Guide';
+import { StoryIntro } from './game/scenes/StoryIntro';
 
 const config = {
   type: Phaser.AUTO,
@@ -18,7 +19,7 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
-  scene: [Boot, Preloader, MainMenu, LevelSelect, Game, GameOver, Settings, Guide],
+  scene: [Boot, Preloader, MainMenu, StoryIntro, LevelSelect, Game, GameOver, Settings, Guide],
   physics: {
     default: 'arcade',
     arcade: {

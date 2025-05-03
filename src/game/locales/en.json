@@ -34,5 +34,8 @@
   "movementControls": "MOVEMENT CONTROLS",
   "movementControlsContent": "- Arrow Keys: Move in four directions\n- WASD Keys: Alternative movement controls\n- Space/Enter: Interact with objects",
   "enemyTypes": "ENEMY TYPES",
-  "enemyTypesContent": "- Vegetable Guards: Patrol fixed routes. Avoid their line of sight.\n- Searchlights: Moving light sources that will detect you if you're caught in them.\n- Pest Bugs: Can detect you even in darkness if you get too close.\n- Traps: Hidden dangers that can end your mission instantly."
+  "enemyTypesContent": "- Vegetable Guards: Patrol fixed routes. Avoid their line of sight.\n- Searchlights: Moving light sources that will detect you if you're caught in them.\n- Pest Bugs: Can detect you even in darkness if you get too close.\n- Traps: Hidden dangers that can end your mission instantly.",
+  "skip": "SKIP",
+  "storyTitle": "THE MISSING CARROT PRINCESS",
+  "storyText": "In the peaceful Vegetable Kingdom, where carrots, cabbages, and all manner of vegetables lived in harmony, a terrible tragedy has occurred.\n\nThe beloved Carrot Princess, daughter of King Carrot III, has mysteriously disappeared from the royal palace.\n\nThe kingdom is in chaos. The Vegetable Guards have been placed on high alert, patrolling every corner of the realm with their watchful eyes.\n\nAs the kingdom's last hope, you, a skilled ninja rabbit from the shadows, have been called upon for this dangerous mission.\n\nYou must infiltrate the heavily guarded areas, avoid detection at all costs, and rescue the missing Carrot Princess.\n\nThe fate of the Vegetable Kingdom rests in your paws...\n\nGood luck, Night Ninja!"
 }

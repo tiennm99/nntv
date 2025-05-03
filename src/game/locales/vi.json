@@ -34,5 +34,8 @@
   "movementControls": "ĐIỀU KHIỂN DI CHUYỂN",
   "movementControlsContent": "- Phím mũi tên: Di chuyển theo bốn hướng\n- Phím WASD: Điều khiển di chuyển thay thế\n- Phím Space/Enter: Tương tác với các vật thể",
   "enemyTypes": "CÁC LOẠI KẺ ĐỊCH",
-  "enemyTypesContent": "- Lính canh: Tuần tra theo tuyến đường cố định. Tránh tầm nhìn của họ.\n- Đèn pha: Nguồn sáng di chuyển sẽ phát hiện bạn nếu bạn bị bắt trong đó.\n- Chó: Có thể phát hiện bạn ngay cả trong bóng tối nếu bạn đến quá gần.\n- Bẫy: Nguy hiểm ẩn có thể kết thúc nhiệm vụ của bạn ngay lập tức."
+  "enemyTypesContent": "- Lính canh: Tuần tra theo tuyến đường cố định. Tránh tầm nhìn của họ.\n- Đèn pha: Nguồn sáng di chuyển sẽ phát hiện bạn nếu bạn bị bắt trong đó.\n- Chó: Có thể phát hiện bạn ngay cả trong bóng tối nếu bạn đến quá gần.\n- Bẫy: Nguy hiểm ẩn có thể kết thúc nhiệm vụ của bạn ngay lập tức.",
+  "skip": "BỎ QUA",
+  "storyTitle": "CÔNG CHÚA CÀ RỐT MẤT TÍCH",
+  "storyText": "Trong vương quốc Rau Củ Quả thanh bình, nơi cà rốt, bắp cải và đủ loại rau củ sống hòa thuận với nhau, một bi kịch khủng khiếp đã xảy ra.\n\nCông chúa Cà Rốt yêu quý, con gái của Vua Cà Rốt Đệ Tam, đã bí ẩn biến mất khỏi cung điện hoàng gia.\n\nVương quốc đang trong tình trạng hỗn loạn. Các Vệ Binh Rau Củ đã được đặt trong tình trạng báo động cao, tuần tra mọi ngóc ngách của vương quốc với đôi mắt cảnh giác của họ.\n\nLà hy vọng cuối cùng của vương quốc, bạn, một ninja thỏ tài năng từ bóng tối, đã được gọi đến cho nhiệm vụ nguy hiểm này.\n\nBạn phải xâm nhập vào các khu vực được canh gác nghiêm ngặt, tránh bị phát hiện bằng mọi giá, và giải cứu Công chúa Cà Rốt mất tích.\n\nSố phận của Vương quốc Rau Củ Quả nằm trong đôi bàn chân của bạn...\n\nChúc may mắn, Ninja Đêm!"
 }

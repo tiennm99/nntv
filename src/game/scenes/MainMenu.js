@@ -58,7 +58,7 @@ export class MainMenu extends Phaser.Scene {
             .on('pointerover', () => startButton.fillColor = 0x666666)
             .on('pointerout', () => startButton.fillColor = 0x444444)
             .on('pointerdown', () => {
-                this.scene.start('Game', { level: 1, lives: 3 });
+                this.scene.start('StoryIntro');
             });
 
         levelButton.setInteractive({ useHandCursor: true })
