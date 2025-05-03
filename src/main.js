@@ -10,8 +10,8 @@ import { Guide } from './game/scenes/Guide';
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1024,
+  height: 768,
   parent: 'app',
   backgroundColor: '#333333',
   scale: {

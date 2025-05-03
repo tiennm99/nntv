@@ -47,8 +47,8 @@ export class Game extends Phaser.Scene {
         this.gameCamera = this.cameras.main;
 
         // Calculate grid position to center it
-        this.gridOffsetX = (width - (this.gridSize * this.cellSize)) / 2;
-        this.gridOffsetY = (height - (this.gridSize * this.cellSize)) / 2;
+        this.gridOffsetX = Math.floor((width - (this.gridSize * this.cellSize)) / 2);
+        this.gridOffsetY = Math.floor((height - (this.gridSize * this.cellSize)) / 2);
 
         // Create grid system
         this.createGridSystem();
@@ -108,6 +108,10 @@ export class Game extends Phaser.Scene {
 
         // Set camera bounds
         this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+
+        // Ensure the world container is centered
+        this.worldContainer.x = 0;
+        this.worldContainer.y = 0;
 
         // Start following the player
         this.cameras.main.startFollow(
