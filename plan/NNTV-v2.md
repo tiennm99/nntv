@@ -30,13 +30,13 @@ The game development will follow an incremental approach:
 - **Walls**: Black squares, cannot be passed through
 - **Light Areas**: Yellow squares, cause player to lose if entered
 - **Goal**: Green square, reaching it completes the level
-- **Guards**: Different colored triangles that create light patterns
+- **Guards**: Different colored circles that create light patterns
 
 ### Guard Types (Introduce progressively)
-1. **Static Guard** (Red triangle): Always illuminates fixed cells
-2. **Rotating Guard** (Blue triangle): Rotates its light direction each turn
-3. **Blinking Guard** (Yellow triangle): Toggles its lights on/off each turn
-4. **Patrolling Guard** (Purple triangle): Moves along a predefined path
+1. **Static Guard** (Red circle): Always illuminates fixed cells
+2. **Rotating Guard** (Blue circle): Rotates its light direction each turn
+3. **Blinking Guard** (Yellow circle): Toggles its lights on/off each turn
+4. **Patrolling Guard** (Purple circle): Moves along a predefined path
 
 ### Player Controls
 - **Desktop**: Arrow keys or WASD
@@ -51,7 +51,7 @@ The game will use simple geometric shapes instead of sprites:
 - **Walls**: Black squares
 - **Player**: Black circle
 - **Goal**: Green square
-- **Guards**: Colored triangles
+- **Guards**: Colored circles
 
 No complex graphics, animations, or sounds are needed, making this a "programmer art" prototype.
 
@@ -89,7 +89,7 @@ The game will be integrated with the existing Phaser project structure:
 
 ### Using Phaser API
 - Use `this.add.rectangle()` and `this.add.circle()` for grid cells and player
-- Use `this.add.polygon()` for guards (triangles)
+- Use `this.add.circle()` for guards (circles)
 - Utilize Phaser's built-in `Container` for grouping related objects
 - Use `this.add.graphics()` for drawing grid lines and other effects
 - Implement `this.input.keyboard.createCursorKeys()` for player control
