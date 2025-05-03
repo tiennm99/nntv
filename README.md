@@ -1,10 +1,10 @@
-# Stealth Grid - A Turn-Based Stealth Game
+# Night Ninja: Twilight Voyage
 
-Stealth Grid is a turn-based stealth puzzle game where you navigate through a grid-based environment while avoiding detection by various types of guards. Your goal is to reach the exit point in each level without being caught.
+Night Ninja: Twilight Voyage is a turn-based stealth puzzle game where you play as a ninja rabbit navigating through a grid-based environment while avoiding detection by various vegetable guards. Your goal is to rescue the missing carrot princess of the vegetable kingdom.
 
 ## Game Overview
 
-In Stealth Grid, you play as a stealthy character trying to navigate through increasingly complex levels. Each level consists of a grid where:
+In Night Ninja: Twilight Voyage, you play as a ninja rabbit trying to navigate through increasingly complex levels in the vegetable kingdom to rescue the missing carrot princess. Each level consists of a grid where:
 
 - You must move from your starting position to the green goal cell
 - Gray cells represent walls that block movement
@@ -14,12 +14,12 @@ In Stealth Grid, you play as a stealthy character trying to navigate through inc
 
 ## Game Features
 
-- **Turn-based gameplay**: Each move you make triggers the guards to take their turn
+- **Turn-based gameplay**: Each move you make triggers the vegetable guards to take their turn
 - **Multiple guard types**:
-  - Static Guards (red): Light up fixed cells around them
-  - Rotating Guards (blue): Rotate and light up cells in different directions each turn
-  - Blinking Guards (yellow): Toggle their lights on and off each turn
-  - Patrolling Guards (purple): Move along predefined paths, lighting cells around them
+  - Static Vegetable Guards (red): Light up fixed cells around them
+  - Rotating Vegetable Guards (blue): Rotate and light up cells in different directions each turn
+  - Blinking Vegetable Guards (yellow): Toggle their lights on and off each turn
+  - Patrolling Pest Bugs (purple): Move along predefined paths, lighting cells around them
 - **Progressive difficulty**: 12 levels with increasing complexity and new mechanics
 - **Grid-based movement**: Move one cell at a time using arrow keys or by clicking adjacent cells
 - **Stealth mechanics**: Avoid lit cells to remain undetected
@@ -38,15 +38,15 @@ This game is built with:
 
 ## How to Play
 
-- Use **arrow keys** to move your character one cell at a time
+- Use **arrow keys** to move your rabbit character one cell at a time
 - Alternatively, **click** on an adjacent cell to move there
-- Reach the **green goal cell** to complete each level
+- Reach the **green goal cell** to complete each level and progress in your quest to rescue the missing carrot princess
 - Avoid stepping on **yellow lit cells** or you'll be detected and lose a life
-- Plan your moves carefully as each guard behaves differently:
-  - **Red guards** (Static): Always light the same cells
-  - **Blue guards** (Rotating): Change the direction they light each turn
-  - **Yellow guards** (Blinking): Turn their lights on and off each turn
-  - **Purple guards** (Patrolling): Move along a path, lighting cells around them
+- Plan your moves carefully as each vegetable guard behaves differently:
+  - **Red vegetable guards** (Static): Always light the same cells
+  - **Blue vegetable guards** (Rotating): Change the direction they light each turn
+  - **Yellow vegetable guards** (Blinking): Turn their lights on and off each turn
+  - **Purple pest bugs** (Patrolling): Move along a path, lighting cells around them
 
 ## Available Commands
 
@@ -124,19 +124,19 @@ If you want to customize your build, such as adding plugin (i.e. for loading CSS
 The game is built with a modular architecture:
 
 - **Grid System**: Manages the game grid, walls, goals, and lighting
-- **Player**: Handles player movement and detection
-- **Guards**: Different types of guards with unique behaviors
+- **Player**: Handles the rabbit character's movement and detection
+- **Vegetable Guards**: Different types of vegetable guards with unique behaviors
 - **Turn Manager**: Controls the turn-based gameplay
-- **Lighting System**: Manages which cells are lit by guards
-- **Level Manager**: Loads level data and sets up the game environment
+- **Lighting System**: Manages which cells are lit by vegetable guards
+- **Level Manager**: Loads level data and sets up the vegetable kingdom environment
 
 ## Future Enhancements
 
 Potential features for future development:
 
-- Additional guard types with new behaviors
-- Power-ups that provide temporary abilities
-- Level editor for creating custom levels
+- Additional vegetable guard types with new behaviors
+- Vegetable power-ups that provide temporary abilities
+- Level editor for creating custom vegetable kingdom levels
 - High score system
 - Sound effects and background music
 - Mobile-friendly controls
@@ -149,7 +149,7 @@ This game was built using the Phaser 3 Vite template. The template includes a lo
 
 - Built with [Phaser 3](https://phaser.io)
 - Developed as a turn-based stealth puzzle game
-- Inspired by classic stealth games
+- Inspired by classic stealth games and vegetable kingdom stories
 
 ---
 
