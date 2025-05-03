@@ -22,7 +22,7 @@ Night Ninja: Twilight Voyage là một game giải đố theo lượt dựa trê
 ## 2. THIẾT KẾ GAME
 
 ### Cốt truyện
-Công chúa Tỳ Vương của xứ sở cà rốt đã bị bắt cóc. Người chơi hóa thân thành ninja thỏ, vượt qua các màn để giải cứu công chúa. Tuy nhiên, ở màn cuối cùng, người chơi không thể tiếp cận công chúa vì toàn bộ bản đồ sẽ bật sáng khi đến gần, và game kết thúc với thông báo "Thật tiếc, kiếp này ninja không thể giải cứu công chúa rồi."
+Công chúa cà rốt của vương quốc rau củ quả bị mất tích. Người chơi hóa thân thành ninja thỏ, vượt qua các màn để giải cứu công chúa. Tuy nhiên, ở màn cuối cùng, người chơi không thể tiếp cận công chúa vì toàn bộ bản đồ sẽ bật sáng khi đến gần, và game kết thúc với thông báo "Thật tiếc, kiếp này ninja không thể giải cứu công chúa rồi."
 
 ### Gameplay
 - **Mục tiêu chính**: Vượt qua 12 màn chơi để tiếp cận công chúa

@@ -555,16 +555,16 @@ export class Game extends Phaser.Scene {
     checkFinalLevelCondition() {
         if (!this.isFinalLevel) return false;
 
-        // Kiểm tra xem người chơi có đang ở gần công chúa không
+        // Kiểm tra xem người chơi có đang ở gần công chúa cà rốt bị mất tích không
         const playerRow = this.player.row;
         const playerCol = this.player.col;
-        const goalRow = 9; // Vị trí công chúa ở màn cuối (row 9, col 9)
+        const goalRow = 9; // Vị trí công chúa cà rốt ở màn cuối (row 9, col 9)
         const goalCol = 9;
 
-        // Tính khoảng cách Manhattan từ người chơi đến công chúa
+        // Tính khoảng cách Manhattan từ người chơi đến công chúa cà rốt
         const distance = Math.abs(playerRow - goalRow) + Math.abs(playerCol - goalCol);
 
-        // Nếu người chơi đến gần công chúa (khoảng cách <= 2), kích hoạt cơ chế đặc biệt
+        // Nếu ninja thỏ đến gần công chúa cà rốt (khoảng cách <= 2), kích hoạt cơ chế đặc biệt
         if (distance <= 2) {
             // Bật sáng toàn bộ bản đồ
             this.lightUpEntireMap();
