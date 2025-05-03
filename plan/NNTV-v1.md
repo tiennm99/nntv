@@ -4,12 +4,13 @@
 
 ### Thông tin cơ bản
 - **Tên game**: Night Ninja: Twilight Voyage
-- **Thể loại**: Puzzle / Stealth
+- **Thể loại**: Puzzle / Stealth / Turn-based
 - **Nền tảng**: Web (Phaser 3 + Vite)
 - **Đối tượng người chơi**: Mọi độ tuổi, yêu thích giải đố
+- **Độ khó**: Tăng dần theo tiến trình
 
 ### Mô tả game
-Night Ninja: Twilight Voyage là một game giải đố theo lượt dựa trên lưới ô vuông. Người chơi điều khiển một ninja (hình tròn màu đen) phải vượt qua 12 màn chơi, tránh các khu vực được chiếu sáng để giải cứu công chúa. Game có giao diện tối giản với các hình học cơ bản: ô vuông màu xám (khu vực tối), ô vuông màu vàng (khu vực sáng), ô vuông màu đen (tường không thể đi qua), hình tròn đen (người chơi), và các hình tam giác với nhiều màu sắc khác nhau (đại diện cho các loại kẻ thù/trạm gác).
+Night Ninja: Twilight Voyage là một game giải đố theo lượt dựa trên lưới ô vuông. Người chơi điều khiển một ninja (hình tròn màu đen) phải vượt qua 12 màn chơi, tránh các khu vực được chiếu sáng để giải cứu công chúa. Game có giao diện tối giản với các hình học cơ bản: ô vuông màu xám (khu vực tối), ô vuông màu vàng (khu vực sáng), ô vuông màu đen (tường không thể đi qua), hình tròn đen (người chơi), và các hình tròn với nhiều màu sắc khác nhau (đại diện cho các loại kẻ thù/trạm gác).
 
 ### Các tính năng chính
 - Hệ thống 12 màn chơi với độ khó tăng dần
@@ -29,7 +30,7 @@ Công chúa Tỳ Vương của xứ sở cà rốt đã bị bắt cóc. Ngườ
   - Di chuyển theo lượt trên lưới ô vuông (mỗi lượt di chuyển 1 ô)
   - Tránh các ô vuông màu vàng (được chiếu sáng)
   - Không thể đi qua các ô vuông màu đen (tường)
-  - Các trạm gác (hình tam giác) có các pattern khác nhau để tạo ra ánh sáng
+  - Các trạm gác (hình tròn) có các pattern khác nhau để tạo ra ánh sáng
 - **Điều kiện thắng/thua**:
   - Thắng: Đến được vị trí đích của mỗi màn
   - Thua: Người chơi bước vào ô sáng hoặc hết 3 mạng
@@ -37,17 +38,25 @@ Công chúa Tỳ Vương của xứ sở cà rốt đã bị bắt cóc. Ngườ
 ### Đối tượng Game
 - **Người chơi**: Hình tròn màu đen
 - **Trạm gác/Kẻ thù**:
-  - Hình tam giác màu đỏ: Trạm gác cố định (luôn chiếu sáng các ô xác định)
-  - Hình tam giác màu xanh: Trạm gác xoay (xoay và chiếu sáng 1 ô kế bên mỗi lượt)
-  - Hình tam giác màu vàng: Trạm gác nhấp nháy (bật/tắt ánh sáng mỗi lượt)
-  - Hình tam giác màu tím: Nhân viên gác đêm (di chuyển theo đường định sẵn)
+  - Hình tròn màu đỏ: Trạm gác cố định (luôn chiếu sáng các ô xác định)
+  - Hình tròn màu xanh: Trạm gác xoay (xoay và chiếu sáng 1 ô kế bên mỗi lượt)
+  - Hình tròn màu vàng: Trạm gác nhấp nháy (bật/tắt ánh sáng mỗi lượt)
+  - Hình tròn màu tím: Nhân viên gác đêm (di chuyển theo đường định sẵn)
 - **Môi trường**:
   - Ô vuông màu xám: Khu vực tối (an toàn)
   - Ô vuông màu vàng: Khu vực sáng (nguy hiểm)
   - Ô vuông màu đen: Tường (không thể đi qua)
   - Ô vuông màu xanh lá: Điểm đích cần đến
 
-## 3. PHÁT TRIỂN THEO GIAI ĐOẠN
+## 3. CÁCH TIẾP CẬN PHÁT TRIỂN
+
+Phát triển game sẽ theo cách tiếp cận tăng dần:
+1. Đầu tiên thiết lập các cơ chế cốt lõi (di chuyển trên lưới, phát hiện ánh sáng)
+2. Tạo màn chơi cơ bản đầu tiên
+3. Dần dần giới thiệu các loại kẻ địch mới với các màn chơi tiến triển
+4. Cuối cùng, triển khai màn cuối đặc biệt với cái kết bất ngờ của game
+
+## 4. PHÁT TRIỂN THEO GIAI ĐOẠN
 
 ### Giai đoạn 1: Thiết lập cơ bản
 1. **Khởi tạo project Phaser + Vite**
@@ -110,6 +119,18 @@ Công chúa Tỳ Vương của xứ sở cà rốt đã bị bắt cóc. Ngườ
    - Tạo dữ liệu cho 12 màn với độ khó tăng dần
    - Thiết kế màn cuối với cơ chế đặc biệt
 
+   **Tiến trình màn chơi**:
+   - **Màn 1**: Di chuyển cơ bản, đến đích (không có trạm gác)
+   - **Màn 2**: Giới thiệu khu vực sáng cần tránh
+   - **Màn 3**: Giới thiệu Trạm gác cố định (màu đỏ)
+   - **Màn 4-5**: Bố cục phức tạp hơn với Trạm gác cố định
+   - **Màn 6**: Giới thiệu Trạm gác xoay (màu xanh)
+   - **Màn 7-8**: Kết hợp Trạm gác cố định và Trạm gác xoay
+   - **Màn 9**: Giới thiệu Trạm gác nhấp nháy (màu vàng)
+   - **Màn 10**: Giới thiệu Trạm gác tuần tra (màu tím)
+   - **Màn 11**: Câu đố phức tạp sử dụng tất cả loại trạm gác
+   - **Màn 12**: Màn cuối với cái kết bất ngờ (không thể giải cứu công chúa)
+
 10. **Xây dựng Level Factory**
     - Tạo class LevelFactory tạo các đối tượng trong level
     - Phương thức tạo người chơi, trạm gác từ dữ liệu
@@ -158,7 +179,154 @@ Công chúa Tỳ Vương của xứ sở cà rốt đã bị bắt cóc. Ngườ
     - Trigger toàn bộ map sáng khi gần đến công chúa
     - Thông báo kết thúc game đặc biệt
 
-## 4. CODING GUIDELINES
+## 5. CẤU TRÚC DỰ ÁN
+
+### Tổ chức tệp (Dựa trên Phaser Vite Template)
+```
+src/
+├── game/
+│   ├── objects/           # Các đối tượng game (Player, Guards, v.v.)
+│   │   ├── Player.js
+│   │   ├── Guard.js
+│   │   ├── GridSystem.js
+│   │   └── TurnManager.js
+│   ├── levels/            # Định nghĩa các màn chơi
+│   │   ├── LevelManager.js
+│   │   └── Levels.js      # Dữ liệu màn chơi
+│   └── scenes/            # Các scene Phaser
+│       ├── Boot.js        # (đã tồn tại)
+│       ├── Preloader.js   # (đã tồn tại)
+│       ├── MainMenu.js    # (đã tồn tại)
+│       ├── Game.js        # Scene game chính
+│       └── GameOver.js    # (đã tồn tại)
+```
+
+### Tích hợp với dự án hiện có
+
+Game sẽ được tích hợp với cấu trúc dự án Phaser hiện có:
+
+1. Tái sử dụng luồng scene hiện tại (Boot → Preloader → MainMenu → Game → GameOver)
+2. Thêm các đối tượng game và quản lý mới trong scene Game
+3. Mở rộng mã hiện có thay vì thay thế nó
+
+## 6. CÁC MỐC PHÁT TRIỂN
+
+### Mốc 1: Cơ chế cốt lõi
+- [x] Thiết lập dự án sử dụng Phaser + Vite
+- [ ] Triển khai hệ thống lưới
+- [ ] Di chuyển người chơi và phát hiện va chạm
+- [ ] Hệ thống quản lý lượt
+- [ ] Điều kiện thắng/thua cơ bản
+
+### Mốc 2: Cơ chế màn chơi
+- [ ] Triển khai khu vực sáng tĩnh
+- [ ] Triển khai loại trạm gác đầu tiên (Trạm gác cố định)
+- [ ] Hệ thống tải và chuyển đổi màn chơi
+- [ ] Giao diện cơ bản (mạng còn lại, màn chơi hiện tại)
+
+### Mốc 3: Các loại kẻ địch
+- [ ] Triển khai Trạm gác xoay
+- [ ] Triển khai Trạm gác nhấp nháy
+- [ ] Triển khai Trạm gác tuần tra
+- [ ] Thiết kế màn chơi 1-6 giới thiệu dần các cơ chế này
+
+### Mốc 4: Luồng game
+- [ ] Hoàn thiện thiết kế tất cả 12 màn chơi
+- [ ] Triển khai hệ thống mạng sống (3 mạng xuyên suốt tất cả màn chơi)
+- [ ] Tạo menu chính và màn hình chọn màn chơi
+- [ ] Triển khai cái kết đặc biệt cho màn cuối
+
+### Mốc 5: Hoàn thiện
+- [ ] Triển khai điều khiển cho thiết bị di động
+- [ ] Cải thiện giao diện và phản hồi
+- [ ] Màn hình game over và chiến thắng
+- [ ] Kiểm thử và sửa lỗi
+
+## 7. GHI CHÚ TRIỂN KHAI PHASER
+
+### Sử dụng Phaser API
+- Sử dụng `this.add.rectangle()` và `this.add.circle()` cho các ô lưới và người chơi
+- Sử dụng `this.add.circle()` cho các trạm gác (hình tròn)
+- Tận dụng `Container` có sẵn của Phaser để nhóm các đối tượng liên quan
+- Sử dụng `this.add.graphics()` để vẽ đường lưới và các hiệu ứng khác
+- Triển khai `this.input.keyboard.createCursorKeys()` để điều khiển người chơi
+
+### Triển khai GridSystem
+```javascript
+// Trong Game.js
+create() {
+    // Tạo các ô lưới sử dụng đối tượng Rectangle của Phaser
+    this.gridCells = [];
+    for (let row = 0; row < this.gridSize; row++) {
+        this.gridCells[row] = [];
+        for (let col = 0; col < this.gridSize; col++) {
+            const x = col * this.cellSize + this.cellSize / 2;
+            const y = row * this.cellSize + this.cellSize / 2;
+
+            // Tạo hình chữ nhật sử dụng API của Phaser
+            const cell = this.add.rectangle(x, y, this.cellSize, this.cellSize, 0x888888);
+            cell.setStrokeStyle(1, 0x000000);
+
+            // Lưu trữ dữ liệu ô
+            cell.setData('isLit', false);
+            cell.setData('isWall', false);
+            this.gridCells[row][col] = cell;
+        }
+    }
+}
+```
+
+### Triển khai Player
+```javascript
+// Trong Game.js hoặc Player.js
+createPlayer(row, col) {
+    const position = this.gridToPixel(row, col);
+    this.player = this.add.circle(
+        position.x,
+        position.y,
+        this.cellSize / 3,
+        0x000000
+    );
+    this.player.setData('row', row);
+    this.player.setData('col', col);
+}
+
+movePlayer(direction) {
+    // Tính toán vị trí mới dựa trên hướng
+    const currentRow = this.player.getData('row');
+    const currentCol = this.player.getData('col');
+
+    let newRow = currentRow;
+    let newCol = currentCol;
+
+    // Cập nhật dựa trên hướng
+    if (direction === 'up') newRow--;
+    else if (direction === 'down') newRow++;
+    else if (direction === 'left') newCol--;
+    else if (direction === 'right') newCol++;
+
+    // Kiểm tra nước đi hợp lệ
+    if (this.isValidMove(newRow, newCol)) {
+        // Cập nhật vị trí người chơi
+        this.player.setData('row', newRow);
+        this.player.setData('col', newCol);
+
+        // Di chuyển sprite người chơi
+        const newPos = this.gridToPixel(newRow, newCol);
+        this.tweens.add({
+            targets: this.player,
+            x: newPos.x,
+            y: newPos.y,
+            duration: 100
+        });
+
+        // Xử lý tiến trình lượt
+        this.nextTurn();
+    }
+}
+```
+
+## 8. CODING GUIDELINES
 
 ### Cấu trúc Scene
 
@@ -457,21 +625,16 @@ export class Guard {
         // Được override bởi subclass
     }
 
-    // Vẽ trạm gác (hình tam giác)
+    // Vẽ trạm gác (hình tròn)
     render() {
         this.graphics.clear();
 
         const { x, y } = this.grid.gridToPixel(this.row, this.col);
-        const size = this.grid.cellSize / 2;
+        const size = this.grid.cellSize / 3;
 
-        // Vẽ hình tam giác
+        // Vẽ hình tròn
         this.graphics.fillStyle(this.color);
-        this.graphics.beginPath();
-        this.graphics.moveTo(x, y - size);
-        this.graphics.lineTo(x - size, y + size);
-        this.graphics.lineTo(x + size, y + size);
-        this.graphics.closePath();
-        this.graphics.fill();
+        this.graphics.fillCircle(x, y, size);
     }
 
     update() {
