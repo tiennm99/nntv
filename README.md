@@ -1,12 +1,33 @@
-# Phaser Vite Template
+# Stealth Grid - A Turn-Based Stealth Game
 
-This is a Phaser 3 project template that uses Vite for bundling. It supports hot-reloading for quick development workflow and includes scripts to generate production-ready builds.
+Stealth Grid is a turn-based stealth puzzle game where you navigate through a grid-based environment while avoiding detection by various types of guards. Your goal is to reach the exit point in each level without being caught.
 
-**[This Template is also available as a TypeScript version.](https://github.com/phaserjs/template-vite-ts)**
+## Game Overview
 
-### Versions
+In Stealth Grid, you play as a stealthy character trying to navigate through increasingly complex levels. Each level consists of a grid where:
 
-This template has been updated for:
+- You must move from your starting position to the green goal cell
+- Gray cells represent walls that block movement
+- Colored triangles represent different types of guards that create light in certain cells
+- If you step into a lit cell, you'll be detected and lose a life
+- You have 3 lives to complete all levels
+
+## Game Features
+
+- **Turn-based gameplay**: Each move you make triggers the guards to take their turn
+- **Multiple guard types**:
+  - Static Guards (red): Light up fixed cells around them
+  - Rotating Guards (blue): Rotate and light up cells in different directions each turn
+  - Blinking Guards (yellow): Toggle their lights on and off each turn
+  - Patrolling Guards (purple): Move along predefined paths, lighting cells around them
+- **Progressive difficulty**: 12 levels with increasing complexity and new mechanics
+- **Grid-based movement**: Move one cell at a time using arrow keys or by clicking adjacent cells
+- **Stealth mechanics**: Avoid lit cells to remain undetected
+- **Lives system**: You have 3 lives to complete all levels
+
+## Versions
+
+This game is built with:
 
 - [Phaser 3.88.2](https://github.com/phaserjs/phaser)
 - [Vite 5.3.1](https://github.com/vitejs/vite)
@@ -16,6 +37,18 @@ This template has been updated for:
 ## Requirements
 
 [Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.
+
+## How to Play
+
+- Use **arrow keys** to move your character one cell at a time
+- Alternatively, **click** on an adjacent cell to move there
+- Reach the **green goal cell** to complete each level
+- Avoid stepping on **yellow lit cells** or you'll be detected and lose a life
+- Plan your moves carefully as each guard behaves differently:
+  - **Red guards** (Static): Always light the same cells
+  - **Blue guards** (Rotating): Change the direction they light each turn
+  - **Yellow guards** (Blinking): Turn their lights on and off each turn
+  - **Purple guards** (Patrolling): Move along a path, lighting cells around them
 
 ## Available Commands
 
@@ -27,8 +60,7 @@ This template has been updated for:
 | `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
 | `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
 
-
-## Writing Code
+## Development
 
 After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
 
@@ -48,7 +80,7 @@ We have provided a default project structure to get you started. This is as foll
 | `src/main.js`                | Application bootstrap.                                     |
 | `src/game`                   | Folder containing the game code.                           |
 | `src/game/main.js`           | Game entry point: configures and starts the game.          |
-| `src/game/scenes`            | Folder with all Phaser game scenes.                        | 
+| `src/game/scenes`            | Folder with all Phaser game scenes.                        |
 
 ## Handling Assets
 
@@ -89,65 +121,40 @@ In order to deploy your game, you will need to upload *all* of the contents of t
 
 If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `vite/config.*.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Vite documentation](https://vitejs.dev/) for more information.
 
-## About log.js
+## Game Architecture
 
-If you inspect our node scripts you will see there is a file called `log.js`. This file makes a single silent API call to a domain called `gryzor.co`. This domain is owned by Phaser Studio Inc. The domain name is a homage to one of our favorite retro games.
+The game is built with a modular architecture:
 
-We send the following 3 pieces of data to this API: The name of the template being used (vue, react, etc). If the build was 'dev' or 'prod' and finally the version of Phaser being used.
+- **Grid System**: Manages the game grid, walls, goals, and lighting
+- **Player**: Handles player movement and detection
+- **Guards**: Different types of guards with unique behaviors
+- **Turn Manager**: Controls the turn-based gameplay
+- **Lighting System**: Manages which cells are lit by guards
+- **Level Manager**: Loads level data and sets up the game environment
 
-At no point is any personal data collected or sent. We don't know about your project files, device, browser or anything else. Feel free to inspect the `log.js` file to confirm this.
+## Future Enhancements
 
-Why do we do this? Because being open source means we have no visible metrics about which of our templates are being used. We work hard to maintain a large and diverse set of templates for Phaser developers and this is our small anonymous way to determine if that work is actually paying off, or not. In short, it helps us ensure we're building the tools for you.
+Potential features for future development:
 
-However, if you don't want to send any data, you can use these commands instead:
+- Additional guard types with new behaviors
+- Power-ups that provide temporary abilities
+- Level editor for creating custom levels
+- High score system
+- Sound effects and background music
+- Mobile-friendly controls
 
-Dev:
+## About the Template
 
-```bash
-npm run dev-nolog
-```
+This game was built using the Phaser 3 Vite template. The template includes a logging feature that sends anonymous usage data to Phaser Studio. If you don't want to send this data, you can use the `-nolog` commands or disable the logging entirely.
 
-Build:
+## Credits
 
-```bash
-npm run build-nolog
-```
+- Built with [Phaser 3](https://phaser.io)
+- Developed as a turn-based stealth puzzle game
+- Inspired by classic stealth games
 
-Or, to disable the log entirely, simply delete the file `log.js` and remove the call to it in the `scripts` section of `package.json`:
+---
 
-Before:
+Game developed using Phaser 3. Phaser is an open source framework for Canvas and WebGL powered browser games.
 
-```json
-"scripts": {
-    "dev": "node log.js dev & dev-template-script",
-    "build": "node log.js build & build-template-script"
-},
-```
-
-After:
-
-```json
-"scripts": {
-    "dev": "dev-template-script",
-    "build": "build-template-script"
-},
-```
-
-Either of these will stop `log.js` from running. If you do decide to do this, please could you at least join our Discord and tell us which template you're using! Or send us a quick email. Either will be super-helpful, thank you.
-
-## Join the Phaser Community!
-
-We love to see what developers like you create with Phaser! It really motivates us to keep improving. So please join our community and show-off your work 😄
-
-**Visit:** The [Phaser website](https://phaser.io) and follow on [Phaser Twitter](https://twitter.com/phaser_)<br />
-**Play:** Some of the amazing games [#madewithphaser](https://twitter.com/search?q=%23madewithphaser&src=typed_query&f=live)<br />
-**Learn:** [API Docs](https://newdocs.phaser.io), [Support Forum](https://phaser.discourse.group/) and [StackOverflow](https://stackoverflow.com/questions/tagged/phaser-framework)<br />
-**Discord:** Join us on [Discord](https://discord.gg/phaser)<br />
-**Code:** 2000+ [Examples](https://labs.phaser.io)<br />
-**Read:** The [Phaser World](https://phaser.io/community/newsletter) Newsletter<br />
-
-Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, pixels and love.
-
-The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
-
-All rights reserved.
+Learn more about Phaser at [phaser.io](https://phaser.io)
