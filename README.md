@@ -32,8 +32,6 @@ This game is built with:
 - [Phaser 3.88.2](https://github.com/phaserjs/phaser)
 - [Vite 5.3.1](https://github.com/vitejs/vite)
 
-![screenshot](screenshot.png)
-
 ## Requirements
 
 [Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.

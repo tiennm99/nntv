@@ -40,8 +40,8 @@ export class LevelManager {
             // Tính toán lại vị trí lưới để căn giữa
             const width = this.scene.cameras.main.width;
             const height = this.scene.cameras.main.height;
-            this.scene.gridOffsetX = (width - (gridSize * this.scene.cellSize)) / 2;
-            this.scene.gridOffsetY = (height - (gridSize * this.scene.cellSize)) / 2;
+            this.scene.gridOffsetX = Math.floor((width - (gridSize * this.scene.cellSize)) / 2);
+            this.scene.gridOffsetY = Math.floor((height - (gridSize * this.scene.cellSize)) / 2);
 
             // Cập nhật vị trí của graphics
             this.scene.grid.graphics.x = this.scene.gridOffsetX;

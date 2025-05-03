@@ -20,3 +20,9 @@ body {
     position: relative;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
+
+/* Ensure Phaser canvas is centered */
+canvas {
+    display: block;
+    margin: 0 auto;
+}
