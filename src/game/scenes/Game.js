@@ -6,6 +6,8 @@ import { LightingSystem } from '../objects/LightingSystem';
 import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard } from '../objects/Guard';
 import { LevelManager } from '../levels/LevelManager';
 import { getText } from '../localization';
+import { COLORS, FONTS, createButton, createSmallButton } from '../theme';
+import { completeLevel } from '../progress';
 
 export class Game extends Phaser.Scene {
     constructor() {
@@ -82,6 +84,9 @@ export class Game extends Phaser.Scene {
 
         // Setup camera to follow player after level is loaded
         this.setupCamera();
+
+        // Fade in
+        this.cameras.main.fadeIn(400, 0, 0, 0);
     }
 
     setupCamera() {
@@ -202,6 +207,7 @@ export class Game extends Phaser.Scene {
             if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
                 if (this.player.moveTo(gridPos.row, gridPos.col)) {
                     this.turnManager.nextTurn();
+                    this.updateTurnDisplay();
                 }
             }
         });
@@ -233,81 +239,51 @@ export class Game extends Phaser.Scene {
         if (direction) {
             if (this.player.move(direction)) {
                 this.turnManager.nextTurn();
-                this.inputCooldown = 10; // Set cooldown to prevent multiple moves
+                this.updateTurnDisplay();
+                this.inputCooldown = 10;
             }
         }
     }
 
     createUI() {
-        // Create UI elements
         const width = this.cameras.main.width;
 
-        // Create a UI container that will be fixed to the camera
         this.uiContainer = this.add.container(0, 0);
-        this.uiContainer.setScrollFactor(0); // Fix to camera (don't move with world)
+        this.uiContainer.setScrollFactor(0);
 
         // Lives display
         this.livesText = this.add.text(20, 20, `${getText('lives')}${this.livesRemaining}`, {
-            font: '18px Arial',
-            fill: '#ffffff'
-        });
-        this.livesText.setScrollFactor(0); // Fix to camera
+            font: FONTS.ui, fill: COLORS.textPrimary,
+        }).setScrollFactor(0);
 
         // Level display
         this.levelText = this.add.text(width - 20, 20, `${getText('level')}${this.currentLevel}`, {
-            font: '18px Arial',
-            fill: '#ffffff'
-        });
-        this.levelText.setOrigin(1, 0);
-        this.levelText.setScrollFactor(0); // Fix to camera
+            font: FONTS.ui, fill: COLORS.textPrimary,
+        }).setOrigin(1, 0).setScrollFactor(0);
+
+        // Turn counter
+        this.turnText = this.add.text(20, 44, `Turns: 0`, {
+            font: FONTS.small, fill: COLORS.textSecondary,
+        }).setScrollFactor(0);
 
         // Pause button
-        this.pauseButton = this.add.rectangle(width - 20, 60, 100, 30, 0x444444);
-        this.pauseButton.setOrigin(1, 0);
-        this.pauseButton.setScrollFactor(0); // Fix to camera
-
-        this.pauseText = this.add.text(width - 70, 75, getText('pause'), {
-            font: '16px Arial',
-            fill: '#ffffff'
+        const pauseBtn = createSmallButton(this, width - 65, 60, getText('pause'), () => {
+            this.togglePause();
         });
-        this.pauseText.setOrigin(0.5, 0.5);
-        this.pauseText.setScrollFactor(0); // Fix to camera
+        [pauseBtn.border, pauseBtn.bg, pauseBtn.label].forEach(o => o.setScrollFactor(0));
 
-        this.pauseButton.setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                this.togglePause();
-            });
-
-        // Return to Main Menu button
-        this.returnButton = this.add.rectangle(width - 20, 100, 100, 30, 0x444444);
-        this.returnButton.setOrigin(1, 0);
-        this.returnButton.setScrollFactor(0); // Fix to camera
-
-        this.returnText = this.add.text(width - 70, 115, getText('menu'), {
-            font: '16px Arial',
-            fill: '#ffffff'
+        // Menu button
+        const menuBtn = createSmallButton(this, width - 65, 100, getText('menu'), () => {
+            this.scene.start('MainMenu');
         });
-        this.returnText.setOrigin(0.5, 0.5);
-        this.returnText.setScrollFactor(0); // Fix to camera
+        [menuBtn.border, menuBtn.bg, menuBtn.label].forEach(o => o.setScrollFactor(0));
 
-        this.returnButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => this.returnButton.fillColor = 0x666666)
-            .on('pointerout', () => this.returnButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
-                this.scene.start('MainMenu');
-            });
-
-        // Add all UI elements to the UI container
         this.uiContainer.add([
-            this.livesText,
-            this.levelText,
-            this.pauseButton,
-            this.pauseText,
-            this.returnButton,
-            this.returnText
+            this.livesText, this.levelText, this.turnText,
+            pauseBtn.border, pauseBtn.bg, pauseBtn.label,
+            menuBtn.border, menuBtn.bg, menuBtn.label,
         ]);
 
-        // Create pause menu (initially hidden)
         this.createPauseMenu();
     }
 
@@ -315,75 +291,37 @@ export class Game extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Create container for pause menu
         this.pauseMenu = this.add.container(width / 2, height / 2);
-        this.pauseMenu.setScrollFactor(0); // Fix to camera (don't move with world)
+        this.pauseMenu.setScrollFactor(0);
 
-        // Background
-        const bg = this.add.rectangle(0, 0, 300, 250, 0x000000, 0.8);
+        const bg = this.add.rectangle(0, 0, 300, 260, COLORS.bgOverlay, 0.85);
+        const border = this.add.rectangle(0, 0, 302, 262, COLORS.btnBorder).setFillStyle();
+        border.setStrokeStyle(2, COLORS.btnBorder);
 
-        // Title
         const title = this.add.text(0, -100, getText('paused'), {
-            font: 'bold 32px Arial',
-            fill: '#ffffff',
-            wordWrap: { width: 280 } // Enable text wrapping
+            font: FONTS.heading, fill: COLORS.textTitle, wordWrap: { width: 280 },
+        }).setOrigin(0.5, 0.5);
+
+        const makeMenuBtn = (y, text, onClick) => {
+            const btnBg = this.add.rectangle(0, y, 200, 40, COLORS.btnDefault);
+            const btnLabel = this.add.text(0, y, text, {
+                font: FONTS.buttonSmall, fill: COLORS.textPrimary, wordWrap: { width: 180 },
+            }).setOrigin(0.5, 0.5);
+            btnBg.setInteractive({ useHandCursor: true })
+                .on('pointerover', () => btnBg.fillColor = COLORS.btnHover)
+                .on('pointerout', () => btnBg.fillColor = COLORS.btnDefault)
+                .on('pointerdown', onClick);
+            return [btnBg, btnLabel];
+        };
+
+        const resumeEls = makeMenuBtn(-40, getText('resume'), () => this.togglePause());
+        const restartEls = makeMenuBtn(20, getText('restartLevel'), () => {
+            this.togglePause();
+            this.levelManager.loadLevel(this.currentLevel);
         });
-        title.setOrigin(0.5, 0.5);
+        const menuEls = makeMenuBtn(80, getText('mainMenu'), () => this.scene.start('MainMenu'));
 
-        // Resume button
-        const resumeButton = this.add.rectangle(0, -40, 200, 40, 0x444444);
-        const resumeText = this.add.text(0, -40, getText('resume'), {
-            font: '20px Arial',
-            fill: '#ffffff',
-            wordWrap: { width: 180 } // Enable text wrapping
-        });
-        resumeText.setOrigin(0.5, 0.5);
-
-        // Restart button
-        const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
-        const restartText = this.add.text(0, 20, getText('restartLevel'), {
-            font: '20px Arial',
-            fill: '#ffffff',
-            wordWrap: { width: 180 } // Enable text wrapping
-        });
-        restartText.setOrigin(0.5, 0.5);
-
-        // Main menu button
-        const menuButton = this.add.rectangle(0, 80, 200, 40, 0x444444);
-        const menuText = this.add.text(0, 80, getText('mainMenu'), {
-            font: '20px Arial',
-            fill: '#ffffff',
-            wordWrap: { width: 180 } // Enable text wrapping
-        });
-        menuText.setOrigin(0.5, 0.5);
-
-        // Add all elements to container
-        this.pauseMenu.add([bg, title, resumeButton, resumeText, restartButton, restartText, menuButton, menuText]);
-
-        // Make buttons interactive
-        resumeButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => resumeButton.fillColor = 0x666666)
-            .on('pointerout', () => resumeButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
-                this.togglePause();
-            });
-
-        restartButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => restartButton.fillColor = 0x666666)
-            .on('pointerout', () => restartButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
-                this.togglePause();
-                this.levelManager.loadLevel(this.currentLevel);
-            });
-
-        menuButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => menuButton.fillColor = 0x666666)
-            .on('pointerout', () => menuButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
-                this.scene.start('MainMenu');
-            });
-
-        // Hide pause menu initially
+        this.pauseMenu.add([bg, border, title, ...resumeEls, ...restartEls, ...menuEls]);
         this.pauseMenu.setVisible(false);
     }
 
@@ -391,6 +329,12 @@ export class Game extends Phaser.Scene {
         this.isPaused = !this.isPaused;
         this.pauseMenu.setVisible(this.isPaused);
         this.inputEnabled = !this.isPaused;
+    }
+
+    updateTurnDisplay() {
+        if (this.turnText) {
+            this.turnText.setText(`Turns: ${this.turnManager.turnCount}`);
+        }
     }
 
 
@@ -409,80 +353,47 @@ export class Game extends Phaser.Scene {
         return this.grid.pixelToGrid(x - this.gridOffsetX, y - this.gridOffsetY);
     }
 
-    // Hiển thị popup khi người chơi bị phát hiện
     showDetectionPopup() {
-        // Kiểm tra xem popup đã tồn tại chưa, nếu có thì không tạo mới
-        if (this.detectionPopup) {
-            return; // Đã có popup, không tạo thêm
-        }
+        if (this.detectionPopup) return;
 
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Tạm dừng game
         this.isPaused = true;
         this.inputEnabled = false;
 
-        // Tạo container cho popup
         this.detectionPopup = this.add.container(width / 2, height / 2);
         this.detectionPopup.setDepth(100);
-        this.detectionPopup.setScrollFactor(0); // Fix to camera (don't move with world)
-        this.detectionPopup.popup = 'detection'; // Đánh dấu container
+        this.detectionPopup.setScrollFactor(0);
 
-        // Background
-        const bg = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.8);
-        bg.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
-
-        // Thông báo
+        const bg = this.add.rectangle(0, 0, 300, 200, COLORS.bgOverlay, 0.85);
         const title = this.add.text(0, -60, getText('detected'), {
-            font: 'bold 28px Arial',
-            fill: '#FF0000',
-            wordWrap: { width: 280 } // Enable text wrapping
-        });
-        title.setOrigin(0.5, 0.5);
-        title.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
+            font: FONTS.heading, fill: COLORS.textDanger, wordWrap: { width: 280 },
+        }).setOrigin(0.5, 0.5);
 
-        // Nút chơi lại
-        const restartButton = this.add.rectangle(0, 20, 200, 40, 0x444444);
-        restartButton.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
+        const btnBg = this.add.rectangle(0, 20, 200, 40, COLORS.btnDefault);
+        const btnLabel = this.add.text(0, 20, getText('playAgain'), {
+            font: FONTS.buttonSmall, fill: COLORS.textPrimary, wordWrap: { width: 180 },
+        }).setOrigin(0.5, 0.5);
 
-        const restartText = this.add.text(0, 20, getText('playAgain'), {
-            font: '20px Arial',
-            fill: '#ffffff',
-            wordWrap: { width: 180 } // Enable text wrapping
-        });
-        restartText.setOrigin(0.5, 0.5);
-        restartText.popup = 'detection'; // Đánh dấu phần tử thuộc về popup
+        this.detectionPopup.add([bg, title, btnBg, btnLabel]);
 
-        // Thêm các phần tử vào container
-        this.detectionPopup.add([bg, title, restartButton, restartText]);
-
-        // Làm cho nút có thể tương tác
-        restartButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => restartButton.fillColor = 0x666666)
-            .on('pointerout', () => restartButton.fillColor = 0x444444)
+        btnBg.setInteractive({ useHandCursor: true })
+            .on('pointerover', () => btnBg.fillColor = COLORS.btnHover)
+            .on('pointerout', () => btnBg.fillColor = COLORS.btnDefault)
             .on('pointerdown', () => {
                 this.closeDetectionPopup();
                 this.handlePlayerCaught();
             });
     }
 
-    // Đóng popup phát hiện
     closeDetectionPopup() {
         if (this.detectionPopup) {
-            // Đảm bảo tất cả các phần tử con cũng được hủy
             this.detectionPopup.removeAll(true);
             this.detectionPopup.destroy();
             this.detectionPopup = null;
             this.isPaused = false;
             this.inputEnabled = true;
-
-            // Đảm bảo rằng tất cả các phần tử liên quan đến popup đã được xóa
-            this.children.list.forEach(child => {
-                if (child.popup && child.popup === 'detection') {
-                    child.destroy();
-                }
-            });
         }
     }
 
@@ -512,30 +423,29 @@ export class Game extends Phaser.Scene {
         }
     }
 
-    // Xử lý khi người chơi hoàn thành màn chơi
     handleLevelComplete() {
+        const totalLevels = this.levelManager.getTotalLevels();
+        completeLevel(this.currentLevel, totalLevels);
+
+        this.isPaused = true;
+        this.inputEnabled = false;
+
         const nextLevel = this.currentLevel + 1;
 
-        // Kiểm tra xem có phải màn cuối không
-        if (this.isFinalLevel) {
-            // Đây là màn cuối với cái kết đặc biệt
-            this.scene.start('GameOver', {
-                level: this.currentLevel,
-                isLastLevel: true
+        // Brief flash celebration then transition
+        this.cameras.main.flash(400, 0, 200, 100);
+        this.time.delayedCall(600, () => {
+            this.cameras.main.fadeOut(300, 0, 0, 0);
+            this.cameras.main.once('camerafadeoutcomplete', () => {
+                if (this.isFinalLevel) {
+                    this.scene.start('GameOver', { level: this.currentLevel, isLastLevel: true });
+                } else if (nextLevel > totalLevels) {
+                    this.scene.start('GameOver', { level: this.currentLevel, isLastLevel: false });
+                } else {
+                    this.scene.start('LevelIntro', { level: nextLevel, lives: this.livesRemaining });
+                }
             });
-        } else if (nextLevel > this.levelManager.getTotalLevels()) {
-            // Đã hoàn thành tất cả các màn
-            this.scene.start('GameOver', {
-                level: this.currentLevel,
-                isLastLevel: false
-            });
-        } else {
-            // Chuyển đến màn tiếp theo
-            this.scene.start('Game', {
-                level: nextLevel,
-                lives: this.livesRemaining
-            });
-        }
+        });
     }
 
     // Kiểm tra điều kiện đặc biệt cho màn cuối
@@ -570,11 +480,11 @@ export class Game extends Phaser.Scene {
         if (!this.finalLevelMessage) {
             this.finalLevelMessage = this.add.text(width / 2, height / 4,
                 getText('princessDetected'), {
-                font: 'bold 20px Arial',
-                fill: '#FF0000',
+                font: FONTS.body,
+                fill: COLORS.textDanger,
                 backgroundColor: '#000000',
                 padding: { x: 10, y: 5 },
-                wordWrap: { width: width * 0.8 } // Enable text wrapping with 80% of screen width
+                wordWrap: { width: width * 0.8 },
             });
             this.finalLevelMessage.setOrigin(0.5, 0.5);
             this.finalLevelMessage.setDepth(100);

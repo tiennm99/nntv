@@ -23,11 +23,7 @@ export class LevelManager {
 
         // Xóa các trạm gác hiện tại
         if (this.scene.guards) {
-            this.scene.guards.forEach(guard => {
-                if (guard.sprite) {
-                    guard.sprite.destroy();
-                }
-            });
+            this.scene.guards.forEach(guard => guard.destroy());
         }
         this.scene.guards = [];
 

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { COLORS } from '../theme';
 
 // Base class cho trạm gác
 export class Guard {
@@ -52,6 +53,14 @@ export class Guard {
         // Được override bởi subclass
     }
 
+    // Clean up all game objects owned by this guard
+    destroy() {
+        if (this.sprite) {
+            this.sprite.destroy();
+            this.sprite = null;
+        }
+    }
+
     // Cập nhật vị trí sprite
     update() {
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
@@ -63,28 +72,34 @@ export class Guard {
 // Trạm gác cố định
 export class StaticGuard extends Guard {
     constructor(scene, grid, row, col, litCells) {
-        super(scene, grid, row, col, 0xFF0000); // Màu đỏ
+        super(scene, grid, row, col, COLORS.guardStatic);
         this.litCells = litCells || []; // Giữ lại để tương thích với các level cũ
     }
 
     updateLight() {
-        // Luôn sáng đèn tại ô đang đứng
+        // Light the guard's own cell
         if (this.grid.isValidPosition(this.row, this.col)) {
             this.grid.setLight(this.row, this.col, true);
         }
+        // Light all defined lit cells
+        this.litCells.forEach(cell => {
+            if (this.grid.isValidPosition(cell.row, cell.col)) {
+                this.grid.setLight(cell.row, cell.col, true);
+            }
+        });
     }
 
     onTurnChange() {
-        // Static guards don't change on turns
         this.updateLight();
     }
 }
 
-// Trạm gác xoay
+// Trạm gác xoay - lights cells in facing direction, rotates each turn
 export class RotatingGuard extends Guard {
     constructor(scene, grid, row, col, startDirection) {
-        super(scene, grid, row, col, 0x0000FF); // Màu xanh
+        super(scene, grid, row, col, COLORS.guardRotating);
         this.direction = startDirection || 0; // 0: up, 1: right, 2: down, 3: left
+        this.lightRange = 2; // How many cells ahead to light
         this.directions = [
             { row: -1, col: 0 }, // up
             { row: 0, col: 1 },  // right
@@ -114,14 +129,22 @@ export class RotatingGuard extends Guard {
     }
 
     updateLight() {
-        // Chiếu sáng ô trục (ô đang đứng)
+        // Light the guard's own cell
         if (this.grid.isValidPosition(this.row, this.col)) {
             this.grid.setLight(this.row, this.col, true);
+        }
+        // Light cells in the facing direction (up to lightRange cells, stopped by walls)
+        const dir = this.directions[this.direction];
+        for (let i = 1; i <= this.lightRange; i++) {
+            const r = this.row + dir.row * i;
+            const c = this.col + dir.col * i;
+            if (!this.grid.isValidPosition(r, c) || this.grid.isWall(r, c)) break;
+            this.grid.setLight(r, c, true);
         }
     }
 
     onTurnChange() {
-        // Xoay sang hướng tiếp theo
+        // Rotate to next direction
         this.direction = (this.direction + 1) % 4;
         this.updateSpriteRotation();
         this.updateLight();
@@ -133,12 +156,16 @@ export class RotatingGuard extends Guard {
         this.directionIndicator.rotation = this.direction * Math.PI / 2;
     }
 
-    // Override phương thức update để cập nhật cả sprite và chỉ báo hướng
-    update() {
-        // Gọi phương thức update của lớp cha để cập nhật vị trí sprite
-        super.update();
+    destroy() {
+        super.destroy();
+        if (this.directionIndicator) {
+            this.directionIndicator.destroy();
+            this.directionIndicator = null;
+        }
+    }
 
-        // Cập nhật vị trí của chỉ báo hướng
+    update() {
+        super.update();
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
         this.directionIndicator.x = x;
         this.directionIndicator.y = y;
@@ -148,18 +175,17 @@ export class RotatingGuard extends Guard {
 // Trạm gác nhấp nháy
 export class BlinkingGuard extends Guard {
     constructor(scene, grid, row, col, litCells, startState) {
-        super(scene, grid, row, col, 0xFFFF00); // Màu vàng
+        super(scene, grid, row, col, COLORS.guardBlinking);
         this.litCells = litCells || [];
         this.isOn = startState !== undefined ? startState : true;
 
         // Cập nhật màu sắc ban đầu dựa trên trạng thái
         if (!this.isOn) {
-            this.sprite.fillColor = 0xAAAA00; // Màu vàng tối khi tắt
+            this.sprite.fillColor = COLORS.guardBlinkingOff;
         }
     }
 
     updateLight() {
-        // Chỉ chiếu sáng khi đang bật
         if (this.isOn) {
             this.litCells.forEach(cell => {
                 if (this.grid.isValidPosition(cell.row, cell.col)) {
@@ -170,15 +196,8 @@ export class BlinkingGuard extends Guard {
     }
 
     onTurnChange() {
-        // Đảo trạng thái bật/tắt
         this.isOn = !this.isOn;
-
-        // Cập nhật màu sắc của sprite
-        if (this.isOn) {
-            this.sprite.fillColor = 0xFFFF00; // Màu vàng khi bật
-        } else {
-            this.sprite.fillColor = 0xAAAA00; // Màu vàng tối khi tắt
-        }
+        this.sprite.fillColor = this.isOn ? COLORS.guardBlinking : COLORS.guardBlinkingOff;
 
         this.updateLight();
     }
@@ -187,7 +206,7 @@ export class BlinkingGuard extends Guard {
 // Trạm gác tuần tra
 export class PatrollingGuard extends Guard {
     constructor(scene, grid, startRow, startCol, path) {
-        super(scene, grid, startRow, startCol, 0x800080); // Màu tím
+        super(scene, grid, startRow, startCol, COLORS.guardPatrolling);
         this.path = path || [];
         this.currentPathIndex = 0;
         this.litCells = []; // Các ô xung quanh vị trí hiện tại
@@ -356,12 +375,16 @@ export class PatrollingGuard extends Guard {
         this.updateSpriteRotation();
     }
 
-    // Override phương thức update để cập nhật cả sprite và chỉ báo hướng
-    update() {
-        // Gọi phương thức update của lớp cha để cập nhật vị trí sprite
-        super.update();
+    destroy() {
+        super.destroy();
+        if (this.directionIndicator) {
+            this.directionIndicator.destroy();
+            this.directionIndicator = null;
+        }
+    }
 
-        // Cập nhật vị trí của chỉ báo hướng
+    update() {
+        super.update();
         const { x, y } = this.scene.gridToScreen(this.row, this.col);
         this.directionIndicator.x = x;
         this.directionIndicator.y = y;

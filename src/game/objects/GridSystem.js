@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { COLORS } from '../theme';
 
 export class GridSystem {
     constructor(scene, rows, cols, cellSize) {
@@ -110,25 +111,18 @@ export class GridSystem {
 
                 // Draw cell background
                 if (cell.isWall) {
-                    // Wall cells
-                    this.graphics.fillStyle(0x666666);
-                    this.graphics.fillRect(x, y, this.cellSize, this.cellSize);
+                    this.graphics.fillStyle(COLORS.gridWall);
                 } else if (cell.isGoal) {
-                    // Goal cells
-                    this.graphics.fillStyle(0x00FF00);
-                    this.graphics.fillRect(x, y, this.cellSize, this.cellSize);
+                    this.graphics.fillStyle(COLORS.gridGoal);
                 } else if (cell.isLight) {
-                    // Lit cells - make them more visible with a brighter yellow
-                    this.graphics.fillStyle(0xFFFF00);
-                    this.graphics.fillRect(x, y, this.cellSize, this.cellSize);
+                    this.graphics.fillStyle(COLORS.gridLit);
                 } else {
-                    // Empty cells
-                    this.graphics.fillStyle(0x333333);
-                    this.graphics.fillRect(x, y, this.cellSize, this.cellSize);
+                    this.graphics.fillStyle(COLORS.gridEmpty);
                 }
+                this.graphics.fillRect(x, y, this.cellSize, this.cellSize);
 
                 // Draw cell border
-                this.graphics.lineStyle(1, 0x444444);
+                this.graphics.lineStyle(1, COLORS.gridBorder);
                 this.graphics.strokeRect(x, y, this.cellSize, this.cellSize);
             }
         }

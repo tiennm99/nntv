@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { getText } from '../localization';
+import { COLORS, FONTS, createButton } from '../theme';
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -10,78 +11,63 @@ export class MainMenu extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Add game title
-        const title = this.add.text(width / 2, height / 4, getText('gameTitle'), {
-            font: 'bold 32px Arial',
-            fill: '#ffffff',
-            align: 'center'
+        // Dark background
+        this.add.rectangle(width / 2, height / 2, width, height, COLORS.bgDark);
+
+        // Subtle starfield decoration
+        for (let i = 0; i < 40; i++) {
+            const sx = Phaser.Math.Between(0, width);
+            const sy = Phaser.Math.Between(0, height);
+            const alpha = Phaser.Math.FloatBetween(0.1, 0.5);
+            const size = Phaser.Math.Between(1, 2);
+            this.add.circle(sx, sy, size, 0xffffff, alpha);
+        }
+
+        // Title
+        const title = this.add.text(width / 2, height / 5, getText('gameTitle'), {
+            font: FONTS.title,
+            fill: COLORS.textTitle,
+            align: 'center',
         });
         title.setOrigin(0.5, 0.5);
 
-        // Add ninja icon
-        const ninjaCircle = this.add.circle(width / 2, height / 2 - 50, 30, 0x000000);
+        // Ninja icon with glow
+        this.add.circle(width / 2, height / 5 + 70, 24, COLORS.btnBorder, 0.3);
+        this.add.circle(width / 2, height / 5 + 70, 18, COLORS.player);
 
-        // Add start button
-        const startButton = this.add.rectangle(width / 2, height / 2 + 20, 200, 50, 0x444444);
-        const startText = this.add.text(width / 2, height / 2 + 20, getText('startGame'), {
-            font: '24px Arial',
-            fill: '#ffffff'
-        });
-        startText.setOrigin(0.5, 0.5);
+        // Menu buttons
+        const btnY = height / 2 + 20;
+        const gap = 62;
 
-        // Add level select button
-        const levelButton = this.add.rectangle(width / 2, height / 2 + 80, 200, 50, 0x444444);
-        const levelText = this.add.text(width / 2, height / 2 + 80, getText('levelSelect'), {
-            font: '24px Arial',
-            fill: '#ffffff'
-        });
-        levelText.setOrigin(0.5, 0.5);
-
-        // Add guide button
-        const guideButton = this.add.rectangle(width / 2, height / 2 + 140, 200, 50, 0x444444);
-        const guideText = this.add.text(width / 2, height / 2 + 140, getText('guide'), {
-            font: '24px Arial',
-            fill: '#ffffff'
-        });
-        guideText.setOrigin(0.5, 0.5);
-
-        // Add settings button
-        const settingsButton = this.add.rectangle(width / 2, height / 2 + 200, 200, 50, 0x444444);
-        const settingsText = this.add.text(width / 2, height / 2 + 200, getText('settings'), {
-            font: '24px Arial',
-            fill: '#ffffff'
-        });
-        settingsText.setOrigin(0.5, 0.5);
-
-        // Make buttons interactive
-        startButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => startButton.fillColor = 0x666666)
-            .on('pointerout', () => startButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
+        createButton(this, width / 2, btnY, getText('startGame'), () => {
+            this.cameras.main.fadeOut(300, 0, 0, 0);
+            this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start('StoryIntro');
             });
+        });
 
-        levelButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => levelButton.fillColor = 0x666666)
-            .on('pointerout', () => levelButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
+        createButton(this, width / 2, btnY + gap, getText('levelSelect'), () => {
+            this.cameras.main.fadeOut(300, 0, 0, 0);
+            this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start('LevelSelect');
             });
+        });
 
-        guideButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => guideButton.fillColor = 0x666666)
-            .on('pointerout', () => guideButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
+        createButton(this, width / 2, btnY + gap * 2, getText('guide'), () => {
+            this.cameras.main.fadeOut(300, 0, 0, 0);
+            this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start('Guide');
             });
+        });
 
-        settingsButton.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => settingsButton.fillColor = 0x666666)
-            .on('pointerout', () => settingsButton.fillColor = 0x444444)
-            .on('pointerdown', () => {
+        createButton(this, width / 2, btnY + gap * 3, getText('settings'), () => {
+            this.cameras.main.fadeOut(300, 0, 0, 0);
+            this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start('Settings');
             });
+        });
 
-
+        // Fade in
+        this.cameras.main.fadeIn(400, 0, 0, 0);
     }
 }
