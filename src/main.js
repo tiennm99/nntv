@@ -8,18 +8,19 @@ import { GameOver } from './game/scenes/GameOver';
 import { Settings } from './game/scenes/Settings';
 import { Guide } from './game/scenes/Guide';
 import { StoryIntro } from './game/scenes/StoryIntro';
+import { LevelIntro } from './game/scenes/LevelIntro';
 
 const config = {
   type: Phaser.AUTO,
   width: 1024,
   height: 768,
   parent: 'app',
-  backgroundColor: '#333333',
+  backgroundColor: '#0a0a1a',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
-  scene: [Boot, Preloader, MainMenu, StoryIntro, LevelSelect, Game, GameOver, Settings, Guide],
+  scene: [Boot, Preloader, MainMenu, StoryIntro, LevelSelect, LevelIntro, Game, GameOver, Settings, Guide],
   physics: {
     default: 'arcade',
     arcade: {
