@@ -5,10 +5,11 @@
 **Night Ninja: Twilight Voyage (NNTV)** is a turn-based stealth puzzle browser game where players control a ninja rabbit navigating grid-based levels to rescue the Carrot Princess from the Vegetable Kingdom.
 
 ### Core Concept
-- Turn-based grid movement with real-time lighting detection
-- Multiple guard AI types with distinct behaviors
-- Progressive difficulty across 12 levels
+- Turn-based grid movement with lighting-based detection
+- 5 guard AI types with distinct behaviors
+- Progressive difficulty across 12 levels in 6 acts
 - Bilingual support (English/Vietnamese)
+- Narrative twist ending with escalating detection mechanic
 
 ### Target Audience
 - Casual puzzle game players (10+)
@@ -17,8 +18,8 @@
 
 ### Platform
 - Web browser (desktop, responsive)
-- Technology: Phaser 3.88.2 + Vite 6.3.6
-- Languages: Vanilla JavaScript (ES modules)
+- Technology: Svelte 5 + Vite 6.x
+- Languages: JavaScript (ES modules) + Svelte components
 
 ## Product Development Requirements
 
@@ -26,69 +27,88 @@
 
 | Requirement | Description | Status |
 |---|---|---|
-| Grid-based Movement | Player moves one cell per turn via arrow keys or mouse click | Complete |
-| Guard AI System | Four distinct guard types (Static, Rotating, Blinking, Patrolling) | Complete |
+| Grid-based Movement | Player moves one cell per turn via arrow keys, WASD, or cell click | Complete |
+| Guard AI System | 5 guard types (Static, Rotating, Blinking, Patrolling, Mirror) | Complete |
+| Mirror Reflection | Rotating guard beams bounce off mirror guards at 90 degrees | Complete |
 | Detection System | Players lose a life when stepping on lit cells | Complete |
-| Level Progression | 12 difficulty-scaled levels with persistent progress tracking | Complete |
-| Win Condition | Reach goal cell to advance; complete all 12 levels to win | Complete |
+| Level Progression | 12 difficulty-scaled levels with localStorage progress tracking | Complete |
+| Win Condition | Reach goal cell to advance; level 12 is unbeatable (narrative twist) | Complete |
 | Lives System | 3 lives per play session; game over at zero lives | Complete |
+| Escalating Detection | Level 12: light radiates outward from princess when player approaches | Complete |
 
 ### Non-Functional Requirements
 
 | Requirement | Description | Status |
 |---|---|---|
 | Localization | English and Vietnamese via localStorage persistence | Complete |
-| UI/UX Consistency | Centralized theme (colors, fonts, button styles) | Complete |
-| Asset Management | Vite module imports for sprites and static assets | Complete |
-| Performance | 60 FPS gameplay on modern browsers (Phaser default) | Complete |
-| Browser Support | Phaser AUTO type (Canvas/WebGL auto-detection) | Complete |
+| UI/UX Consistency | CSS variables theme (colors, fonts, button styles) | Complete |
+| Svelte 5 Reactivity | renderVersion counter pattern for class instance mutations | Complete |
+| Performance | Lightweight Svelte 5 rendering, no heavy framework overhead | Complete |
+| Browser Support | Modern browsers with ES module support | Complete |
 
 ### User Interface Components
 
-- **Main Menu**: Start game, settings, guide
-- **Level Select**: View unlocked levels, track progress
+- **Main Menu**: Start game, level select, settings, guide
+- **Story Intro**: Scrolling narrative with skip option
+- **Level Intro**: Level name, story text, continue button
+- **Level Select**: Grid of level buttons with lock/complete states
 - **Game HUD**: Current level, lives remaining, turn count
+- **Game Board**: Grid cells rendered via Svelte component
 - **Settings Panel**: Language toggle (EN/VI)
-- **Guide/Instructions**: Game rules and controls
-- **Game Over Screen**: Retry level or return to menu
+- **Guide**: Game rules, controls, enemy types
+- **Detection Popup**: Retry prompt on detection
+- **Pause Menu**: Resume, restart, main menu
+- **Game Over Screen**: Retry or return to menu
 
 ### Game Mechanics
 
 **Turn Cycle:**
-1. Player executes move (arrow keys/mouse)
-2. Grid updates player position
+1. Player executes move (arrow keys / WASD / cell click)
+2. Player position updates (validated against walls/bounds)
 3. Guards execute turn actions (rotate, blink, patrol)
 4. Lighting system recalculates lit cells
 5. Detection check: if player on lit cell, lose life + restart level
-6. Advance to goal: level complete, unlock next level
+6. Goal check (before guard update): level complete, unlock next
 
 **Guard Behaviors:**
-- **Static**: Lights fixed adjacent cells every turn
-- **Rotating**: Rotates light direction 90° each turn
-- **Blinking**: Toggles lights on/off each turn
-- **Patrolling**: Moves along predefined path, lights adjacent cells
-- **Level 12 Special**: Princess detection at distance 2, full map illuminate
+- **Static (red)**: Lights fixed adjacent cells every turn
+- **Rotating (blue)**: Rotates light direction 90 degrees each turn, casts beam of 2 cells
+- **Blinking (yellow)**: Toggles lights on/off each turn
+- **Patrolling (purple)**: Moves along predefined path, lights front + right cells
+- **Mirror (green)**: Redirects rotating guard beams 90 degrees (cw or ccw)
+- **Level 12 Special**: Princess detection — light radiates from goal at distance 4, expanding 1 ring per turn
+
+### Level Progression (6 Acts)
+
+| Act | Levels | Focus |
+|-----|--------|-------|
+| 1: Outskirts | 1-2 | Movement basics + static guards |
+| 2: Garden | 3-4 | Walls as shields + rotating guards |
+| 3: Fortress | 5-6 | Blinking guards + timing puzzles |
+| 4: Underground | 7-8 | Patrolling guards + path prediction |
+| 5: Palace | 9-11 | Combinations, decoy paths, mirror guards |
+| 6: Chamber | 12 | Narrative twist with escalating detection |
 
 ### Success Metrics
 
-- All 12 levels completable without game crashes
+- All 11 levels completable without game crashes (level 12 is intentionally unbeatable)
 - Turn-based mechanics execute without delay
-- No memory leaks during 30+ minute gameplay sessions
-- UI responsive to all input methods (keyboard, mouse, touch)
-- Localization string coverage >= 95%
+- No memory leaks during extended gameplay sessions
+- UI responsive to all input methods (keyboard, mouse)
+- Localization string coverage 100%
 
 ### Technical Constraints
 
-- Vanilla JavaScript only (no frameworks beyond Phaser)
-- Grid size capped at 10x10 for performance
-- Max 8 guards per level (lighting system performance)
-- Phaser 3.x compatibility required
-- ES modules only (no CommonJS)
+- Svelte 5 runes mode (`$state`, `$derived`, `$props`)
+- Class instances require `renderVersion` pattern for reactivity
+- Grid size capped at 10x10
+- Max 8 guards per level
+- ES modules only
 
 ## Project Status
 
-**Current Version:** 0.0.1  
-**Repository:** GitHub (private)  
+**Current Version:** 0.1.0
+**Repository:** GitHub
 **Last Updated:** 2026-04-12
 
-All core gameplay features implemented and functional. Project ready for content expansion and quality assurance testing.
+All core gameplay features implemented. Svelte 5 rewrite complete with reactivity fix, mirror guard mechanic, redesigned level progression, and escalating final level twist.

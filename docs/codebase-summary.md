@@ -2,281 +2,190 @@
 
 ## Overview
 
-NNTV is a turn-based stealth puzzle game built with Phaser 3.88.2 and Vite 6.3.6. The codebase is organized into reusable modules with clear separation of concerns: scenes manage UI/flow, game objects handle logic, and utilities provide cross-cutting functionality.
-
-**Total Files:** 21 JavaScript modules + 2 JSON locale files + config files
+NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The codebase separates pure JS game engine (classes in `lib/game/`) from Svelte rendering (scenes + components). State flows one-way: game classes mutate internally, then `renderVersion++` triggers Svelte re-derivation.
 
 ## Module Inventory
 
 ### Entry Point
-- **src/main.js** (35 lines)
-  - Phaser game initialization
-  - Scene registration (8 scenes in order)
-  - Canvas size: 1024x768, scale mode FIT
-  - Arcade physics disabled (grid-based movement only)
+- **src/main.js** — Mounts `App.svelte` into `#app`
 
-### Game Scenes (src/game/scenes/)
+### Scene Router
+- **src/App.svelte** — `{#key currentScene}` with `transition:fade`, passes `navigate` function as prop to all scenes
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| Boot.js | ~40 | System initialization |
-| Preloader.js | ~60 | Asset loading (sprites, audio) |
-| MainMenu.js | ~100 | Start game, settings, guide buttons |
-| StoryIntro.js | ~50 | Opening narrative sequence |
-| LevelSelect.js | ~120 | Level list, progress display, level launch |
-| Game.js | ~300 | Main gameplay loop, UI, input handling |
-| GameOver.js | ~80 | Loss screen, retry/menu options |
-| Settings.js | ~70 | Language toggle, preferences |
-| Guide.js | ~90 | Instructions, controls, gameplay rules |
+### Scenes (src/scenes/)
 
-### Core Game Objects (src/game/objects/)
+| File | Purpose |
+|------|---------|
+| MainMenu.svelte | Start game, level select, settings, guide |
+| StoryIntro.svelte | Scrolling narrative with skip button |
+| LevelIntro.svelte | Level name + story text + continue |
+| LevelSelect.svelte | 4x3 grid of level buttons (locked/unlocked/completed) |
+| Game.svelte | Main gameplay: state owner, input, turn loop, rendering |
+| GameOver.svelte | Loss/twist screen, retry/menu |
+| Settings.svelte | Language toggle (EN/VI) |
+| Guide.svelte | Rules, controls, enemy types |
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| GridSystem.js | ~100 | Grid state management, cell queries, rendering |
-| Player.js | ~80 | Ninja rabbit logic, movement, detection |
-| Guard.js | ~150 | Base Guard class + 4 subclasses (Static, Rotating, Blinking, Patrolling) |
-| TurnManager.js | ~60 | Turn cycle execution, detection checks |
-| LightingSystem.js | ~50 | Light aggregation from guards, rendering |
+### Components (src/components/)
 
-### Level Management (src/game/levels/)
+| File | Purpose |
+|------|---------|
+| Button.svelte | Reusable styled button |
+| GameBoard.svelte | CSS grid rendering of cells |
+| GameHud.svelte | Level, lives, turns display bar |
+| PlayerSprite.svelte | Absolutely positioned player div |
+| GuardSprite.svelte | Colored circle (or diamond for mirror) |
+| DetectionPopup.svelte | "Detected!" overlay with retry |
+| PauseMenu.svelte | Resume / restart / main menu |
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| Levels.js | ~450 | 12 level definitions (grid size, guards, walls, goals) |
-| LevelManager.js | ~60 | Load/initialize level by ID |
-| LevelTester.js | ~80 | Debug utility for testing levels |
+### Game Engine (src/lib/game/) — Pure JS, no Svelte
 
-### Utilities & Configuration (src/game/)
+| File | Purpose |
+|------|---------|
+| grid-system.js | GridSystem class: cell state, walls, goals, lighting |
+| player.js | Player class: position, movement validation |
+| guards.js | Guard base + 5 subclasses (Static, Rotating, Blinking, Mirror, Patrolling) |
+| turn-manager.js | TurnManager: turn cycle, guard updates, detection |
+| level-manager.js | loadLevel(): instantiate grid, player, guards from level data |
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| theme.js | ~71 | COLORS, FONTS constants; button factory functions |
-| localization.js | ~60 | Multi-language string management (EN/VI) |
-| progress.js | ~43 | Level completion tracking via localStorage |
+### Level Data (src/lib/levels/)
 
-### Localization (src/game/locales/)
+| File | Purpose |
+|------|---------|
+| levels.js | LEVELS array: 12 level definitions (grid, guards, walls, goals) |
+
+### Utilities (src/lib/)
+
+| File | Purpose |
+|------|---------|
+| localization.js | getText/setLanguage/getLanguage/initLanguage |
+| progress.js | getProgress/completeLevel via localStorage |
+
+### Localization (src/lib/locales/)
 
 | File | Keys | Purpose |
 |------|------|---------|
-| en.json | ~50 | English translations (titles, buttons, messages) |
-| vi.json | ~50 | Vietnamese translations (parallel structure) |
+| en.json | ~55 | English translations |
+| vi.json | ~55 | Vietnamese translations |
+
+### Styles (src/styles/)
+
+| File | Purpose |
+|------|---------|
+| theme.css | CSS variables: colors, fonts, guard colors, grid colors |
 
 ## Class Hierarchy
 
 ### Guard Inheritance
 
 ```
-Guard (abstract)
-  ├─ StaticGuard (always light same cells)
-  ├─ RotatingGuard (rotate direction 90° per turn)
-  ├─ BlinkingGuard (toggle lights on/off)
-  └─ PatrollingGuard (move on path, light adjacent)
-```
-
-All guards share:
-- Constructor params: `scene, grid, row, col, color`
-- Methods: `createSprite()`, `destroy()`, `update()`
-- Abstract methods (subclass override): `updateLight()`, `onTurnChange()`
-- Sprite: Phaser circle object (colored by type)
-
-### Scene Inheritance
-
-All inherit from `Phaser.Scene`:
-```
-Phaser.Scene
-  ├─ Boot (init phase)
-  ├─ Preloader (asset loading)
-  ├─ MainMenu (UI hub)
-  ├─ StoryIntro (narrative)
-  ├─ LevelSelect (level navigation)
-  ├─ Game (gameplay)
-  ├─ GameOver (loss/retry)
-  ├─ Settings (preferences)
-  └─ Guide (help)
+Guard (abstract base: grid, row, col, type, direction, isOn)
+├── StaticGuard    — lights fixed litCells array
+├── RotatingGuard  — rotates beam 90°/turn, castBeam with mirror bounce
+├── BlinkingGuard  — toggles isOn, lights litCells when on
+├── MirrorGuard    — lights own cell, stores reflectDirection (cw/ccw)
+└── PatrollingGuard — follows path array, lights front + right cells
 ```
 
 ## Key Data Structures
 
-### Level Object
+### Level Definition
 ```javascript
 {
-  id: 1,                              // 1-12
-  name: "First Steps",
+  id: 1, name: "Garden Path", storyKey: "level1Story",
   grid: { rows: 6, cols: 6 },
   player: { row: 0, col: 0 },
   goal: { row: 5, col: 5 },
   walls: [{ row: 1, col: 1 }, ...],
   guards: [
-    { type: "static", position: {...}, litCells: [...] },
-    { type: "rotating", position: {...}, direction: 0 },
-    ...
-  ]
+    { type: "static", position: { row: 2, col: 4 }, litCells: [...] },
+    { type: "rotating", position: { row: 3, col: 3 }, startDirection: 0 },
+    { type: "blinking", position: {...}, litCells: [...], startState: true },
+    { type: "mirror", position: {...}, reflectDirection: "cw" },
+    { type: "patrolling", startPosition: {...}, path: [...] },
+  ],
+  isFinalLevel: false
 }
 ```
 
 ### Cell State
 ```javascript
-{
-  isWall: boolean,
-  isGoal: boolean,
-  isLight: boolean
-}
+{ isWall: boolean, isGoal: boolean, isLight: boolean }
 ```
 
-### Progress Object
+### Progress (localStorage)
 ```javascript
-{
-  maxLevel: 1,                    // Highest unlocked level
-  completedLevels: [1, 2, 3]     // Array of completed level IDs
-}
+{ maxLevel: 1, completedLevels: [1, 2, 3] }
+```
+
+## Public API Summary
+
+### GridSystem
+```
+new GridSystem(rows, cols, cellSize)
+.isValidPosition(row, col), .isWall(row, col), .setWall(row, col, value)
+.isGoal(row, col), .setGoal(row, col, value)
+.isLight(row, col), .setLight(row, col, value)
+.clearAllLight(), .getAllCells() → [{row, col, isWall, isGoal, isLight}]
+```
+
+### Player
+```
+new Player(grid, row, col)
+.move(direction) → boolean, .moveTo(row, col) → boolean
+.isInLitCell() → boolean, .isAtGoal() → boolean
+```
+
+### Guards
+```
+All: .updateLight(allGuards?), .onTurnChange(allGuards?)
+RotatingGuard: .castBeam(dir, fromRow, fromCol, range, allGuards, depth)
+PatrollingGuard: .checkIfCircularPath(), path traversal with reversing
+MirrorGuard: .reflectDirection ('cw' or 'ccw')
+```
+
+### TurnManager
+```
+new TurnManager()
+.nextTurn(grid, player, guards) → { detected, levelComplete }
+.reset()
 ```
 
 ## Dependencies
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| phaser | 3.88.2 | Game framework (rendering, physics, input) |
+| svelte | 5.x | UI framework (runes mode) |
 | vite | 6.3.6 | Build tool, dev server |
-| terser | 5.39.0 | JS minification (prod build) |
-
-## Public API Summary
-
-### GridSystem
-```javascript
-new GridSystem(scene, rows, cols, cellSize)
-.isValidPosition(row, col) → boolean
-.isWall(row, col) → boolean
-.setWall(row, col, value)
-.isGoal(row, col) → boolean
-.setGoal(row, col, value)
-.isLight(row, col) → boolean
-.setLight(row, col, value)
-.render(offsetX, offsetY, cellSize)
-```
-
-### Player
-```javascript
-new Player(scene, grid, row, col)
-.move(newRow, newCol) → boolean
-.update()
-.destroy()
-```
-
-### Guard (Base)
-```javascript
-new Guard(scene, grid, row, col, color)
-.createSprite()
-.updateLight()        // Override in subclass
-.onTurnChange()       // Override in subclass
-.destroy()
-.update()
-```
-
-### TurnManager
-```javascript
-new TurnManager(scene)
-.nextTurn()           // Execute guard actions, detect collision
-.reset()
-```
-
-### LightingSystem
-```javascript
-new LightingSystem(scene, grid)
-.clearAllLight()
-.updateLightFromGuards(guards)
-```
-
-### Localization
-```javascript
-getText(key) → string         // Get current language text
-setLanguage(lang) → boolean   // 'en' or 'vi'
-getLanguage() → string
-initLanguage()                // Load from localStorage
-```
-
-### Progress
-```javascript
-getProgress() → { maxLevel, completedLevels }
-completeLevel(levelNum, totalLevels) → updated progress
-```
+| @sveltejs/vite-plugin-svelte | 6.x | Svelte compiler for Vite |
 
 ## File Dependency Map
 
 ```
-main.js
-  └─ Boot, Preloader, MainMenu, StoryIntro, LevelSelect, Game, GameOver, Settings, Guide
+main.js → App.svelte
+App.svelte → all scenes
 
-Game.js
-  ├─ GridSystem
-  ├─ Player
-  ├─ Guard (+ 4 subclasses)
-  ├─ TurnManager
-  ├─ LightingSystem
-  ├─ LevelManager → Levels
-  ├─ localization
-  ├─ theme
-  └─ progress
+Game.svelte (central hub)
+  ├── lib/game/level-manager.js → grid-system, player, guards, levels
+  ├── lib/game/turn-manager.js
+  ├── lib/progress.js
+  ├── lib/localization.js
+  ├── components/GameBoard, PlayerSprite, GuardSprite, GameHud
+  ├── components/DetectionPopup, PauseMenu
+  └── renderVersion pattern for reactivity
 
-LevelManager.js
-  └─ Levels
-
-LevelSelect.js
-  ├─ LevelManager
-  ├─ progress
-  ├─ localization
-  └─ theme
-
-All Scenes
-  ├─ localization (for UI text)
-  ├─ theme (for colors, fonts, buttons)
-  └─ progress (for tracking)
+LevelSelect.svelte → levels.js, progress.js, localization.js
+LevelIntro.svelte → levels.js, localization.js
+All scenes → localization.js (for UI text)
 ```
-
-## Configuration Files
-
-| File | Purpose |
-|------|---------|
-| vite/config.dev.mjs | Dev server config (hot reload, logging) |
-| vite/config.prod.mjs | Prod build config (minify, optimize) |
-| index.html | Entry HTML, Phaser div target (#app) |
-| public/style.css | Global styles (layout, responsive) |
-| package.json | Dependencies, npm scripts |
-
-## Asset Organization
-
-- **public/assets/**: Static sprites, audio, images (served directly)
-- **Imported in Preloader.js**: Load via Phaser loader
-- **Vite bundling**: ES module imports for bundled assets
-
-## Build Output
-
-**Dev Mode:** `npm run dev`
-- Source maps enabled
-- Hot module reload
-- Dev logging active
-
-**Prod Mode:** `npm run build`
-- Minified JS (terser)
-- Assets optimized
-- Output to `dist/` directory
 
 ## Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total JS Lines | ~2,100 |
-| Number of Classes | 12 (8 scenes + 4 objects) |
-| Number of Levels | 12 |
-| Localization Keys | ~50 |
+| Total Source Files | ~20 (8 scenes + 7 components + 5 engine + utils) |
+| Number of Classes | 7 (GridSystem, Player, Guard + 5 subclasses, TurnManager) |
+| Number of Levels | 12 (across 6 acts) |
+| Guard Types | 5 (Static, Rotating, Blinking, Mirror, Patrolling) |
+| Localization Keys | ~55 per language |
 | Max Grid Size | 10x10 |
 | Max Guards/Level | 8 |
-| Browser Support | All (Phaser AUTO) |
-
-## Code Quality Notes
-
-- **No external frameworks** beyond Phaser (pure vanilla JS + ES modules)
-- **Consistent patterns**: Guard inheritance, scene lifecycle, utility exports
-- **Error handling**: Try-catch in localStorage, null checks for dynamic objects
-- **Localization**: Full coverage EN/VI, fallback to English
-- **Performance**: Synchronous turn system, optimized lighting calculations
