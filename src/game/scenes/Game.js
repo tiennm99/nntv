@@ -32,9 +32,16 @@ export class Game extends Phaser.Scene {
     }
 
     init(data) {
-        // Initialize with data passed from previous scene
         this.currentLevel = data.level || 1;
         this.livesRemaining = data.lives || 3;
+        // Reset state flags (constructor only runs once in Phaser)
+        this.inputEnabled = true;
+        this.isPaused = false;
+        this.isFinalLevel = false;
+        this.inputCooldown = 0;
+        this.guards = [];
+        this.detectionPopup = null;
+        this.finalLevelMessage = null;
     }
 
     create() {
