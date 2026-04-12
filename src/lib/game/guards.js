@@ -50,22 +50,48 @@ export class RotatingGuard extends Guard {
         ];
     }
 
-    updateLight() {
+    updateLight(allGuards) {
         if (this.grid.isValidPosition(this.row, this.col)) {
             this.grid.setLight(this.row, this.col, true);
         }
         const dir = this.directions[this.direction];
-        for (let i = 1; i <= this.lightRange; i++) {
-            const r = this.row + dir.row * i;
-            const c = this.col + dir.col * i;
+        this.castBeam(dir, this.row, this.col, this.lightRange, allGuards, 0);
+    }
+
+    // Cast light beam in a direction, bouncing off mirror guards
+    castBeam(dir, fromRow, fromCol, range, allGuards, depth) {
+        if (depth > 3) return; // prevent infinite bounces
+        for (let i = 1; i <= range; i++) {
+            const r = fromRow + dir.row * i;
+            const c = fromCol + dir.col * i;
             if (!this.grid.isValidPosition(r, c) || this.grid.isWall(r, c)) break;
             this.grid.setLight(r, c, true);
+
+            // Check if beam hits a mirror guard
+            if (allGuards) {
+                const mirror = allGuards.find(g =>
+                    g.type === 'mirror' && g.row === r && g.col === c
+                );
+                if (mirror) {
+                    const reflected = this.reflectDir(dir, mirror.reflectDirection);
+                    this.castBeam(reflected, r, c, range, allGuards, depth + 1);
+                    break;
+                }
+            }
         }
     }
 
-    onTurnChange() {
+    reflectDir(dir, reflectType) {
+        // cw: rotate beam 90° clockwise, ccw: counter-clockwise
+        if (reflectType === 'cw') {
+            return { row: dir.col, col: -dir.row };
+        }
+        return { row: -dir.col, col: dir.row };
+    }
+
+    onTurnChange(allGuards) {
         this.direction = (this.direction + 1) % 4;
-        this.updateLight();
+        this.updateLight(allGuards);
     }
 }
 
@@ -88,6 +114,29 @@ export class BlinkingGuard extends Guard {
 
     onTurnChange() {
         this.isOn = !this.isOn;
+        this.updateLight();
+    }
+}
+
+export class MirrorGuard extends Guard {
+    constructor(grid, row, col, reflectDirection) {
+        super(grid, row, col, 'mirror');
+        // reflectDirection: 'cw' (clockwise 90°) or 'ccw' (counter-clockwise 90°)
+        this.reflectDirection = reflectDirection || 'cw';
+        this.lightRange = 2;
+    }
+
+    // Mirror guards don't emit their own light — they redirect light
+    // that hits them from rotating guards. The redirection is handled
+    // during the rotating guard's updateLight pass via grid markers.
+    updateLight() {
+        // Light own cell so player can see the mirror position
+        if (this.grid.isValidPosition(this.row, this.col)) {
+            this.grid.setLight(this.row, this.col, true);
+        }
+    }
+
+    onTurnChange() {
         this.updateLight();
     }
 }

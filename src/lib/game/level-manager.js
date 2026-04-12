@@ -3,17 +3,18 @@
 import { LEVELS } from '../levels/levels.js';
 import { GridSystem } from './grid-system.js';
 import { Player } from './player.js';
-import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard } from './guards.js';
+import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard, MirrorGuard } from './guards.js';
 
 // Load a level by ID, returns complete game state
 export function loadLevel(levelId) {
     if (levelId < 1 || levelId > LEVELS.length) return null;
 
     const data = LEVELS[levelId - 1];
-    const size = data.grid.rows;
+    const rows = data.grid.rows;
+    const cols = data.grid.cols || rows;
     const cellSize = 50;
 
-    const grid = new GridSystem(size, size, cellSize);
+    const grid = new GridSystem(rows, cols, cellSize);
 
     // Set walls
     if (data.walls) {
@@ -46,13 +47,16 @@ export function loadLevel(levelId) {
                 case 'patrolling':
                     guard = new PatrollingGuard(grid, g.startPosition.row, g.startPosition.col, g.path);
                     break;
+                case 'mirror':
+                    guard = new MirrorGuard(grid, g.position.row, g.position.col, g.reflectDirection);
+                    break;
             }
             if (guard) guards.push(guard);
         });
     }
 
-    // Initialize guard lights
-    guards.forEach(g => g.updateLight());
+    // Initialize guard lights (pass all guards for mirror reflection)
+    guards.forEach(g => g.updateLight(guards));
 
     return {
         grid,

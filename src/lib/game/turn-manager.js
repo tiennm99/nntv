@@ -17,7 +17,7 @@ export class TurnManager {
 
         // Clear current lights and update guards
         grid.clearAllLight();
-        guards.forEach(guard => guard.onTurnChange());
+        guards.forEach(guard => guard.onTurnChange(guards));
 
         // Check if player is now in a lit cell
         if (grid.isLight(player.row, player.col)) {

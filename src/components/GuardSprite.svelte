@@ -31,6 +31,7 @@
     .guard.blinking { background: var(--guard-blinking); }
     .guard.blinking.off { background: var(--guard-blinking-off); }
     .guard.patrolling { background: var(--guard-patrolling); }
+    .guard.mirror { background: var(--guard-mirror); border-radius: 4px; transform: translate(-50%, -50%) rotate(45deg); }
 
     .direction-indicator {
         position: absolute;

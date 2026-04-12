@@ -30,10 +30,19 @@
     let showFlash = $state(false);
     let finalMessage = $state(false);
 
-    // Derived rendering data
-    let cells = $derived(grid ? grid.getAllCells() : []);
-    let turns = $derived(turnManager.turnCount);
+    // Render version counter — incremented after each state mutation to force
+    // Svelte 5 to re-derive rendering data (class instances are not proxied)
+    let renderVersion = $state(0);
+
+    // Derived rendering data (depend on renderVersion to pick up class mutations)
+    let cells = $derived((renderVersion, grid ? grid.getAllCells() : []));
+    let turns = $derived((renderVersion, turnManager.turnCount));
     let cellSize = $derived(grid ? Math.min(50, Math.floor(500 / grid.rows)) : 50);
+    let playerRow = $derived((renderVersion, player ? player.row : 0));
+    let playerCol = $derived((renderVersion, player ? player.col : 0));
+    let guardSnapshots = $derived((renderVersion, guards.map(g => ({
+        row: g.row, col: g.col, type: g.type, direction: g.direction, isOn: g.isOn
+    }))));
 
     // Initialize level
     function initLevel() {
@@ -50,6 +59,8 @@
         isPaused = false;
         finalMessage = false;
         showFlash = false;
+        princessAlerted = false;
+        alertRadius = 0;
     }
 
     onMount(() => { initLevel(); });
@@ -83,15 +94,16 @@
         if (!player || !grid) return;
         if (!player.move(direction)) return;
 
-        // Check final level proximity trigger BEFORE turn processing
-        if (isFinalLevel && checkFinalLevel()) return;
-
         const result = turnManager.nextTurn(grid, player, guards);
 
-        // Force reactivity by reassigning
-        grid = grid;
-        guards = [...guards];
-        player = player;
+        // Escalating princess detection — expands light wave after guard updates
+        if (isFinalLevel && checkFinalLevel()) {
+            renderVersion++;
+            return;
+        }
+
+        // Bump version to trigger re-derivation of cells/turns/guard positions
+        renderVersion++;
 
         if (result.levelComplete) {
             handleLevelComplete();
@@ -100,25 +112,42 @@
         }
     }
 
+    // Escalating detection: light radiates outward from goal one ring per turn
+    let princessAlerted = $state(false);
+    let alertRadius = $state(0);
+
     function checkFinalLevel() {
         const distance = Math.abs(player.row - goalRow) + Math.abs(player.col - goalCol);
-        if (distance <= 2) {
-            lightUpEntireMap();
-            return true;
+        if (distance <= 4 && !princessAlerted) {
+            princessAlerted = true;
+            finalMessage = true;
+            alertRadius = 1;
+            lightRing(alertRadius);
+            renderVersion++;
+            return false; // don't block — let the wave chase the player
+        }
+        if (princessAlerted) {
+            alertRadius++;
+            lightRing(alertRadius);
+            renderVersion++;
+            // Check if expanding light reached the player
+            if (grid.isLight(player.row, player.col)) {
+                detected = true;
+                return true;
+            }
         }
         return false;
     }
 
-    function lightUpEntireMap() {
-        finalMessage = true;
+    function lightRing(radius) {
         for (let r = 0; r < grid.rows; r++) {
             for (let c = 0; c < grid.cols; c++) {
-                if (!grid.isWall(r, c)) grid.setLight(r, c, true);
+                const dist = Math.abs(r - goalRow) + Math.abs(c - goalCol);
+                if (dist <= radius && !grid.isWall(r, c)) {
+                    grid.setLight(r, c, true);
+                }
             }
         }
-        grid = grid; // trigger reactivity
-        // Auto-detect after brief pause
-        setTimeout(() => { detected = true; }, 1500);
     }
 
     function handleLevelComplete() {
@@ -170,8 +199,8 @@
                     {cellSize}
                     oncellclick={onCellClick}
                 />
-                <PlayerSprite row={player.row} col={player.col} {cellSize} />
-                {#each guards as guard}
+                <PlayerSprite row={playerRow} col={playerCol} {cellSize} />
+                {#each guardSnapshots as guard}
                     <GuardSprite {guard} {cellSize} />
                 {/each}
             </div>
