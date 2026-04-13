@@ -34,6 +34,7 @@ export class TurnManager {
             row: g.row, col: g.col, direction: g.direction,
             isOn: g.isOn, currentPathIndex: g.currentPathIndex,
             isReversing: g.isReversing, isChasing: g.isChasing,
+            isReturning: g.isReturning,
             targetRow: g.targetRow, targetCol: g.targetCol,
         }));
 
@@ -57,6 +58,7 @@ export class TurnManager {
             if (s.currentPathIndex !== undefined) g.currentPathIndex = s.currentPathIndex;
             if (s.isReversing !== undefined) g.isReversing = s.isReversing;
             if (s.isChasing !== undefined) g.isChasing = s.isChasing;
+            if (s.isReturning !== undefined) g.isReturning = s.isReturning;
             if (s.targetRow !== undefined) g.targetRow = s.targetRow;
             if (s.targetCol !== undefined) g.targetCol = s.targetCol;
         });

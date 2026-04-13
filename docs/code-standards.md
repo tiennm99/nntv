@@ -51,9 +51,12 @@ src/
 │   ├── game/                        # Pure JS game engine (no framework)
 │   │   ├── grid-system.js
 │   │   ├── player.js
-│   │   ├── guards.js                # Base + 5 guard subclasses
+│   │   ├── guards.js                # Base + 6 guard subclasses (including ChaserGuard)
 │   │   ├── turn-manager.js
-│   │   └── level-manager.js
+│   │   ├── level-manager.js         # GUARD_REGISTRY factory pattern
+│   │   ├── game-history.js          # Undo/redo system
+│   │   ├── princess-mechanic.js     # Level 12 escalating detection
+│   │   └── touch-controls.js        # Mobile swipe support
 │   │
 │   ├── levels/
 │   │   └── levels.js                # 12 level definitions
@@ -61,6 +64,7 @@ src/
 │   ├── locales/
 │   │   ├── en.json
 │   │   └── vi.json
+│   ├── audio.js                     # Web Audio API sounds
 │   ├── localization.js
 │   └── progress.js
 │
@@ -121,13 +125,25 @@ Guard (abstract base)
 ├── RotatingGuard    — rotating beam + mirror reflection
 ├── BlinkingGuard    — toggle on/off
 ├── MirrorGuard      — redirects beams
-└── PatrollingGuard  — path movement + directional light
+├── PatrollingGuard  — path movement + directional light
+└── ChaserGuard      — BFS pathfinding + detection radius
 ```
 
 **Base Guard contract:**
 - Constructor: `grid, row, col, type`
 - `updateLight(allGuards?)`: Set lit cells on grid
 - `onTurnChange(allGuards?)`: Update state then call updateLight
+
+**Level Manager Pattern:**
+Use `GUARD_REGISTRY` factory pattern in `level-manager.js`:
+```javascript
+const GUARD_REGISTRY = {
+    static: (grid, g) => new StaticGuard(...),
+    chaser: (grid, g) => new ChaserGuard(...),
+    // ... etc
+};
+```
+This eliminates switch statements and allows easy guard type registration.
 
 **Key rule**: Game engine classes are pure JS with no Svelte dependency. They operate on raw object references, not proxied state.
 
@@ -174,6 +190,39 @@ Key naming: camelCase matching JSON structure (`levelSelectTitle`, `enemyTypesCo
 - **Messages**: Descriptive, explain "why" not just "what"
 - **Example**: `fix: resolve Svelte 5 reactivity for class instances`
 
+## New Patterns
+
+### Undo/Redo System
+```javascript
+import { GameHistory } from '../lib/game/game-history.js';
+const history = new GameHistory();
+
+// Before player move
+history.snapshot(player, guards, turnCount, princessAlerted, alertRadius);
+
+// Z/Y key handlers
+if (event.key === 'z') history.undo(player, guards);
+if (event.key === 'y') history.redo(player, guards);
+```
+
+### Mobile Touch Controls
+```javascript
+import { TouchControls } from '../lib/game/touch-controls.js';
+const touch = new TouchControls();
+
+// In Game.svelte
+<svelte:window ontouchstart={e => touch.onTouchStart(e)} 
+               ontouchend={e => { const dir = touch.onTouchEnd(e); handleMove(dir); }} />
+```
+
+### Audio Feedback
+```javascript
+import * as audio from '../lib/audio.js';
+audio.playMoveSound();
+audio.playDetectionSound();
+audio.toggleMute();
+```
+
 ## Code Review Checklist
 
 - [ ] Follows naming conventions (PascalCase components, kebab-case JS modules)
@@ -183,3 +232,6 @@ Key naming: camelCase matching JSON structure (`levelSelectTitle`, `enemyTypesCo
 - [ ] Localization keys used for all user-facing strings
 - [ ] File size under 200 lines
 - [ ] Pure JS game logic has no Svelte imports
+- [ ] Guard types registered in GUARD_REGISTRY (not switch statements)
+- [ ] Touch input debounced/throttled if needed
+- [ ] Audio context lazily initialized (autoplay policy compliance)

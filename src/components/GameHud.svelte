@@ -1,7 +1,16 @@
 <script>
     import { getText } from '../lib/localization.js';
+    import { isMuted, setMuted, playClick } from '../lib/audio.js';
     import Button from './Button.svelte';
-    let { lives = 3, level = 1, turns = 0, showPreview = false, ontogglepreview, onpause, onmenu } = $props();
+    let { lives = 3, level = 1, turns = 0, showPreview = false, canUndo = false,
+          ontogglepreview, onpause, onmenu, onundo, onshowcontrols } = $props();
+    let muted = $state(isMuted());
+
+    function toggleMute() {
+        muted = !muted;
+        setMuted(muted);
+        if (!muted) playClick();
+    }
 </script>
 
 <div class="hud">
@@ -11,7 +20,10 @@
     </div>
     <div class="hud-right">
         <span>{getText('level')}{level}</span>
+        <Button text={canUndo ? 'Z' : '-'} onclick={onundo} small disabled={!canUndo} />
+        <Button text={muted ? 'MUTE' : 'SND'} onclick={toggleMute} small />
         <Button text={showPreview ? 'V:ON' : 'V:OFF'} onclick={ontogglepreview} small />
+        <Button text="?" onclick={onshowcontrols} small />
         <Button text={getText('pause')} onclick={onpause} small />
         <Button text={getText('menu')} onclick={onmenu} small />
     </div>

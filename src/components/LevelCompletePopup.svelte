@@ -12,7 +12,7 @@
                       style="animation-delay: {i * 0.15}s">&#9733;</span>
             {/each}
         </div>
-        <p class="move-count">Moves: {moves} / Par: {parMoves}</p>
+        <p class="move-count">{getText('moves')}: {moves} / Par: {parMoves}</p>
         <button class="next-btn" onclick={onnext}>
             {getText('continue') || 'Continue'}
         </button>

@@ -43,15 +43,24 @@ NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The c
 |------|---------|
 | grid-system.js | GridSystem class: cell state, walls, goals, lighting |
 | player.js | Player class: position, movement validation |
-| guards.js | Guard base + 5 subclasses (Static, Rotating, Blinking, Mirror, Patrolling) |
+| guards.js | Guard base + 6 subclasses (Static, Rotating, Blinking, Mirror, Patrolling, Chaser) |
 | turn-manager.js | TurnManager: turn cycle, guard updates, detection |
-| level-manager.js | loadLevel(): instantiate grid, player, guards from level data |
+| level-manager.js | loadLevel(): GUARD_REGISTRY factory pattern for guard instantiation |
+| game-history.js | GameHistory class: undo/redo snapshots (Z/Y keys) |
+| princess-mechanic.js | Princess detection logic: escalating light rings on level 12 |
+| touch-controls.js | TouchControls class: swipe gesture detection for mobile |
 
 ### Level Data (src/lib/levels/)
 
 | File | Purpose |
 |------|---------|
 | levels.js | LEVELS array: 12 level definitions (grid, guards, walls, goals) |
+
+### Audio System (src/lib/)
+
+| File | Purpose |
+|------|---------|
+| audio.js | Web Audio API procedural sound: playTone, playMoveSound, playDetectionSound, playCompleteSound, toggleMute |
 
 ### Utilities (src/lib/)
 
@@ -79,11 +88,12 @@ NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The c
 
 ```
 Guard (abstract base: grid, row, col, type, direction, isOn)
-├── StaticGuard    — lights fixed litCells array
-├── RotatingGuard  — rotates beam 90°/turn, castBeam with mirror bounce
-├── BlinkingGuard  — toggles isOn, lights litCells when on
-├── MirrorGuard    — lights own cell, stores reflectDirection (cw/ccw)
-└── PatrollingGuard — follows path array, lights front + right cells
+├── StaticGuard     — lights fixed litCells array
+├── RotatingGuard   — rotates beam 90°/turn, castBeam with mirror bounce
+├── BlinkingGuard   — toggles isOn, lights litCells when on
+├── MirrorGuard     — lights own cell, stores reflectDirection (cw/ccw)
+├── PatrollingGuard — follows path array, lights front + right cells
+└── ChaserGuard     — BFS pathfinding to player, detectionRadius range
 ```
 
 ## Key Data Structures
@@ -182,10 +192,10 @@ All scenes → localization.js (for UI text)
 
 | Metric | Value |
 |--------|-------|
-| Total Source Files | ~20 (8 scenes + 7 components + 5 engine + utils) |
-| Number of Classes | 7 (GridSystem, Player, Guard + 5 subclasses, TurnManager) |
+| Total Source Files | ~25 (8 scenes + 7 components + 8 engine + audio + utils) |
+| Number of Classes | 10 (GridSystem, Player, Guard + 6 subclasses, TurnManager, GameHistory, TouchControls) |
 | Number of Levels | 12 (across 6 acts) |
-| Guard Types | 5 (Static, Rotating, Blinking, Mirror, Patrolling) |
-| Localization Keys | ~55 per language |
+| Guard Types | 6 (Static, Rotating, Blinking, Mirror, Patrolling, Chaser) |
+| Localization Keys | ~67 per language |
 | Max Grid Size | 10x10 |
 | Max Guards/Level | 8 |

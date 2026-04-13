@@ -27,14 +27,18 @@
 
 | Requirement | Description | Status |
 |---|---|---|
-| Grid-based Movement | Player moves one cell per turn via arrow keys, WASD, or cell click | Complete |
-| Guard AI System | 5 guard types (Static, Rotating, Blinking, Patrolling, Mirror) | Complete |
+| Grid-based Movement | Player moves one cell per turn via arrow keys, WASD, cell click, or swipe | Complete |
+| Guard AI System | 6 guard types (Static, Rotating, Blinking, Patrolling, Mirror, Chaser) | Complete |
 | Mirror Reflection | Rotating guard beams bounce off mirror guards at 90 degrees | Complete |
-| Detection System | Players lose a life when stepping on lit cells | Complete |
+| Detection System | Players lose a life when stepping on lit cells; visual feedback with cell flash + player shake | Complete |
+| Chaser Guard | BFS pathfinding with detection radius; advanced AI for late-game difficulty | Complete |
+| Undo/Redo System | Z/Y keys rewind/forward through up to 50 previous turns | Complete |
 | Level Progression | 12 difficulty-scaled levels with localStorage progress tracking | Complete |
 | Win Condition | Reach goal cell to advance; level 12 is unbeatable (narrative twist) | Complete |
 | Lives System | 3 lives per play session; game over at zero lives | Complete |
 | Escalating Detection | Level 12: light radiates outward from princess when player approaches | Complete |
+| Mobile Touch Controls | Swipe gestures (up/down/left/right) for full mobile gameplay support | Complete |
+| Audio Feedback | Web Audio API procedural sounds for moves, detection, level completion | Complete |
 
 ### Non-Functional Requirements
 
@@ -53,12 +57,14 @@
 - **Level Intro**: Level name, story text, continue button
 - **Level Select**: Grid of level buttons with lock/complete states
 - **Game HUD**: Current level, lives remaining, turn count
-- **Game Board**: Grid cells rendered via Svelte component
+- **Game Board**: Grid cells with CSS transitions for smooth lighting changes
+- **Controls Overlay**: "?" button reveals all keyboard/touch controls
 - **Settings Panel**: Language toggle (EN/VI)
-- **Guide**: Game rules, controls, enemy types
-- **Detection Popup**: Retry prompt on detection
+- **Guide**: Game rules, controls, enemy types, chaser/mirror guard descriptions
+- **Detection Popup**: Retry prompt with visual feedback (cell flash, player shake)
 - **Pause Menu**: Resume, restart, main menu
 - **Game Over Screen**: Retry or return to menu
+- **Button Component**: Reusable styled button with disabled state support
 
 ### Game Mechanics
 
@@ -76,7 +82,12 @@
 - **Blinking (yellow)**: Toggles lights on/off each turn
 - **Patrolling (purple)**: Moves along predefined path, lights front + right cells
 - **Mirror (green)**: Redirects rotating guard beams 90 degrees (cw or ccw)
+- **Chaser (cyan)**: Uses BFS pathfinding to chase player, lights all cells within detection radius
 - **Level 12 Special**: Princess detection — light radiates from goal at distance 4, expanding 1 ring per turn
+
+**Player Abilities:**
+- **Movement**: Arrow keys, WASD, cell click, or swipe gestures (mobile)
+- **Undo/Redo**: Z key to undo, Y key to redo (up to 50 turns)
 
 ### Level Progression (6 Acts)
 

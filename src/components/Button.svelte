@@ -1,8 +1,8 @@
 <script>
-    let { text, onclick, small = false } = $props();
+    let { text, onclick, small = false, disabled = false } = $props();
 </script>
 
-<button class="btn" class:small onclick={onclick}>
+<button class="btn" class:small {disabled} onclick={onclick}>
     {text}
 </button>
 
@@ -18,7 +18,8 @@
         cursor: pointer;
         transition: background 0.15s;
     }
-    .btn:hover { background: var(--btn-hover); }
+    .btn:hover:not(:disabled) { background: var(--btn-hover); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
     .btn.small {
         font: var(--font-button-small);
         padding: 6px 16px;

@@ -73,7 +73,8 @@ Game.svelte (state owner, input handler, render coordinator)
 │   ├── RotatingGuard — rotates beam 90°/turn, reflects off mirrors
 │   ├── BlinkingGuard — toggles lights on/off each turn
 │   ├── MirrorGuard — redirects rotating beams (cw/ccw 90°)
-│   └── PatrollingGuard — follows path, lights front + right
+│   ├── PatrollingGuard — follows path, lights front + right
+│   └── ChaserGuard — BFS pathfinding, lights detectionRadius cells
 │
 ├── TurnManager (pure JS class)
 │   ├── turnCount tracking
@@ -168,13 +169,79 @@ checkFinalLevel() — called each turn on final level
 |--------|------|---------|
 | GridSystem | `src/lib/game/grid-system.js` | Grid state, cell queries, lighting |
 | Player | `src/lib/game/player.js` | Movement validation, position |
-| Guards | `src/lib/game/guards.js` | 5 guard types with AI logic |
+| Guards | `src/lib/game/guards.js` | 6 guard types with AI logic (including BFS pathfinding) |
 | TurnManager | `src/lib/game/turn-manager.js` | Turn cycle, detection checks |
-| LevelManager | `src/lib/game/level-manager.js` | Level loading, guard instantiation |
+| LevelManager | `src/lib/game/level-manager.js` | Level loading via GUARD_REGISTRY factory pattern |
+| GameHistory | `src/lib/game/game-history.js` | Undo/redo snapshots (Z/Y keys), MAX_HISTORY=50 |
+| PrincessMechanic | `src/lib/game/princess-mechanic.js` | Level 12 escalating light rings |
+| TouchControls | `src/lib/game/touch-controls.js` | Swipe gesture detection (SWIPE_THRESHOLD=30px) |
+| Audio | `src/lib/audio.js` | Web Audio API: tones, move/detection/complete sounds, mute toggle |
 | Levels | `src/lib/levels/levels.js` | 12 level definitions |
 | Localization | `src/lib/localization.js` | Multi-language string management |
 | Progress | `src/lib/progress.js` | localStorage persistence |
 | Theme | `src/styles/theme.css` | CSS variables for all colors/fonts |
+
+## Undo/Redo System (GameHistory)
+
+```javascript
+const history = new GameHistory();
+history.snapshot(player, guards, turnCount, princessAlerted, alertRadius);
+const state = history.undo(player, guards);  // Restores: row, col, direction, isOn per guard
+const state = history.redo(player, guards);  // Re-applies undone state
+```
+
+- Max history size: 50 snapshots
+- Triggered by Z key (undo) / Y key (redo)
+- Snapshots reset redo stack on any new action
+- Restores: player position, guard positions/directions/states, turn count, princess alert state
+
+## Chaser Guard (BFS Pathfinding)
+
+ChaserGuard uses Breadth-First Search to calculate shortest path to player:
+
+```javascript
+new ChaserGuard(grid, row, col, detectionRadius);
+```
+
+- Rebuilds path each turn via BFS algorithm
+- Lights all cells within `detectionRadius` Manhattan distance
+- Accounts for walls in pathfinding
+- Used for advanced AI in later levels
+
+## Touch Controls & Mobile Support
+
+```javascript
+const touch = new TouchControls();
+svelte:window ontouchstart={e => touch.onTouchStart(e)};
+svelte:window ontouchend={e => { const dir = touch.onTouchEnd(e); }};
+```
+
+- Swipe threshold: 30px minimum movement
+- Returns direction: 'up', 'down', 'left', 'right'
+- Integrated in Game.svelte for full mobile support
+
+## Audio System (Web Audio API)
+
+```javascript
+import * as audio from '../lib/audio.js';
+audio.playMoveSound();      // Low F note
+audio.playDetectionSound(); // Ascending pattern
+audio.playCompleteSound();  // Celebration chord
+audio.toggleMute();         // Toggle global mute
+```
+
+- Context lazily created on first user interaction (autoplay policy)
+- Master gain: 0.3 (master volume control)
+- Multiple sound effects mapped to game events
+- Mute state persisted in component state
+
+## CSS Transitions & Visual Feedback
+
+- **Cell Flash**: `background-color` transitions on detection
+- **Player Shake**: CSS animation on detection feedback
+- **Light Transitions**: Smooth CSS transitions on grid lighting changes
+- **ARIA Accessibility**: `role="grid"`, `aria-label` on cells for screen readers
+- **Controls Overlay**: "?" button reveals all keyboard/touch controls
 
 ## Asset & Resource Management
 
@@ -183,6 +250,7 @@ checkFinalLevel() — called each turn on final level
 - **Levels**: JS objects in `levels.js`
 - **Progress**: localStorage key `nntv-progress`
 - **Language**: localStorage key `nntv-language`
+- **Audio**: Web Audio API (no external files)
 
 ## Build & Deployment
 

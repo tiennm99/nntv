@@ -16,21 +16,27 @@ In Night Ninja: Twilight Voyage, you play as a ninja rabbit trying to navigate t
 
 - **Turn-based gameplay**: Each move you make triggers the vegetable guards to take their turn
 - **Multiple guard types**:
-  - Static Vegetable Guards (red): Light up fixed cells around them
-  - Rotating Vegetable Guards (blue): Rotate and light up cells in different directions each turn
-  - Blinking Vegetable Guards (yellow): Toggle their lights on and off each turn
-  - Patrolling Pest Bugs (purple): Move along predefined paths, lighting cells around them
-- **Progressive difficulty**: 12 levels with increasing complexity and new mechanics
-- **Grid-based movement**: Move one cell at a time using arrow keys or by clicking adjacent cells
+  - Static Guards (red): Light up fixed cells around them
+  - Rotating Guards (blue): Rotate and light up cells in different directions each turn
+  - Blinking Guards (yellow): Toggle their lights on and off each turn
+  - Patrolling Guards (purple): Move along predefined paths, lighting cells around them
+  - Mirror Guards (green): Deflect rotating beams 90 degrees
+  - Chaser Guards (orange): Detect nearby players and hunt them using pathfinding
+- **Progressive difficulty**: 12 levels across 6 acts with increasing complexity
+- **Grid-based movement**: Move one cell at a time using arrow keys, WASD, clicking, or swiping
 - **Stealth mechanics**: Avoid lit cells to remain undetected
+- **Undo/redo**: Press Z to undo moves, Y to redo — experiment without full restarts
+- **Turn preview**: Press V to see where lights will be next turn
+- **Sound effects**: Procedural audio feedback for moves, detection, and completion
+- **Mobile support**: Touch controls with swipe gestures
+- **Accessibility**: ARIA labels on grid cells for screen readers
+- **Bilingual**: English and Vietnamese language support
 - **Lives system**: You have 3 lives to complete all levels
 
-## Versions
+## Tech Stack
 
-This game is built with:
-
-- [Phaser 3.88.2](https://github.com/phaserjs/phaser)
-- [Vite 5.3.1](https://github.com/vitejs/vite)
+- [Svelte 5](https://svelte.dev) — UI framework with runes reactivity
+- [Vite 6](https://github.com/vitejs/vite) — Build tool and dev server
 
 ## Requirements
 
@@ -38,15 +44,20 @@ This game is built with:
 
 ## How to Play
 
-- Use **arrow keys** to move your rabbit character one cell at a time
-- Alternatively, **click** on an adjacent cell to move there
-- Reach the **green goal cell** to complete each level and progress in your quest to rescue the missing carrot princess
+- Use **arrow keys** or **WASD** to move your rabbit character one cell at a time
+- **Click** on an adjacent cell or **swipe** on mobile to move
+- Press **Space** to wait a turn without moving
+- Press **V** to preview where lights will be next turn
+- Press **Z** to undo your last move, **Y** to redo
+- Reach the **green goal cell** to complete each level
 - Avoid stepping on **yellow lit cells** or you'll be detected and lose a life
-- Plan your moves carefully as each vegetable guard behaves differently:
-  - **Red vegetable guards** (Static): Always light the same cells
-  - **Blue vegetable guards** (Rotating): Change the direction they light each turn
-  - **Yellow vegetable guards** (Blinking): Turn their lights on and off each turn
-  - **Purple pest bugs** (Patrolling): Move along a path, lighting cells around them
+- Plan your moves carefully as each guard behaves differently:
+  - **Red guards** (Static): Always light the same cells
+  - **Blue guards** (Rotating): Change the direction they light each turn
+  - **Yellow guards** (Blinking): Turn their lights on and off each turn
+  - **Purple guards** (Patrolling): Move along a path, lighting cells around them
+  - **Green mirrors**: Deflect light beams 90 degrees
+  - **Orange chasers**: Detect and hunt you using pathfinding
 
 ## Available Commands
 
@@ -55,104 +66,41 @@ This game is built with:
 | `npm install` | Install project dependencies |
 | `npm run dev` | Launch a development web server |
 | `npm run build` | Create a production build in the `dist` folder |
-| `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
-| `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
+| `npm run preview` | Preview the production build locally |
 
 ## Development
 
 After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
 
-The local development server runs on `http://localhost:8080` by default. Please see the Vite documentation if you wish to change this, or add SSL support.
+The local development server runs on `http://localhost:5173` by default. Vite will automatically recompile your code and reload the browser on changes.
 
-Once the server is running you can edit any of the files in the `src` folder. Vite will automatically recompile your code and then reload the browser.
-
-## Template Project Structure
-
-We have provided a default project structure to get you started. This is as follows:
+## Project Structure
 
 | Path                         | Description                                                |
 |------------------------------|------------------------------------------------------------|
-| `index.html`                 | A basic HTML page to contain the game.                     |
-| `public/assets`              | Game sprites, audio, etc. Served directly at runtime.      |
-| `public/style.css`           | Global layout styles.                                      |
-| `src/main.js`                | Application bootstrap.                                     |
-| `src/game`                   | Folder containing the game code.                           |
-| `src/game/main.js`           | Game entry point: configures and starts the game.          |
-| `src/game/scenes`            | Folder with all Phaser game scenes.                        |
-
-## Handling Assets
-
-Vite supports loading assets via JavaScript module `import` statements.
-
-This template provides support for both embedding assets and also loading them from a static folder. To embed an asset, you can import it at the top of the JavaScript file you are using it in:
-
-```js
-import logoImg from './assets/logo.png'
-```
-
-To load static files such as audio files, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
-
-```js
-preload ()
-{
-    //  This is an example of an imported bundled image.
-    //  Remember to import it at the top of this file
-    this.load.image('logo', logoImg);
-
-    //  This is an example of loading a static image
-    //  from the public/assets folder:
-    this.load.image('background', 'assets/bg.png');
-}
-```
-
-When you issue the `npm run build` command, all static assets are automatically copied to the `dist/assets` folder.
-
-## Deploying to Production
-
-After you run the `npm run build` command, your code will be built into a single bundle and saved to the `dist` folder, along with any other assets your project imported, or stored in the public assets folder.
-
-In order to deploy your game, you will need to upload *all* of the contents of the `dist` folder to a public facing web server.
-
-## Customizing the Template
-
-### Vite
-
-If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `vite/config.*.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Vite documentation](https://vitejs.dev/) for more information.
+| `index.html`                 | HTML entry point                                           |
+| `public/assets`              | Static assets (images) served at runtime                   |
+| `public/style.css`           | Global layout styles and CSS variables                     |
+| `src/main.js`                | Application bootstrap                                      |
+| `src/App.svelte`             | Scene router                                               |
+| `src/scenes/`                | Game scenes (MainMenu, Game, Guide, Settings, etc.)        |
+| `src/components/`            | Reusable UI components (GameBoard, PlayerSprite, etc.)     |
+| `src/lib/game/`              | Pure JS game engine (grid, player, guards, turns, history) |
+| `src/lib/levels/`            | Level definitions (12 levels)                              |
+| `src/lib/`                   | Audio, localization, progress persistence                  |
 
 ## Game Architecture
 
-The game is built with a modular architecture:
+Pure JS game engine (no framework dependency) with Svelte 5 rendering:
 
-- **Grid System**: Manages the game grid, walls, goals, and lighting
-- **Player**: Handles the rabbit character's movement and detection
-- **Vegetable Guards**: Different types of vegetable guards with unique behaviors
-- **Turn Manager**: Controls the turn-based gameplay
-- **Lighting System**: Manages which cells are lit by vegetable guards
-- **Level Manager**: Loads level data and sets up the vegetable kingdom environment
-
-## Future Enhancements
-
-Potential features for future development:
-
-- Additional vegetable guard types with new behaviors
-- Vegetable power-ups that provide temporary abilities
-- Level editor for creating custom vegetable kingdom levels
-- High score system
-- Sound effects and background music
-- Mobile-friendly controls
-
-## About the Template
-
-This game was built using the Phaser 3 Vite template. The template includes a logging feature that sends anonymous usage data to Phaser Studio. If you don't want to send this data, you can use the `-nolog` commands or disable the logging entirely.
+- **GridSystem**: Cell state management (walls, goals, lighting)
+- **Player**: Position and movement validation
+- **Guards**: 6 guard types with distinct AI (static, rotating, blinking, patrolling, mirror, chaser)
+- **TurnManager**: Turn cycle with preview simulation
+- **GameHistory**: Undo/redo via state snapshots
+- **Audio**: Procedural Web Audio API sound effects
 
 ## Credits
 
-- Built with [Phaser 3](https://phaser.io)
-- Developed as a turn-based stealth puzzle game
+- Built with [Svelte 5](https://svelte.dev) and [Vite 6](https://vitejs.dev)
 - Inspired by classic stealth games and vegetable kingdom stories
-
----
-
-Game developed using Phaser 3. Phaser is an open source framework for Canvas and WebGL powered browser games.
-
-Learn more about Phaser at [phaser.io](https://phaser.io)
