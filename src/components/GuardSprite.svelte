@@ -4,12 +4,13 @@
     let left = $derived(guard.col * cellSize + cellSize / 2);
     let size = $derived(Math.floor(cellSize / 2));
     let rotation = $derived(guard.direction * 90);
-    let hasDirection = $derived(guard.type === 'rotating' || guard.type === 'patrolling');
+    let hasDirection = $derived(guard.type === 'rotating' || guard.type === 'patrolling' || guard.type === 'chaser');
 </script>
 
 <div
     class="guard {guard.type}"
     class:off={guard.type === 'blinking' && !guard.isOn}
+    class:alert={guard.type === 'chaser' && guard.isChasing}
     style="top: {top}px; left: {left}px; width: {size}px; height: {size}px;"
 >
     {#if hasDirection}
@@ -31,6 +32,8 @@
     .guard.blinking { background: var(--guard-blinking); }
     .guard.blinking.off { background: var(--guard-blinking-off); }
     .guard.patrolling { background: var(--guard-patrolling); }
+    .guard.chaser { background: var(--guard-chaser, #ff6622); }
+    .guard.chaser.alert { background: #ff2200; box-shadow: 0 0 8px #ff2200; }
     .guard.mirror { background: var(--guard-mirror); border-radius: 4px; transform: translate(-50%, -50%) rotate(45deg); }
 
     .direction-indicator {

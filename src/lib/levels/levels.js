@@ -8,10 +8,12 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 5, col: 5 },
         walls: [
-            { row: 1, col: 1 }, { row: 1, col: 2 },
-            { row: 3, col: 3 }, { row: 3, col: 4 },
+            { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 },
+            { row: 3, col: 2 }, { row: 3, col: 3 }, { row: 3, col: 4 },
+            { row: 4, col: 0 }, { row: 4, col: 1 },
         ],
         guards: [],
+        parMoves: 10,
     },
     {
         id: 2,
@@ -21,7 +23,8 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 5, col: 5 },
         walls: [
-            { row: 2, col: 2 }, { row: 3, col: 3 },
+            { row: 1, col: 3 }, { row: 2, col: 1 }, { row: 2, col: 2 },
+            { row: 3, col: 3 }, { row: 3, col: 4 }, { row: 4, col: 1 },
         ],
         guards: [
             {
@@ -32,7 +35,16 @@ export const LEVELS = [
                     { row: 2, col: 5 }, { row: 3, col: 4 },
                 ],
             },
+            {
+                type: "static",
+                position: { row: 4, col: 2 },
+                litCells: [
+                    { row: 3, col: 2 }, { row: 4, col: 3 },
+                    { row: 5, col: 2 },
+                ],
+            },
         ],
+        parMoves: 12,
     },
 
     // === ACT 2: THE VEGETABLE GARDEN (walls as shields + rotating guards) ===
@@ -44,28 +56,40 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 6, col: 6 },
         walls: [
-            { row: 1, col: 1 }, { row: 2, col: 1 },
-            { row: 3, col: 3 }, { row: 3, col: 5 }, { row: 5, col: 4 },
+            { row: 1, col: 1 }, { row: 2, col: 1 }, { row: 2, col: 5 },
+            { row: 3, col: 3 }, { row: 3, col: 5 },
+            { row: 4, col: 1 }, { row: 5, col: 3 }, { row: 5, col: 4 },
         ],
         guards: [
             {
                 type: "static",
                 position: { row: 2, col: 3 },
                 litCells: [
-                    { row: 1, col: 3 }, { row: 2, col: 2 }, { row: 2, col: 4 },
+                    { row: 1, col: 3 }, { row: 2, col: 2 },
+                    { row: 2, col: 4 }, { row: 3, col: 3 },
                 ],
             },
             {
                 type: "static",
-                position: { row: 5, col: 5 },
+                position: { row: 4, col: 5 },
                 litCells: [
-                    { row: 4, col: 5 }, { row: 5, col: 6 },
+                    { row: 3, col: 5 }, { row: 4, col: 4 },
+                    { row: 4, col: 6 }, { row: 5, col: 5 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 5, col: 1 },
+                litCells: [
+                    { row: 4, col: 1 }, { row: 5, col: 0 },
+                    { row: 5, col: 2 }, { row: 6, col: 1 },
                 ],
             },
         ],
+        parMoves: 14,
     },
     {
-        // First rotating guard — enclosed in walls so player can observe the pattern
+        // First rotating guard — must time passage; walls create a narrow corridor
         id: 4,
         name: "The Searchlight",
         storyKey: "level4Story",
@@ -73,17 +97,28 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 6, col: 6 },
         walls: [
-            { row: 2, col: 2 }, { row: 2, col: 3 }, { row: 2, col: 4 },
-            { row: 3, col: 2 }, { row: 3, col: 4 },
-            { row: 4, col: 2 }, { row: 4, col: 3 }, { row: 4, col: 4 },
+            { row: 1, col: 2 }, { row: 1, col: 3 },
+            { row: 2, col: 2 }, { row: 2, col: 5 },
+            { row: 3, col: 4 }, { row: 3, col: 5 },
+            { row: 4, col: 1 }, { row: 4, col: 2 },
+            { row: 5, col: 4 },
         ],
         guards: [
             {
                 type: "rotating",
-                position: { row: 3, col: 3 },
+                position: { row: 3, col: 2 },
                 startDirection: 0,
             },
+            {
+                type: "static",
+                position: { row: 5, col: 5 },
+                litCells: [
+                    { row: 4, col: 5 }, { row: 5, col: 6 },
+                    { row: 6, col: 5 },
+                ],
+            },
         ],
+        parMoves: 15,
     },
 
     // === ACT 3: THE FORTRESS (blinking guards + timing puzzles) ===
@@ -95,23 +130,43 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 6, col: 6 },
         walls: [
-            { row: 2, col: 2 }, { row: 2, col: 4 },
-            { row: 4, col: 2 }, { row: 4, col: 4 },
+            { row: 1, col: 3 }, { row: 2, col: 1 },
+            { row: 2, col: 5 }, { row: 3, col: 3 },
+            { row: 4, col: 1 }, { row: 4, col: 5 },
+            { row: 5, col: 3 },
         ],
         guards: [
             {
                 type: "blinking",
-                position: { row: 3, col: 3 },
+                position: { row: 2, col: 3 },
                 startState: true,
                 litCells: [
-                    { row: 2, col: 3 }, { row: 3, col: 2 },
-                    { row: 3, col: 4 }, { row: 4, col: 3 },
+                    { row: 1, col: 3 }, { row: 2, col: 2 },
+                    { row: 2, col: 4 },
+                ],
+            },
+            {
+                type: "blinking",
+                position: { row: 4, col: 3 },
+                startState: false,
+                litCells: [
+                    { row: 4, col: 2 }, { row: 4, col: 4 },
+                    { row: 5, col: 3 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 3, col: 6 },
+                litCells: [
+                    { row: 2, col: 6 }, { row: 3, col: 5 },
+                    { row: 4, col: 6 },
                 ],
             },
         ],
+        parMoves: 14,
     },
     {
-        // Blinking guard + static guard — must time passage through blinking zone
+        // Blinking + static — narrow corridor requires precise timing and wait action
         id: 6,
         name: "The Flickering Corridor",
         storyKey: "level6Story",
@@ -119,35 +174,50 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 7, col: 7 },
         walls: [
-            { row: 2, col: 2 }, { row: 2, col: 3 }, { row: 2, col: 4 }, { row: 2, col: 5 },
-            { row: 3, col: 2 }, { row: 3, col: 5 },
-            { row: 4, col: 2 }, { row: 4, col: 5 },
-            { row: 5, col: 2 }, { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 5 },
+            { row: 1, col: 3 }, { row: 1, col: 4 },
+            { row: 2, col: 1 }, { row: 2, col: 6 },
+            { row: 3, col: 3 }, { row: 3, col: 4 },
+            { row: 4, col: 1 }, { row: 4, col: 6 },
+            { row: 5, col: 3 }, { row: 5, col: 4 },
+            { row: 6, col: 1 }, { row: 6, col: 6 },
         ],
         guards: [
             {
                 type: "blinking",
-                position: { row: 3, col: 3 },
+                position: { row: 2, col: 3 },
                 startState: true,
                 litCells: [
-                    { row: 3, col: 4 }, { row: 4, col: 3 },
+                    { row: 2, col: 2 }, { row: 2, col: 4 },
+                    { row: 3, col: 3 },
+                ],
+            },
+            {
+                type: "blinking",
+                position: { row: 5, col: 5 },
+                startState: false,
+                litCells: [
+                    { row: 4, col: 5 }, { row: 5, col: 6 },
+                    { row: 6, col: 5 },
                 ],
             },
             {
                 type: "static",
                 position: { row: 1, col: 6 },
                 litCells: [
-                    { row: 0, col: 6 }, { row: 1, col: 7 },
+                    { row: 0, col: 6 }, { row: 1, col: 5 },
+                    { row: 1, col: 7 },
                 ],
             },
             {
                 type: "static",
-                position: { row: 6, col: 1 },
+                position: { row: 6, col: 2 },
                 litCells: [
-                    { row: 5, col: 1 }, { row: 6, col: 0 }, { row: 6, col: 2 },
+                    { row: 5, col: 2 }, { row: 6, col: 3 },
+                    { row: 7, col: 2 },
                 ],
             },
         ],
+        parMoves: 16,
     },
 
     // === ACT 4: THE UNDERGROUND (patrolling guards + path prediction) ===
@@ -161,8 +231,8 @@ export const LEVELS = [
         walls: [
             { row: 1, col: 2 }, { row: 1, col: 3 }, { row: 1, col: 4 }, { row: 1, col: 5 },
             { row: 2, col: 2 }, { row: 2, col: 5 },
-            { row: 3, col: 2 }, { row: 3, col: 5 },
-            { row: 4, col: 2 }, { row: 4, col: 5 },
+            { row: 3, col: 5 },
+            { row: 4, col: 2 },
             { row: 5, col: 2 }, { row: 5, col: 5 },
             { row: 6, col: 2 }, { row: 6, col: 3 }, { row: 6, col: 4 }, { row: 6, col: 5 },
         ],
@@ -175,10 +245,19 @@ export const LEVELS = [
                     { row: 4, col: 4 }, { row: 4, col: 3 },
                 ],
             },
+            {
+                type: "static",
+                position: { row: 5, col: 7 },
+                litCells: [
+                    { row: 4, col: 7 }, { row: 5, col: 6 },
+                    { row: 6, col: 7 },
+                ],
+            },
         ],
+        parMoves: 17,
     },
     {
-        // Two patrols with interlocking paths — player must weave between them
+        // Two patrols with interlocking paths + blinking gate
         id: 8,
         name: "The Gauntlet",
         storyKey: "level8Story",
@@ -186,8 +265,10 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 7, col: 7 },
         walls: [
+            { row: 1, col: 1 }, { row: 1, col: 6 },
             { row: 3, col: 3 }, { row: 3, col: 4 },
             { row: 4, col: 3 }, { row: 4, col: 4 },
+            { row: 6, col: 1 }, { row: 6, col: 6 },
         ],
         guards: [
             {
@@ -208,13 +289,21 @@ export const LEVELS = [
                     { row: 5, col: 2 }, { row: 5, col: 5 },
                 ],
             },
+            {
+                type: "blinking",
+                position: { row: 3, col: 7 },
+                startState: true,
+                litCells: [
+                    { row: 2, col: 7 }, { row: 4, col: 7 },
+                ],
+            },
         ],
+        parMoves: 18,
     },
 
-    // === ACT 5: THE ROYAL PALACE (combinations + "The Decoy") ===
+    // === ACT 5: THE ROYAL PALACE (combinations + chaser + "The Decoy") ===
     {
-        // The Decoy — two routes: obvious short one syncs to danger at turn 6,
-        // longer route is actually safe if you count turns
+        // The Decoy — chaser guard punishes the obvious short path
         id: 9,
         name: "The Decoy Path",
         storyKey: "level9Story",
@@ -222,9 +311,9 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 7, col: 7 },
         walls: [
-            // Central wall creates two corridors
             { row: 1, col: 3 }, { row: 2, col: 3 }, { row: 3, col: 3 },
             { row: 4, col: 4 }, { row: 5, col: 4 }, { row: 6, col: 4 },
+            { row: 5, col: 1 },
         ],
         guards: [
             {
@@ -249,10 +338,17 @@ export const LEVELS = [
                     { row: 6, col: 7 },
                 ],
             },
+            {
+                // Chaser lurks near the short route — triggers when player rushes
+                type: "chaser",
+                position: { row: 2, col: 1 },
+                detectionRadius: 3,
+            },
         ],
+        parMoves: 19,
     },
     {
-        // Hall of Mirrors — rotating guard + mirror guards redirect beams
+        // Hall of Mirrors — rotating guard + mirror guards redirect beams + chaser
         id: 10,
         name: "Hall of Mirrors",
         storyKey: "level10Story",
@@ -260,8 +356,10 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 7, col: 7 },
         walls: [
+            { row: 2, col: 1 },
             { row: 3, col: 3 }, { row: 3, col: 4 },
             { row: 4, col: 3 }, { row: 4, col: 4 },
+            { row: 5, col: 6 },
         ],
         guards: [
             {
@@ -284,10 +382,22 @@ export const LEVELS = [
                 position: { row: 5, col: 5 },
                 startDirection: 2,
             },
+            {
+                type: "mirror",
+                position: { row: 5, col: 2 },
+                reflectDirection: "cw",
+            },
+            {
+                // Chaser in bottom-right quadrant to pressure the player
+                type: "chaser",
+                position: { row: 7, col: 4 },
+                detectionRadius: 3,
+            },
         ],
+        parMoves: 20,
     },
     {
-        // The Throne Room — all guard types combined
+        // The Throne Room — all guard types combined including chaser
         id: 11,
         name: "The Throne Room",
         storyKey: "level11Story",
@@ -307,7 +417,7 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 1, col: 7 },
                 litCells: [
-                    { row: 1, col: 6 }, { row: 1, col: 8 },
+                    { row: 0, col: 7 }, { row: 1, col: 6 }, { row: 1, col: 8 },
                 ],
             },
             {
@@ -332,12 +442,18 @@ export const LEVELS = [
                     { row: 7, col: 3 }, { row: 7, col: 2 },
                 ],
             },
+            {
+                // Chaser guards the final stretch
+                type: "chaser",
+                position: { row: 7, col: 7 },
+                detectionRadius: 3,
+            },
         ],
+        parMoves: 24,
     },
     {
-        // THE PRINCESS CHAMBER — escalating detection: light radiates from goal
-        // when player reaches distance 4, one ring per turn lights up, creating
-        // an expanding wave. The princess senses you approaching.
+        // THE PRINCESS CHAMBER — unbeatable: expanding light wave from goal
+        // When player reaches distance 4, one ring per turn lights up.
         id: 12,
         name: "The Princess Chamber",
         storyKey: "level12Story",
@@ -395,7 +511,14 @@ export const LEVELS = [
                     { row: 8, col: 6 }, { row: 8, col: 7 },
                 ],
             },
+            {
+                // Extra chaser to make it even more hopeless
+                type: "chaser",
+                position: { row: 8, col: 2 },
+                detectionRadius: 4,
+            },
         ],
         isFinalLevel: true,
+        parMoves: 99,
     },
 ];

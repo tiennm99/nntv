@@ -1,5 +1,5 @@
 <script>
-    let { cells = [], rows = 6, cols = 6, cellSize = 50, oncellclick } = $props();
+    let { cells = [], rows = 6, cols = 6, cellSize = 50, previewCells = new Set(), oncellclick } = $props();
 </script>
 
 <div
@@ -13,6 +13,7 @@
             class:wall={cell.isWall}
             class:goal={cell.isGoal}
             class:lit={cell.isLight}
+            class:preview={previewCells.has(`${cell.row},${cell.col}`) && !cell.isLight}
             role="gridcell"
             onclick={() => oncellclick?.(cell.row, cell.col)}
         ></div>
@@ -35,4 +36,5 @@
     .cell.wall { background: var(--grid-wall); cursor: default; }
     .cell.goal { background: var(--grid-goal); }
     .cell.lit { background: var(--grid-lit); }
+    .cell.preview { background: rgba(255, 234, 0, 0.15); border-color: rgba(255, 234, 0, 0.3); }
 </style>
