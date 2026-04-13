@@ -148,6 +148,7 @@ export class ChaserGuard extends Guard {
         this.startCol = col;
         this.detectionRadius = detectionRadius || 3;
         this.isChasing = false;
+        this.isReturning = false;
         this.targetRow = row;
         this.targetCol = col;
     }
@@ -156,7 +157,6 @@ export class ChaserGuard extends Guard {
         if (this.grid.isValidPosition(this.row, this.col)) {
             this.grid.setLight(this.row, this.col, true);
         }
-        // Light cell in facing direction
         const dir = this.getDirectionOffset(this.direction);
         const fr = this.row + dir.row;
         const fc = this.col + dir.col;
@@ -173,62 +173,81 @@ export class ChaserGuard extends Guard {
         return directions[dir];
     }
 
+    // BFS pathfinding — finds shortest path around walls to target
+    bfsNextStep(targetRow, targetCol) {
+        if (this.row === targetRow && this.col === targetCol) return null;
+        const rows = this.grid.rows;
+        const cols = this.grid.cols;
+        const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        // Store parent direction for path reconstruction
+        const parent = Array.from({ length: rows }, () => Array(cols).fill(null));
+        const queue = [{ row: this.row, col: this.col }];
+        visited[this.row][this.col] = true;
+        const dirs = [
+            { row: -1, col: 0 }, { row: 0, col: 1 },
+            { row: 1, col: 0 }, { row: 0, col: -1 },
+        ];
+
+        while (queue.length > 0) {
+            const curr = queue.shift();
+            for (const d of dirs) {
+                const nr = curr.row + d.row;
+                const nc = curr.col + d.col;
+                if (!this.grid.isValidPosition(nr, nc)) continue;
+                if (visited[nr][nc] || this.grid.isWall(nr, nc)) continue;
+                visited[nr][nc] = true;
+                parent[nr][nc] = { row: curr.row, col: curr.col };
+                if (nr === targetRow && nc === targetCol) {
+                    // Trace back to find the first step from current position
+                    let step = { row: nr, col: nc };
+                    while (parent[step.row][step.col].row !== this.row ||
+                           parent[step.row][step.col].col !== this.col) {
+                        step = parent[step.row][step.col];
+                    }
+                    return step;
+                }
+                queue.push({ row: nr, col: nc });
+            }
+        }
+        return null; // no path found
+    }
+
+    // Chaser has two states: hunting player or returning home
     onTurnChange(allGuards, player) {
         if (!player) { this.updateLight(); return; }
 
         const dist = Math.abs(this.row - player.row) + Math.abs(this.col - player.col);
 
         if (dist <= this.detectionRadius) {
+            // Player within detection range — chase them
             this.isChasing = true;
             this.targetRow = player.row;
             this.targetCol = player.col;
+            this.isReturning = false;
+        } else if (this.isChasing && !this.isReturning) {
+            // Player escaped detection range — switch to returning home
+            this.isReturning = true;
+            this.targetRow = this.startRow;
+            this.targetCol = this.startCol;
         }
 
         if (this.isChasing) {
-            // Move one step toward target
-            const dr = this.targetRow - this.row;
-            const dc = this.targetCol - this.col;
-            let newRow = this.row;
-            let newCol = this.col;
+            const nextStep = this.bfsNextStep(this.targetRow, this.targetCol);
+            if (nextStep) {
+                if (nextStep.row < this.row) this.direction = 0;
+                else if (nextStep.col > this.col) this.direction = 1;
+                else if (nextStep.row > this.row) this.direction = 2;
+                else if (nextStep.col < this.col) this.direction = 3;
 
-            // Prefer row movement, then col
-            if (dr !== 0) {
-                const step = dr > 0 ? 1 : -1;
-                if (this.grid.isValidPosition(this.row + step, this.col) &&
-                    !this.grid.isWall(this.row + step, this.col)) {
-                    newRow = this.row + step;
-                } else if (dc !== 0) {
-                    const cstep = dc > 0 ? 1 : -1;
-                    if (this.grid.isValidPosition(this.row, this.col + cstep) &&
-                        !this.grid.isWall(this.row, this.col + cstep)) {
-                        newCol = this.col + cstep;
-                    }
-                }
-            } else if (dc !== 0) {
-                const step = dc > 0 ? 1 : -1;
-                if (this.grid.isValidPosition(this.row, this.col + step) &&
-                    !this.grid.isWall(this.row, this.col + step)) {
-                    newCol = this.col + step;
-                }
+                this.row = nextStep.row;
+                this.col = nextStep.col;
             }
 
-            // Update facing direction
-            if (newRow < this.row) this.direction = 0;
-            else if (newCol > this.col) this.direction = 1;
-            else if (newRow > this.row) this.direction = 2;
-            else if (newCol < this.col) this.direction = 3;
-
-            this.row = newRow;
-            this.col = newCol;
-
-            // Reached target and player not nearby — return to start
-            if (this.row === this.targetRow && this.col === this.targetCol &&
-                dist > this.detectionRadius) {
-                this.targetRow = this.startRow;
-                this.targetCol = this.startCol;
-                if (this.row === this.startRow && this.col === this.startCol) {
-                    this.isChasing = false;
-                }
+            // If returning and reached home, stop chasing entirely
+            if (this.isReturning &&
+                this.row === this.startRow && this.col === this.startCol) {
+                this.isChasing = false;
+                this.isReturning = false;
             }
         }
 

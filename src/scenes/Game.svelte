@@ -3,8 +3,12 @@
     import { getText } from '../lib/localization.js';
     import { loadLevel, getTotalLevels } from '../lib/game/level-manager.js';
     import { TurnManager } from '../lib/game/turn-manager.js';
+    import { GameHistory } from '../lib/game/game-history.js';
+    import { PrincessMechanic } from '../lib/game/princess-mechanic.js';
+    import { TouchControls } from '../lib/game/touch-controls.js';
     import { completeLevel, calculateStars } from '../lib/progress.js';
     import { LEVELS } from '../lib/levels/levels.js';
+    import { playMove, playWait, playDetection, playLevelComplete, playUndo } from '../lib/audio.js';
     import GameBoard from '../components/GameBoard.svelte';
     import PlayerSprite from '../components/PlayerSprite.svelte';
     import GuardSprite from '../components/GuardSprite.svelte';
@@ -12,6 +16,7 @@
     import DetectionPopup from '../components/DetectionPopup.svelte';
     import LevelCompletePopup from '../components/LevelCompletePopup.svelte';
     import PauseMenu from '../components/PauseMenu.svelte';
+    import ControlsOverlay from '../components/controls-overlay.svelte';
 
     let { navigate, level = 1, lives = 3 } = $props();
 
@@ -20,6 +25,9 @@
     let player = $state(null);
     let guards = $state([]);
     let turnManager = $state(new TurnManager());
+    let history = $state(new GameHistory());
+    let princess = $state(new PrincessMechanic());
+    let touch = new TouchControls();
     let currentLevel = $state(level); // svelte-ignore state_referenced_locally
     let livesRemaining = $state(lives); // svelte-ignore state_referenced_locally
     let isFinalLevel = $state(false);
@@ -29,12 +37,15 @@
     // UI state
     let isPaused = $state(false);
     let detected = $state(false);
+    let playerShake = $state(false);
+    let detectedCell = $state(null);
     let showFlash = $state(false);
     let finalMessage = $state(false);
     let showLevelComplete = $state(false);
     let completionStars = $state(0);
     let completionMoves = $state(0);
     let showPreview = $state(false);
+    let showControls = $state(false);
 
     // Render version counter — incremented after each state mutation to force
     // Svelte 5 to re-derive rendering data (class instances are not proxied)
@@ -52,6 +63,7 @@
     let previewCells = $derived((renderVersion, showPreview && grid && player && guards.length
         ? turnManager.previewNextTurn(grid, player, guards)
         : new Set()));
+    let canUndo = $derived((renderVersion, history.canUndo()));
 
     // Initialize level
     function initLevel() {
@@ -64,12 +76,15 @@
         goalRow = state.goalRow;
         goalCol = state.goalCol;
         turnManager = new TurnManager();
+        history = new GameHistory();
+        princess = new PrincessMechanic();
         detected = false;
         isPaused = false;
         finalMessage = false;
         showFlash = false;
-        princessAlerted = false;
-        alertRadius = 0;
+        showControls = false;
+        playerShake = false;
+        detectedCell = null;
         showLevelComplete = false;
         completionStars = 0;
         completionMoves = 0;
@@ -77,8 +92,19 @@
 
     onMount(() => { initLevel(); });
 
+    // Capture current state as a snapshot object (does not push to history)
+    function captureState() {
+        return history.createSnapshot(player, guards, turnManager.turnCount, princess.alerted, princess.alertRadius);
+    }
+
+    // Capture and push snapshot in one step (for wait action)
+    function snapshotBeforeAction() {
+        history.pushSnapshot(captureState());
+    }
+
     // Input handling
     function onKeyDown(e) {
+        if (showControls) { if (e.key === 'Escape') showControls = false; return; }
         if (isPaused || detected || showLevelComplete) return;
         const dirMap = {
             ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
@@ -86,22 +112,25 @@
         };
         if (e.key === 'v') { showPreview = !showPreview; return; }
         if (e.key === ' ') { e.preventDefault(); handleWait(); return; }
+        if (e.key === 'z') { handleUndo(); return; }
+        if (e.key === 'y') { handleRedo(); return; }
         const dir = dirMap[e.key];
         if (dir) { e.preventDefault(); handleMove(dir); }
     }
 
     function handleWait() {
         if (!player || !grid) return;
+        snapshotBeforeAction();
+        playWait();
         const result = turnManager.nextTurn(grid, player, guards);
         if (isFinalLevel && checkFinalLevel()) { renderVersion++; return; }
         renderVersion++;
         if (result.levelComplete) handleLevelComplete();
-        else if (result.detected) detected = true;
+        else if (result.detected) triggerDetection();
     }
 
     function onCellClick(row, col) {
-        if (isPaused || detected || showLevelComplete || !player) return;
-        // Tap on player cell = wait
+        if (isPaused || detected || showLevelComplete || showControls || !player) return;
         if (row === player.row && col === player.col) { handleWait(); return; }
         const rowDiff = Math.abs(row - player.row);
         const colDiff = Math.abs(col - player.col);
@@ -117,62 +146,81 @@
 
     function handleMove(direction) {
         if (!player || !grid) return;
+        // Capture pre-move state, attempt move, discard snapshot if move fails
+        const preSnapshot = captureState();
         if (!player.move(direction)) return;
+        history.pushSnapshot(preSnapshot);
+        playMove();
 
         const result = turnManager.nextTurn(grid, player, guards);
 
-        // Escalating princess detection — expands light wave after guard updates
         if (isFinalLevel && checkFinalLevel()) {
             renderVersion++;
             return;
         }
 
-        // Bump version to trigger re-derivation of cells/turns/guard positions
         renderVersion++;
 
         if (result.levelComplete) {
             handleLevelComplete();
         } else if (result.detected) {
-            detected = true;
+            triggerDetection();
         }
     }
 
-    // Escalating detection: light radiates outward from goal one ring per turn
-    let princessAlerted = $state(false);
-    let alertRadius = $state(0);
+    // Detection feedback — flash cell, shake player, play sound
+    function triggerDetection() {
+        detectedCell = { row: player.row, col: player.col };
+        playerShake = true;
+        playDetection();
+        detected = true;
+        setTimeout(() => { playerShake = false; detectedCell = null; }, 400);
+    }
 
+    // Undo/redo handlers
+    function handleUndo() {
+        if (!player || !grid) return;
+        const state = history.undo(player, guards, turnManager, princess.alerted, princess.alertRadius);
+        if (!state) return;
+        princess.alerted = state.princessAlerted || false;
+        princess.alertRadius = state.alertRadius || 0;
+        finalMessage = princess.alerted;
+        grid.clearAllLight();
+        guards.forEach(g => g.updateLight(guards));
+        if (princess.alerted) princess.lightRing(grid, goalRow, goalCol, princess.alertRadius);
+        playUndo();
+        renderVersion++;
+    }
+
+    function handleRedo() {
+        if (!player || !grid) return;
+        const state = history.redo(player, guards, turnManager, princess.alerted, princess.alertRadius);
+        if (!state) return;
+        princess.alerted = state.princessAlerted || false;
+        princess.alertRadius = state.alertRadius || 0;
+        finalMessage = princess.alerted;
+        grid.clearAllLight();
+        guards.forEach(g => g.updateLight(guards));
+        if (princess.alerted) princess.lightRing(grid, goalRow, goalCol, princess.alertRadius);
+        renderVersion++;
+    }
+
+    // Touch/swipe controls for mobile
+    function onTouchStart(e) { touch.onTouchStart(e); }
+
+    function onTouchEnd(e) {
+        if (isPaused || detected || showLevelComplete || showControls) return;
+        const dir = touch.onTouchEnd(e);
+        if (dir) handleMove(dir);
+    }
+
+    // Escalating princess detection (final level)
     function checkFinalLevel() {
-        const distance = Math.abs(player.row - goalRow) + Math.abs(player.col - goalCol);
-        if (distance <= 4 && !princessAlerted) {
-            princessAlerted = true;
-            finalMessage = true;
-            alertRadius = 1;
-            lightRing(alertRadius);
-            renderVersion++;
-            return false; // don't block — let the wave chase the player
-        }
-        if (princessAlerted) {
-            alertRadius++;
-            lightRing(alertRadius);
-            renderVersion++;
-            // Check if expanding light reached the player
-            if (grid.isLight(player.row, player.col)) {
-                detected = true;
-                return true;
-            }
-        }
+        const result = princess.update(grid, player, goalRow, goalCol);
+        if (result.showMessage) { finalMessage = true; renderVersion++; return false; }
+        if (result.detected) { triggerDetection(); renderVersion++; return true; }
+        if (princess.alerted) renderVersion++;
         return false;
-    }
-
-    function lightRing(radius) {
-        for (let r = 0; r < grid.rows; r++) {
-            for (let c = 0; c < grid.cols; c++) {
-                const dist = Math.abs(r - goalRow) + Math.abs(c - goalCol);
-                if (dist <= radius && !grid.isWall(r, c)) {
-                    grid.setLight(r, c, true);
-                }
-            }
-        }
     }
 
     function handleLevelComplete() {
@@ -185,6 +233,7 @@
         completionStars = calculateStars(moves, par);
         showFlash = true;
         showLevelComplete = true;
+        playLevelComplete();
     }
 
     function handleLevelCompleteNext() {
@@ -214,15 +263,20 @@
 
 <svelte:window onkeydown={onKeyDown} />
 
-<div class="game-scene" class:flash={showFlash}>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="game-scene" class:flash={showFlash}
+     ontouchstart={onTouchStart} ontouchend={onTouchEnd}>
     <GameHud
         lives={livesRemaining}
         level={currentLevel}
         {turns}
         {showPreview}
+        {canUndo}
         ontogglepreview={() => showPreview = !showPreview}
         onpause={() => isPaused = true}
         onmenu={() => navigate('MainMenu')}
+        onundo={handleUndo}
+        onshowcontrols={() => showControls = true}
     />
 
     {#if grid && player}
@@ -234,9 +288,10 @@
                     cols={grid.cols}
                     {cellSize}
                     {previewCells}
+                    {detectedCell}
                     oncellclick={onCellClick}
                 />
-                <PlayerSprite row={playerRow} col={playerCol} {cellSize} />
+                <PlayerSprite row={playerRow} col={playerCol} {cellSize} shake={playerShake} />
                 {#each guardSnapshots as guard}
                     <GuardSprite {guard} {cellSize} />
                 {/each}
@@ -269,6 +324,10 @@
             onrestart={initLevel}
             onmainmenu={() => navigate('MainMenu')}
         />
+    {/if}
+
+    {#if showControls}
+        <ControlsOverlay onclose={() => showControls = false} />
     {/if}
 </div>
 

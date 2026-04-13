@@ -16,6 +16,12 @@
 
         <h2>{getText('enemyTypes')}</h2>
         <p>{getText('enemyTypesContent')}</p>
+
+        <h2>{getText('advancedEnemyTypes')}</h2>
+        <p>{getText('advancedEnemyTypesContent')}</p>
+
+        <h2>{getText('gameTips')}</h2>
+        <p>{getText('gameTipsContent')}</p>
     </div>
 
     <Button text={getText('back')} onclick={() => navigate('MainMenu')} />

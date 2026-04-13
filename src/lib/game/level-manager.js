@@ -5,6 +5,16 @@ import { GridSystem } from './grid-system.js';
 import { Player } from './player.js';
 import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard, MirrorGuard, ChaserGuard } from './guards.js';
 
+// Guard type registry — maps type strings to factory functions
+const GUARD_REGISTRY = {
+    static: (grid, g) => new StaticGuard(grid, g.position.row, g.position.col, g.litCells),
+    rotating: (grid, g) => new RotatingGuard(grid, g.position.row, g.position.col, g.startDirection),
+    blinking: (grid, g) => new BlinkingGuard(grid, g.position.row, g.position.col, g.litCells, g.startState),
+    patrolling: (grid, g) => new PatrollingGuard(grid, g.startPosition.row, g.startPosition.col, g.path),
+    mirror: (grid, g) => new MirrorGuard(grid, g.position.row, g.position.col, g.reflectDirection),
+    chaser: (grid, g) => new ChaserGuard(grid, g.position.row, g.position.col, g.detectionRadius),
+};
+
 // Load a level by ID, returns complete game state
 export function loadLevel(levelId) {
     if (levelId < 1 || levelId > LEVELS.length) return null;
@@ -16,45 +26,21 @@ export function loadLevel(levelId) {
 
     const grid = new GridSystem(rows, cols, cellSize);
 
-    // Set walls
     if (data.walls) {
         data.walls.forEach(w => grid.setWall(w.row, w.col, true));
     }
 
-    // Set goal
     if (data.goal) {
         grid.setGoal(data.goal.row, data.goal.col, true);
     }
 
-    // Create player
     const player = new Player(grid, data.player.row, data.player.col);
 
-    // Create guards
     const guards = [];
     if (data.guards) {
         data.guards.forEach(g => {
-            let guard = null;
-            switch (g.type) {
-                case 'static':
-                    guard = new StaticGuard(grid, g.position.row, g.position.col, g.litCells);
-                    break;
-                case 'rotating':
-                    guard = new RotatingGuard(grid, g.position.row, g.position.col, g.startDirection);
-                    break;
-                case 'blinking':
-                    guard = new BlinkingGuard(grid, g.position.row, g.position.col, g.litCells, g.startState);
-                    break;
-                case 'patrolling':
-                    guard = new PatrollingGuard(grid, g.startPosition.row, g.startPosition.col, g.path);
-                    break;
-                case 'mirror':
-                    guard = new MirrorGuard(grid, g.position.row, g.position.col, g.reflectDirection);
-                    break;
-                case 'chaser':
-                    guard = new ChaserGuard(grid, g.position.row, g.position.col, g.detectionRadius);
-                    break;
-            }
-            if (guard) guards.push(guard);
+            const factory = GUARD_REGISTRY[g.type];
+            if (factory) guards.push(factory(grid, g));
         });
     }
 
