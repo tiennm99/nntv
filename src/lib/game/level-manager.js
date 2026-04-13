@@ -3,7 +3,7 @@
 import { LEVELS } from '../levels/levels.js';
 import { GridSystem } from './grid-system.js';
 import { Player } from './player.js';
-import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard, MirrorGuard } from './guards.js';
+import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard, MirrorGuard, ChaserGuard } from './guards.js';
 
 // Load a level by ID, returns complete game state
 export function loadLevel(levelId) {
@@ -50,6 +50,9 @@ export function loadLevel(levelId) {
                 case 'mirror':
                     guard = new MirrorGuard(grid, g.position.row, g.position.col, g.reflectDirection);
                     break;
+                case 'chaser':
+                    guard = new ChaserGuard(grid, g.position.row, g.position.col, g.detectionRadius);
+                    break;
             }
             if (guard) guards.push(guard);
         });
@@ -67,6 +70,7 @@ export function loadLevel(levelId) {
         isFinalLevel: data.isFinalLevel || false,
         goalRow: data.goal.row,
         goalCol: data.goal.col,
+        parMoves: data.parMoves || 99,
     };
 }
 

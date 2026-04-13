@@ -22,6 +22,8 @@
             {@const num = i + 1}
             {@const unlocked = num <= progress.maxLevel}
             {@const completed = progress.completedLevels.includes(num)}
+            {@const stars = progress.levelStars[String(num)] || 0}
+            {@const bestMoves = progress.levelBestMoves[String(num)]}
             <button
                 class="level-btn"
                 class:unlocked
@@ -30,8 +32,17 @@
                 onclick={() => selectLevel(num)}
                 disabled={!unlocked}
             >
-                {num}
-                {#if completed}<span class="check">✓</span>{/if}
+                <span class="level-num">{num}</span>
+                {#if completed}
+                    <span class="star-row">
+                        {#each [1, 2, 3] as i}
+                            <span class="star-sm" class:filled={i <= stars}>&#9733;</span>
+                        {/each}
+                    </span>
+                {/if}
+                {#if bestMoves != null}
+                    <span class="best-moves">{bestMoves}m</span>
+                {/if}
             </button>
         {/each}
     </div>
@@ -54,13 +65,16 @@
         gap: 20px;
     }
     .level-btn {
-        width: 70px; height: 70px;
+        width: 70px; height: 80px;
         font: var(--font-button);
         border-radius: 4px;
         border: 2px solid var(--btn-border);
         cursor: pointer;
         position: relative;
         transition: background 0.15s;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 2px; padding: 4px 0;
     }
     .level-btn.unlocked {
         background: var(--btn-default);
@@ -74,10 +88,9 @@
         border-color: #333344;
         cursor: default;
     }
-    .check {
-        position: absolute;
-        top: 2px; right: 4px;
-        font-size: 12px;
-        color: var(--grid-goal);
-    }
+    .level-num { font-size: 18px; font-weight: bold; }
+    .star-row { display: flex; gap: 1px; }
+    .star-sm { font-size: 10px; color: #333; }
+    .star-sm.filled { color: #ffdd44; }
+    .best-moves { font-size: 9px; color: var(--text-secondary); }
 </style>

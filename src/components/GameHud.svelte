@@ -1,7 +1,7 @@
 <script>
     import { getText } from '../lib/localization.js';
     import Button from './Button.svelte';
-    let { lives = 3, level = 1, turns = 0, onpause, onmenu } = $props();
+    let { lives = 3, level = 1, turns = 0, showPreview = false, ontogglepreview, onpause, onmenu } = $props();
 </script>
 
 <div class="hud">
@@ -11,6 +11,7 @@
     </div>
     <div class="hud-right">
         <span>{getText('level')}{level}</span>
+        <Button text={showPreview ? 'V:ON' : 'V:OFF'} onclick={ontogglepreview} small />
         <Button text={getText('pause')} onclick={onpause} small />
         <Button text={getText('menu')} onclick={onmenu} small />
     </div>

@@ -3,12 +3,14 @@
     import { getText } from '../lib/localization.js';
     import { loadLevel, getTotalLevels } from '../lib/game/level-manager.js';
     import { TurnManager } from '../lib/game/turn-manager.js';
-    import { completeLevel } from '../lib/progress.js';
+    import { completeLevel, calculateStars } from '../lib/progress.js';
+    import { LEVELS } from '../lib/levels/levels.js';
     import GameBoard from '../components/GameBoard.svelte';
     import PlayerSprite from '../components/PlayerSprite.svelte';
     import GuardSprite from '../components/GuardSprite.svelte';
     import GameHud from '../components/GameHud.svelte';
     import DetectionPopup from '../components/DetectionPopup.svelte';
+    import LevelCompletePopup from '../components/LevelCompletePopup.svelte';
     import PauseMenu from '../components/PauseMenu.svelte';
 
     let { navigate, level = 1, lives = 3 } = $props();
@@ -29,6 +31,10 @@
     let detected = $state(false);
     let showFlash = $state(false);
     let finalMessage = $state(false);
+    let showLevelComplete = $state(false);
+    let completionStars = $state(0);
+    let completionMoves = $state(0);
+    let showPreview = $state(false);
 
     // Render version counter — incremented after each state mutation to force
     // Svelte 5 to re-derive rendering data (class instances are not proxied)
@@ -41,8 +47,11 @@
     let playerRow = $derived((renderVersion, player ? player.row : 0));
     let playerCol = $derived((renderVersion, player ? player.col : 0));
     let guardSnapshots = $derived((renderVersion, guards.map(g => ({
-        row: g.row, col: g.col, type: g.type, direction: g.direction, isOn: g.isOn
+        row: g.row, col: g.col, type: g.type, direction: g.direction, isOn: g.isOn, isChasing: g.isChasing
     }))));
+    let previewCells = $derived((renderVersion, showPreview && grid && player && guards.length
+        ? turnManager.previewNextTurn(grid, player, guards)
+        : new Set()));
 
     // Initialize level
     function initLevel() {
@@ -61,23 +70,39 @@
         showFlash = false;
         princessAlerted = false;
         alertRadius = 0;
+        showLevelComplete = false;
+        completionStars = 0;
+        completionMoves = 0;
     }
 
     onMount(() => { initLevel(); });
 
     // Input handling
     function onKeyDown(e) {
-        if (isPaused || detected) return;
+        if (isPaused || detected || showLevelComplete) return;
         const dirMap = {
             ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
             w: 'up', s: 'down', a: 'left', d: 'right',
         };
+        if (e.key === 'v') { showPreview = !showPreview; return; }
+        if (e.key === ' ') { e.preventDefault(); handleWait(); return; }
         const dir = dirMap[e.key];
         if (dir) { e.preventDefault(); handleMove(dir); }
     }
 
+    function handleWait() {
+        if (!player || !grid) return;
+        const result = turnManager.nextTurn(grid, player, guards);
+        if (isFinalLevel && checkFinalLevel()) { renderVersion++; return; }
+        renderVersion++;
+        if (result.levelComplete) handleLevelComplete();
+        else if (result.detected) detected = true;
+    }
+
     function onCellClick(row, col) {
-        if (isPaused || detected || !player) return;
+        if (isPaused || detected || showLevelComplete || !player) return;
+        // Tap on player cell = wait
+        if (row === player.row && col === player.col) { handleWait(); return; }
         const rowDiff = Math.abs(row - player.row);
         const colDiff = Math.abs(col - player.col);
         if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
@@ -152,19 +177,28 @@
 
     function handleLevelComplete() {
         const total = getTotalLevels();
-        completeLevel(currentLevel, total);
+        const levelData = LEVELS[currentLevel - 1];
+        const moves = turnManager.turnCount;
+        const par = levelData.parMoves || 99;
+        completeLevel(currentLevel, total, moves, par);
+        completionMoves = moves;
+        completionStars = calculateStars(moves, par);
         showFlash = true;
-        setTimeout(() => {
-            showFlash = false;
-            const next = currentLevel + 1;
-            if (isFinalLevel) {
-                navigate('GameOver', { level: currentLevel, isLastLevel: true });
-            } else if (next > total) {
-                navigate('GameOver', { level: currentLevel, isLastLevel: false });
-            } else {
-                navigate('LevelIntro', { level: next, lives: livesRemaining });
-            }
-        }, 600);
+        showLevelComplete = true;
+    }
+
+    function handleLevelCompleteNext() {
+        showLevelComplete = false;
+        showFlash = false;
+        const total = getTotalLevels();
+        const next = currentLevel + 1;
+        if (isFinalLevel) {
+            navigate('GameOver', { level: currentLevel, isLastLevel: true });
+        } else if (next > total) {
+            navigate('GameOver', { level: currentLevel, isLastLevel: false });
+        } else {
+            navigate('LevelIntro', { level: next, lives: livesRemaining });
+        }
     }
 
     function handleDetectionDismiss() {
@@ -185,6 +219,8 @@
         lives={livesRemaining}
         level={currentLevel}
         {turns}
+        {showPreview}
+        ontogglepreview={() => showPreview = !showPreview}
         onpause={() => isPaused = true}
         onmenu={() => navigate('MainMenu')}
     />
@@ -197,6 +233,7 @@
                     rows={grid.rows}
                     cols={grid.cols}
                     {cellSize}
+                    {previewCells}
                     oncellclick={onCellClick}
                 />
                 <PlayerSprite row={playerRow} col={playerCol} {cellSize} />
@@ -211,6 +248,15 @@
         <div class="final-message">
             <p>{getText('princessDetected')}</p>
         </div>
+    {/if}
+
+    {#if showLevelComplete}
+        <LevelCompletePopup
+            stars={completionStars}
+            moves={completionMoves}
+            parMoves={LEVELS[currentLevel - 1]?.parMoves ?? 99}
+            onnext={handleLevelCompleteNext}
+        />
     {/if}
 
     {#if detected}
