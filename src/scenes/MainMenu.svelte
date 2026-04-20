@@ -1,13 +1,15 @@
 <script>
     import { getText } from '../lib/localization.js';
     import Button from '../components/Button.svelte';
+    import Pixel from '../lib/pixel/Pixel.svelte';
+    import { MOON_ART, MOON_PAL } from '../lib/pixel/art-ui.js';
+    import { RABBIT_ART, RABBIT_PAL } from '../lib/pixel/art-characters.js';
     let { navigate } = $props();
 
-    // Generate starfield dots
     const stars = Array.from({ length: 40 }, () => ({
         x: Math.random() * 100,
         y: Math.random() * 100,
-        opacity: 0.1 + Math.random() * 0.4,
+        opacity: 0.1 + Math.random() * 0.5,
         size: 1 + Math.floor(Math.random() * 2),
     }));
 </script>
@@ -20,8 +22,14 @@
         ></div>
     {/each}
 
+    <div class="moon">
+        <Pixel art={MOON_ART} palette={MOON_PAL} width={100} height={100} />
+    </div>
+
     <h1>{getText('gameTitle')}</h1>
-    <div class="ninja-icon"></div>
+    <div class="hero">
+        <Pixel art={RABBIT_ART} palette={RABBIT_PAL} width={96} height={96} />
+    </div>
 
     <div class="buttons">
         <Button text={getText('startGame')} onclick={() => navigate('StoryIntro')} />
@@ -45,19 +53,23 @@
         border-radius: 50%;
         pointer-events: none;
     }
+    .moon {
+        position: absolute;
+        top: 40px;
+        right: 60px;
+        filter: drop-shadow(0 0 24px rgba(255, 232, 138, 0.3));
+    }
     h1 {
         font: var(--font-title);
         color: var(--text-title);
         margin-bottom: 16px;
         z-index: 1;
+        text-shadow: 0 0 12px rgba(187, 134, 252, 0.4);
     }
-    .ninja-icon {
-        width: 36px; height: 36px;
-        background: var(--player-color);
-        border-radius: 50%;
-        margin-bottom: 32px;
-        box-shadow: 0 0 20px rgba(83, 52, 131, 0.3);
+    .hero {
+        margin-bottom: 24px;
         z-index: 1;
+        filter: drop-shadow(0 4px 12px rgba(83, 52, 131, 0.6));
     }
     .buttons {
         display: flex; flex-direction: column;
