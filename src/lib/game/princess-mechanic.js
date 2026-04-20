@@ -49,4 +49,18 @@ export class PrincessMechanic {
         this.alertRadius = 0;
         this.messageShown = false;
     }
+
+    capture() {
+        return {
+            alerted: this.alerted,
+            alertRadius: this.alertRadius,
+            messageShown: this.messageShown,
+        };
+    }
+
+    apply(s) {
+        this.alerted = s.alerted;
+        this.alertRadius = s.alertRadius;
+        this.messageShown = s.messageShown;
+    }
 }

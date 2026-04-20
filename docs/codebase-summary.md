@@ -30,12 +30,14 @@ NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The c
 | File | Purpose |
 |------|---------|
 | Button.svelte | Reusable styled button |
-| GameBoard.svelte | CSS grid rendering of cells |
-| GameHud.svelte | Level, lives, turns display bar |
-| PlayerSprite.svelte | Absolutely positioned player div |
-| GuardSprite.svelte | Colored circle (or diamond for mirror) |
+| GameBoard.svelte | CSS grid of cells, each rendering a pixel-art tile |
+| GameHud.svelte | Level, lives (pixel hearts), turns, pixel-icon action buttons |
+| PlayerSprite.svelte | Pixel-art ninja rabbit sprite |
+| GuardSprite.svelte | Pixel-art veggie sprite dispatched by guard.type + direction indicator |
 | DetectionPopup.svelte | "Detected!" overlay with retry |
+| LevelCompletePopup.svelte | Star rating, best moves, next-level action |
 | PauseMenu.svelte | Resume / restart / main menu |
+| ControlsOverlay.svelte | Keyboard / tap / swipe reference overlay |
 
 ### Game Engine (src/lib/game/) — Pure JS, no Svelte
 
@@ -55,6 +57,17 @@ NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The c
 | File | Purpose |
 |------|---------|
 | levels.js | LEVELS array: 12 level definitions (grid, guards, walls, goals) |
+
+### Pixel-Art Pipeline (src/lib/pixel/)
+
+| File | Purpose |
+|------|---------|
+| Pixel.svelte | SVG renderer: string-art + palette → run-length-merged `<rect>`s |
+| palette.js | NNTV color constants (mirrors theme.css guard colors; extended atmosphere palette) |
+| art-characters.js | 32×32 sprites: rabbit, princess, 6 guard veggies + GUARD_SPRITES map |
+| art-tiles.js | 16×16 board tiles: empty, wall, goal, lit, mirror, preview |
+| art-ui.js | Heart (full/empty), moon, logo, pixel icons (undo/redo/eye/pause/settings/lang/arrow) |
+| art-scenes.js | 80×N act backdrops + SCENE_BY_LEVEL mapping (garden/walls/fortress/underground/palace/chamber) |
 
 ### Audio System (src/lib/)
 
@@ -148,9 +161,28 @@ new Player(grid, row, col)
 ### Guards
 ```
 All: .updateLight(allGuards?), .onTurnChange(allGuards?)
+All: .capture() → state, .apply(state)   # dynamic-state snapshot for undo/preview
 RotatingGuard: .castBeam(dir, fromRow, fromCol, range, allGuards, depth)
 PatrollingGuard: .checkIfCircularPath(), path traversal with reversing
 MirrorGuard: .reflectDirection ('cw' or 'ccw')
+ChaserGuard: .bfsNextStep(targetRow, targetCol), hunting/returning state
+```
+
+### PrincessMechanic
+```
+new PrincessMechanic()
+.update(grid, player, goalRow, goalCol) → { showMessage, detected }
+.lightRing(grid, goalRow, goalCol, radius)
+.capture() → { alerted, alertRadius, messageShown }, .apply(state)
+.reset()
+```
+
+### GameHistory
+```
+new GameHistory()
+.createSnapshot(player, guards, turnCount, princessState) → snapshot
+.pushSnapshot(snap), .undo(...), .redo(...)
+.canUndo(), .canRedo(), .reset()
 ```
 
 ### TurnManager
@@ -177,14 +209,17 @@ App.svelte → all scenes
 Game.svelte (central hub)
   ├── lib/game/level-manager.js → grid-system, player, guards, levels
   ├── lib/game/turn-manager.js
-  ├── lib/progress.js
-  ├── lib/localization.js
+  ├── lib/game/game-history.js, princess-mechanic.js, touch-controls.js
+  ├── lib/audio.js, lib/progress.js, lib/localization.js
+  ├── lib/pixel/Pixel.svelte, lib/pixel/art-scenes.js (act backdrop)
   ├── components/GameBoard, PlayerSprite, GuardSprite, GameHud
-  ├── components/DetectionPopup, PauseMenu
+  ├── components/DetectionPopup, LevelCompletePopup, PauseMenu, ControlsOverlay
   └── renderVersion pattern for reactivity
 
-LevelSelect.svelte → levels.js, progress.js, localization.js
-LevelIntro.svelte → levels.js, localization.js
+LevelSelect.svelte → level-manager.getTotalLevels(), progress.js, localization.js
+LevelIntro.svelte → levels.js, lib/pixel/art-scenes.js, localization.js
+MainMenu.svelte → lib/pixel/{Pixel, art-ui, art-characters}
+Pixel components (PlayerSprite/GuardSprite/GameBoard/GameHud) → lib/pixel/Pixel + art-*
 All scenes → localization.js (for UI text)
 ```
 
@@ -192,7 +227,7 @@ All scenes → localization.js (for UI text)
 
 | Metric | Value |
 |--------|-------|
-| Total Source Files | ~25 (8 scenes + 7 components + 8 engine + audio + utils) |
+| Total Source Files | ~36 (8 scenes + 9 components + 8 engine + 6 pixel + audio + utils) |
 | Number of Classes | 10 (GridSystem, Player, Guard + 6 subclasses, TurnManager, GameHistory, TouchControls) |
 | Number of Levels | 12 (across 6 acts) |
 | Guard Types | 6 (Static, Rotating, Blinking, Mirror, Patrolling, Chaser) |

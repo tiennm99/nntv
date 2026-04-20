@@ -14,7 +14,11 @@ function getContext() {
             masterGain.connect(audioCtx.destination);
         } catch (e) { return null; }
     }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (audioCtx.state === 'suspended') {
+        // Resume returns a Promise — swallow rejections so we don't emit
+        // unhandled-rejection warnings on browsers that block autoplay.
+        audioCtx.resume().catch(() => {});
+    }
     return audioCtx;
 }
 
