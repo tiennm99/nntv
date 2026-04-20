@@ -81,12 +81,22 @@ Game.svelte (state owner, input handler, render coordinator)
 │   └── nextTurn(): clear lights → update guards → detect
 │
 └── Svelte Components (rendering only)
-    ├── GameBoard.svelte — CSS grid of cells
-    ├── PlayerSprite.svelte — positioned div
-    ├── GuardSprite.svelte — colored circle/diamond
-    ├── GameHud.svelte — level, lives, turns display
+    ├── GameBoard.svelte — CSS grid; each cell wraps a <Pixel> tile sprite
+    ├── PlayerSprite.svelte — <Pixel> ninja rabbit (32×32)
+    ├── GuardSprite.svelte — <Pixel> veggie sprite dispatched by guard.type
+    ├── GameHud.svelte — pixel hearts + pixel icons + level/turns text
     ├── DetectionPopup.svelte — retry prompt
+    ├── LevelCompletePopup.svelte — star rating + next-level action
+    ├── ControlsOverlay.svelte — keyboard/tap/swipe reference
     └── PauseMenu.svelte — resume/restart/menu
+
+Pixel Pipeline (src/lib/pixel/)
+├── Pixel.svelte   — string-art + palette → inline SVG <rect>s (run-length merged, pixelated rendering)
+├── palette.js     — NNTV color constants; semantic guard colors mirror theme.css
+├── art-characters.js — player, princess, 6 guard veggies
+├── art-tiles.js   — board tiles (empty/wall/goal/lit/mirror/preview)
+├── art-ui.js      — hearts, moon, logo, pixel icons
+└── art-scenes.js  — 6 act backdrops + sceneForLevel(n)
 ```
 
 ## Svelte 5 Reactivity Pattern
@@ -185,15 +195,18 @@ checkFinalLevel() — called each turn on final level
 
 ```javascript
 const history = new GameHistory();
-history.snapshot(player, guards, turnCount, princessAlerted, alertRadius);
-const state = history.undo(player, guards);  // Restores: row, col, direction, isOn per guard
-const state = history.redo(player, guards);  // Re-applies undone state
+const snap = history.createSnapshot(player, guards, turnCount, princess.capture());
+history.pushSnapshot(snap);
+const state = history.undo(player, guards, turnManager, princess.capture());  // restores via g.apply(state.guards[i])
+const state = history.redo(player, guards, turnManager, princess.capture());
+princess.apply(state.princess);  // { alerted, alertRadius, messageShown }
 ```
 
 - Max history size: 50 snapshots
 - Triggered by Z key (undo) / Y key (redo)
 - Snapshots reset redo stack on any new action
-- Restores: player position, guard positions/directions/states, turn count, princess alert state
+- Restores: player position, guards via `capture()/apply()` (dynamic state only), turn count, full princess state (including `messageShown`)
+- Same `capture()/apply()` contract is used by `TurnManager.previewNextTurn` — any new dynamic guard field picked up automatically
 
 ## Chaser Guard (BFS Pathfinding)
 
@@ -245,12 +258,15 @@ audio.toggleMute();         // Toggle global mute
 
 ## Asset & Resource Management
 
-- **No sprites/images**: Pure CSS rendering (colored divs, borders)
+- **Pixel art**: Inlined as string-art + palette constants in `src/lib/pixel/art-*.js`; rendered via `Pixel.svelte` as SVG `<rect>`s with run-length merging. No external image files.
+- **Semantic color coupling**: Guard colors duplicated between `theme.css` CSS variables and `NNTV.guard*` JS constants — both sides must stay in sync for gameplay readability.
+- **Act backdrops**: `sceneForLevel(n)` maps level → 80×N scene; used by `LevelIntro` and `Game` as opacity-dimmed backdrop.
 - **Localization**: JSON files (`src/lib/locales/en.json`, `vi.json`)
 - **Levels**: JS objects in `levels.js`
 - **Progress**: localStorage key `nntv-progress`
 - **Language**: localStorage key `nntv-language`
 - **Audio**: Web Audio API (no external files)
+- **Source-of-truth pixel authoring**: `public/assets/src/*.jsx` (Figma-style JSX canvas preview; ported manually into `src/lib/pixel/`)
 
 ## Build & Deployment
 

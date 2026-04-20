@@ -1,10 +1,11 @@
 <script>
     import { getText } from '../lib/localization.js';
     import { getProgress } from '../lib/progress.js';
+    import { getTotalLevels } from '../lib/game/level-manager.js';
     import Button from '../components/Button.svelte';
     let { navigate } = $props();
 
-    const totalLevels = 12;
+    const totalLevels = getTotalLevels();
     let progress = $state(getProgress());
 
     function selectLevel(num) {

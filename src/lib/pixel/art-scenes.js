@@ -2,7 +2,9 @@
 import { NNTV } from './palette.js';
 
 // Normalize helper — ensure every row is exactly 80 chars.
-const norm = (rows) => rows.map(r => (r.length >= 80 ? r.slice(0, 80) : r.padEnd(80, r.at(-1) || '.')));
+// Pad with '.' (transparent) so a short-authored row never silently bleeds
+// an unrelated palette char across the rest of the scene.
+const norm = (rows) => rows.map(r => (r.length >= 80 ? r.slice(0, 80) : r.padEnd(80, '.')));
 
 // ── ACT 1: GARDEN ──────────────────────────────────────────────────────
 export const BG_GARDEN = norm([

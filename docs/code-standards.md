@@ -40,23 +40,33 @@ src/
 │
 ├── components/                      # Reusable UI components
 │   ├── Button.svelte
-│   ├── GameBoard.svelte             # CSS grid rendering
-│   ├── GameHud.svelte               # Level/lives/turns display
-│   ├── PlayerSprite.svelte          # Positioned player div
-│   ├── GuardSprite.svelte           # Colored guard circle/diamond
+│   ├── GameBoard.svelte             # Grid of pixel tiles
+│   ├── GameHud.svelte               # Pixel hearts + pixel icons + level/turns
+│   ├── PlayerSprite.svelte          # Pixel rabbit
+│   ├── GuardSprite.svelte           # Pixel veggie dispatched by guard.type
 │   ├── PauseMenu.svelte
-│   └── DetectionPopup.svelte
+│   ├── DetectionPopup.svelte
+│   ├── LevelCompletePopup.svelte
+│   └── ControlsOverlay.svelte
 │
 ├── lib/
 │   ├── game/                        # Pure JS game engine (no framework)
 │   │   ├── grid-system.js
 │   │   ├── player.js
-│   │   ├── guards.js                # Base + 6 guard subclasses (including ChaserGuard)
-│   │   ├── turn-manager.js
+│   │   ├── guards.js                # Base + 6 guard subclasses; capture()/apply() contract
+│   │   ├── turn-manager.js          # Uses guard.capture()/apply() for non-destructive preview
 │   │   ├── level-manager.js         # GUARD_REGISTRY factory pattern
 │   │   ├── game-history.js          # Undo/redo system
-│   │   ├── princess-mechanic.js     # Level 12 escalating detection
+│   │   ├── princess-mechanic.js     # Level 12 escalating detection; capture()/apply()
 │   │   └── touch-controls.js        # Mobile swipe support
+│   │
+│   ├── pixel/                       # Pixel-art rendering pipeline
+│   │   ├── Pixel.svelte             # String-art + palette → SVG rects
+│   │   ├── palette.js               # NNTV color constants
+│   │   ├── art-characters.js        # Rabbit, princess, 6 veggie guards
+│   │   ├── art-tiles.js             # 16×16 board tiles
+│   │   ├── art-ui.js                # Hearts, moon, logo, icons
+│   │   └── art-scenes.js            # 80×N act backdrops + sceneForLevel(n)
 │   │
 │   ├── levels/
 │   │   └── levels.js                # 12 level definitions
@@ -166,6 +176,8 @@ All visual constants centralized in `src/styles/theme.css` as CSS variables:
 
 Component-scoped `<style>` blocks reference these variables. No inline color values.
 
+**Pixel-art color coupling:** Guard colors are duplicated in `src/lib/pixel/palette.js` as `NNTV.guardStatic`, `NNTV.guardRotating`, etc. These MUST stay in sync with the `--guard-*` CSS variables because gameplay readability depends on consistent color semantics across CSS cells and SVG sprites. Change both sides together.
+
 ## Error Handling
 
 - **Try-catch**: localStorage operations (`progress.js`, `localization.js`)
@@ -198,12 +210,39 @@ import { GameHistory } from '../lib/game/game-history.js';
 const history = new GameHistory();
 
 // Before player move
-history.snapshot(player, guards, turnCount, princessAlerted, alertRadius);
+const snap = history.createSnapshot(player, guards, turnCount, princess.capture());
+history.pushSnapshot(snap);
 
 // Z/Y key handlers
-if (event.key === 'z') history.undo(player, guards);
-if (event.key === 'y') history.redo(player, guards);
+if (event.key === 'z') {
+    const state = history.undo(player, guards, turnManager, princess.capture());
+    if (state) princess.apply(state.princess);
+}
+if (event.key === 'y') {
+    const state = history.redo(player, guards, turnManager, princess.capture());
+    if (state) princess.apply(state.princess);
+}
 ```
+
+### Guard capture()/apply() Contract
+Every guard exposes `capture()` (returns dynamic state object) and `apply(state)` (restores). Used by both `GameHistory` and `TurnManager.previewNextTurn` — new dynamic fields picked up automatically without touching either caller.
+
+```javascript
+class Guard {
+    capture() { return { row, col, direction, isOn }; }
+    apply(s) { this.row = s.row; ... }
+}
+// Subclasses override via super.capture(), adding their own fields (isChasing, currentPathIndex, etc.)
+```
+
+### Pixel Sprite Usage
+```svelte
+import Pixel from '../lib/pixel/Pixel.svelte';
+import { RABBIT_ART, RABBIT_PAL } from '../lib/pixel/art-characters.js';
+
+<Pixel art={RABBIT_ART} palette={RABBIT_PAL} width={size} height={size} />
+```
+Art data is string arrays of equal length; palette maps single characters → hex colors; `.`/` ` is transparent.
 
 ### Mobile Touch Controls
 ```javascript
@@ -228,10 +267,12 @@ audio.toggleMute();
 - [ ] Follows naming conventions (PascalCase components, kebab-case JS modules)
 - [ ] No dead code or commented-out blocks
 - [ ] Class mutations followed by `renderVersion++`
-- [ ] No hardcoded colors (use CSS variables)
+- [ ] No hardcoded colors (use CSS variables or NNTV palette constants)
 - [ ] Localization keys used for all user-facing strings
-- [ ] File size under 200 lines
+- [ ] File size under 200 lines (pixel art data files exempt)
 - [ ] Pure JS game logic has no Svelte imports
 - [ ] Guard types registered in GUARD_REGISTRY (not switch statements)
+- [ ] Guards extending the hierarchy override `capture()/apply()` if they add dynamic state
 - [ ] Touch input debounced/throttled if needed
 - [ ] Audio context lazily initialized (autoplay policy compliance)
+- [ ] Pixel color semantics (`--guard-*` CSS vars ↔ `NNTV.guard*`) kept in sync when modifying theme

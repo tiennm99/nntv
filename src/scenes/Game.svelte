@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { getText } from '../lib/localization.js';
     import { loadLevel, getTotalLevels } from '../lib/game/level-manager.js';
     import { TurnManager } from '../lib/game/turn-manager.js';
@@ -16,7 +16,7 @@
     import DetectionPopup from '../components/DetectionPopup.svelte';
     import LevelCompletePopup from '../components/LevelCompletePopup.svelte';
     import PauseMenu from '../components/PauseMenu.svelte';
-    import ControlsOverlay from '../components/controls-overlay.svelte';
+    import ControlsOverlay from '../components/ControlsOverlay.svelte';
     import Pixel from '../lib/pixel/Pixel.svelte';
     import { sceneForLevel } from '../lib/pixel/art-scenes.js';
 
@@ -68,10 +68,17 @@
     let canUndo = $derived((renderVersion, history.canUndo()));
     let scene = $derived(sceneForLevel(currentLevel));
 
+    // Detection feedback timer — tracked so we can clear on unmount / re-init
+    let detectionTimeout = null;
+
     // Initialize level
     function initLevel() {
         const state = loadLevel(currentLevel);
-        if (!state) return;
+        if (!state) {
+            // Invalid level id — bail to main menu instead of leaving stale state
+            navigate('MainMenu');
+            return;
+        }
         grid = state.grid;
         player = state.player;
         guards = state.guards;
@@ -94,10 +101,13 @@
     }
 
     onMount(() => { initLevel(); });
+    onDestroy(() => {
+        if (detectionTimeout) clearTimeout(detectionTimeout);
+    });
 
     // Capture current state as a snapshot object (does not push to history)
     function captureState() {
-        return history.createSnapshot(player, guards, turnManager.turnCount, princess.alerted, princess.alertRadius);
+        return history.createSnapshot(player, guards, turnManager.turnCount, princess.capture());
     }
 
     // Capture and push snapshot in one step (for wait action)
@@ -177,34 +187,37 @@
         playerShake = true;
         playDetection();
         detected = true;
-        setTimeout(() => { playerShake = false; detectedCell = null; }, 400);
+        if (detectionTimeout) clearTimeout(detectionTimeout);
+        detectionTimeout = setTimeout(() => {
+            playerShake = false;
+            detectedCell = null;
+            detectionTimeout = null;
+        }, 400);
     }
 
     // Undo/redo handlers
-    function handleUndo() {
-        if (!player || !grid) return;
-        const state = history.undo(player, guards, turnManager, princess.alerted, princess.alertRadius);
-        if (!state) return;
-        princess.alerted = state.princessAlerted || false;
-        princess.alertRadius = state.alertRadius || 0;
+    function applyHistoryState(state) {
+        princess.apply(state.princess);
         finalMessage = princess.alerted;
         grid.clearAllLight();
         guards.forEach(g => g.updateLight(guards));
         if (princess.alerted) princess.lightRing(grid, goalRow, goalCol, princess.alertRadius);
+    }
+
+    function handleUndo() {
+        if (!player || !grid) return;
+        const state = history.undo(player, guards, turnManager, princess.capture());
+        if (!state) return;
+        applyHistoryState(state);
         playUndo();
         renderVersion++;
     }
 
     function handleRedo() {
         if (!player || !grid) return;
-        const state = history.redo(player, guards, turnManager, princess.alerted, princess.alertRadius);
+        const state = history.redo(player, guards, turnManager, princess.capture());
         if (!state) return;
-        princess.alerted = state.princessAlerted || false;
-        princess.alertRadius = state.alertRadius || 0;
-        finalMessage = princess.alerted;
-        grid.clearAllLight();
-        guards.forEach(g => g.updateLight(guards));
-        if (princess.alerted) princess.lightRing(grid, goalRow, goalCol, princess.alertRadius);
+        applyHistoryState(state);
         renderVersion++;
     }
 

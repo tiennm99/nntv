@@ -13,6 +13,19 @@ class Guard {
 
     updateLight() {}
     onTurnChange() {}
+
+    // Dynamic state snapshot — override in subclasses to add per-type fields.
+    // Used by GameHistory (undo/redo) and TurnManager.previewNextTurn.
+    capture() {
+        return { row: this.row, col: this.col, direction: this.direction, isOn: this.isOn };
+    }
+
+    apply(s) {
+        this.row = s.row;
+        this.col = s.col;
+        this.direction = s.direction;
+        this.isOn = s.isOn;
+    }
 }
 
 export class StaticGuard extends Guard {
@@ -212,6 +225,24 @@ export class ChaserGuard extends Guard {
         return null; // no path found
     }
 
+    capture() {
+        return {
+            ...super.capture(),
+            isChasing: this.isChasing,
+            isReturning: this.isReturning,
+            targetRow: this.targetRow,
+            targetCol: this.targetCol,
+        };
+    }
+
+    apply(s) {
+        super.apply(s);
+        this.isChasing = s.isChasing;
+        this.isReturning = s.isReturning;
+        this.targetRow = s.targetRow;
+        this.targetCol = s.targetCol;
+    }
+
     // Chaser has two states: hunting player or returning home
     onTurnChange(allGuards, player) {
         if (!player) { this.updateLight(); return; }
@@ -313,6 +344,20 @@ export class PatrollingGuard extends Guard {
         else if (newCol > oldCol) this.direction = 1;
         else if (newRow > oldRow) this.direction = 2;
         else if (newCol < oldCol) this.direction = 3;
+    }
+
+    capture() {
+        return {
+            ...super.capture(),
+            currentPathIndex: this.currentPathIndex,
+            isReversing: this.isReversing,
+        };
+    }
+
+    apply(s) {
+        super.apply(s);
+        this.currentPathIndex = s.currentPathIndex;
+        this.isReversing = s.isReversing;
     }
 
     onTurnChange() {

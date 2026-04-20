@@ -79,15 +79,16 @@ The local development server runs on `http://localhost:5173` by default. Vite wi
 | Path                         | Description                                                |
 |------------------------------|------------------------------------------------------------|
 | `index.html`                 | HTML entry point                                           |
-| `public/assets`              | Static assets (images) served at runtime                   |
-| `public/style.css`           | Global layout styles and CSS variables                     |
+| `public/assets`              | Static assets + pixel-art authoring source (JSX canvas)    |
 | `src/main.js`                | Application bootstrap                                      |
 | `src/App.svelte`             | Scene router                                               |
 | `src/scenes/`                | Game scenes (MainMenu, Game, Guide, Settings, etc.)        |
 | `src/components/`            | Reusable UI components (GameBoard, PlayerSprite, etc.)     |
 | `src/lib/game/`              | Pure JS game engine (grid, player, guards, turns, history) |
+| `src/lib/pixel/`             | Pixel-art renderer + palette + sprite/tile/UI/scene art    |
 | `src/lib/levels/`            | Level definitions (12 levels)                              |
 | `src/lib/`                   | Audio, localization, progress persistence                  |
+| `src/styles/theme.css`       | Global layout styles and CSS variables                     |
 
 ## Game Architecture
 
