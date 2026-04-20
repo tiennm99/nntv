@@ -17,6 +17,8 @@
     import LevelCompletePopup from '../components/LevelCompletePopup.svelte';
     import PauseMenu from '../components/PauseMenu.svelte';
     import ControlsOverlay from '../components/controls-overlay.svelte';
+    import Pixel from '../lib/pixel/Pixel.svelte';
+    import { sceneForLevel } from '../lib/pixel/art-scenes.js';
 
     let { navigate, level = 1, lives = 3 } = $props();
 
@@ -64,6 +66,7 @@
         ? turnManager.previewNextTurn(grid, player, guards)
         : new Set()));
     let canUndo = $derived((renderVersion, history.canUndo()));
+    let scene = $derived(sceneForLevel(currentLevel));
 
     // Initialize level
     function initLevel() {
@@ -266,6 +269,9 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="game-scene" class:flash={showFlash}
      ontouchstart={onTouchStart} ontouchend={onTouchEnd}>
+    <div class="scene-backdrop">
+        <Pixel art={scene.art} palette={scene.pal} width={1024} height={384} />
+    </div>
     <GameHud
         lives={livesRemaining}
         level={currentLevel}
@@ -337,6 +343,17 @@
         display: flex; flex-direction: column;
         background: var(--bg-dark);
         position: relative;
+        overflow: hidden;
+    }
+    .scene-backdrop {
+        position: absolute;
+        inset: 0;
+        opacity: 0.22;
+        pointer-events: none;
+        z-index: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
     }
     .game-scene.flash {
         animation: level-flash 0.4s ease-out;
@@ -351,8 +368,16 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        position: relative;
+        z-index: 1;
     }
-    .board-container { position: relative; }
+    .board-container {
+        position: relative;
+        background: rgba(10, 10, 26, 0.55);
+        padding: 8px;
+        border-radius: 6px;
+        box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+    }
     .final-message {
         position: absolute;
         top: 60px; left: 50%;
