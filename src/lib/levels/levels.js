@@ -634,55 +634,88 @@ export const LEVELS = [
         parMoves: 24,
     },
     {
-        // The Throne Room — all guard types combined including chaser
+        // L11 Throne Room — 12x12, 9 guards covering ALL SIX TYPES
+        // (static, rotating, blinking, patrolling, mirror, chaser).
+        // The climactic test before the impossible Princess Chamber.
         id: 11,
         name: "The Throne Room",
         storyKey: "level11Story",
-        grid: { rows: 9, cols: 9 },
+        grid: { rows: 12, cols: 12 },
         player: { row: 0, col: 0 },
-        goal: { row: 8, col: 8 },
+        goal: { row: 11, col: 11 },
         walls: [
-            { row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 },
-            { row: 2, col: 3 }, { row: 2, col: 4 }, { row: 2, col: 5 }, { row: 2, col: 6 },
-            { row: 4, col: 2 }, { row: 4, col: 3 }, { row: 4, col: 4 },
-            { row: 4, col: 5 }, { row: 4, col: 6 }, { row: 4, col: 7 }, { row: 4, col: 8 },
-            { row: 6, col: 0 }, { row: 6, col: 1 }, { row: 6, col: 2 },
-            { row: 6, col: 3 }, { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 },
+            { row: 1, col: 4 }, { row: 1, col: 8 },
+            { row: 2, col: 2 }, { row: 2, col: 6 },
+            { row: 3, col: 4 }, { row: 3, col: 9 },
+            { row: 4, col: 1 }, { row: 4, col: 6 },
+            { row: 5, col: 3 }, { row: 5, col: 10 },
+            { row: 6, col: 5 }, { row: 6, col: 8 },
+            { row: 7, col: 2 }, { row: 7, col: 6 },
+            { row: 8, col: 4 }, { row: 8, col: 9 },
+            { row: 9, col: 1 }, { row: 9, col: 6 },
+            { row: 10, col: 3 }, { row: 10, col: 8 },
         ],
         guards: [
             {
                 type: "static",
-                position: { row: 1, col: 7 },
+                position: { row: 1, col: 2 },
                 litCells: [
-                    { row: 0, col: 7 }, { row: 1, col: 6 }, { row: 1, col: 8 },
+                    { row: 0, col: 2 }, { row: 1, col: 1 },
+                    { row: 1, col: 3 }, { row: 2, col: 1 },
                 ],
             },
             {
                 type: "rotating",
-                position: { row: 3, col: 3 },
+                position: { row: 3, col: 5 },
                 startDirection: 0,
             },
             {
+                type: "mirror",
+                position: { row: 5, col: 5 },
+                reflectDirection: "cw",
+            },
+            {
                 type: "blinking",
-                position: { row: 5, col: 7 },
+                position: { row: 4, col: 9 },
                 startState: true,
                 litCells: [
-                    { row: 5, col: 6 }, { row: 5, col: 8 },
+                    { row: 3, col: 10 }, { row: 4, col: 8 },
+                    { row: 4, col: 10 }, { row: 5, col: 9 },
                 ],
             },
             {
                 type: "patrolling",
-                startPosition: { row: 7, col: 1 },
+                startPosition: { row: 6, col: 2 },
                 path: [
-                    { row: 7, col: 1 }, { row: 7, col: 2 },
-                    { row: 7, col: 3 }, { row: 7, col: 4 },
+                    { row: 6, col: 2 }, { row: 6, col: 3 },
                     { row: 7, col: 3 }, { row: 7, col: 2 },
                 ],
             },
             {
-                // Chaser guards the final stretch
+                type: "static",
+                position: { row: 8, col: 2 },
+                litCells: [
+                    { row: 7, col: 2 }, { row: 8, col: 1 },
+                    { row: 8, col: 3 }, { row: 9, col: 2 },
+                ],
+            },
+            {
+                type: "rotating",
+                position: { row: 9, col: 8 },
+                startDirection: 2,
+            },
+            {
+                type: "blinking",
+                position: { row: 10, col: 10 },
+                startState: false,
+                litCells: [
+                    { row: 9, col: 10 }, { row: 10, col: 9 },
+                    { row: 10, col: 11 },
+                ],
+            },
+            {
                 type: "chaser",
-                position: { row: 7, col: 7 },
+                position: { row: 8, col: 7 },
                 detectionRadius: 3,
             },
         ],
