@@ -1,30 +1,38 @@
 export const LEVELS = [
     // === ACT 1: THE OUTSKIRTS (movement + static guards) ===
     {
+        // L1 Garden Path — 8x8, 0 guards. Teaches movement with a winding corridor
+        // that has no true "wrong" branches — every open cell leads somewhere useful.
         id: 1,
         name: "Garden Path",
         storyKey: "level1Story",
-        grid: { rows: 6, cols: 6 },
+        grid: { rows: 8, cols: 8 },
         player: { row: 0, col: 0 },
-        goal: { row: 5, col: 5 },
+        goal: { row: 7, col: 7 },
         walls: [
-            { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 },
-            { row: 3, col: 2 }, { row: 3, col: 3 }, { row: 3, col: 4 },
-            { row: 4, col: 0 }, { row: 4, col: 1 },
+            { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 }, { row: 1, col: 4 },
+            { row: 2, col: 4 }, { row: 2, col: 6 },
+            { row: 3, col: 0 }, { row: 3, col: 1 }, { row: 3, col: 4 }, { row: 3, col: 6 },
+            { row: 4, col: 4 }, { row: 4, col: 6 },
+            { row: 5, col: 1 }, { row: 5, col: 2 }, { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 6 },
+            { row: 6, col: 1 },
         ],
         guards: [],
-        parMoves: 10,
+        parMoves: 16,
     },
     {
+        // L2 Watchtower — 8x8, 3 static guards with TWO disjoint paths around them.
+        // Fixes the original L2 connectivity bug (right-side region unreachable).
         id: 2,
         name: "The Watchtower",
         storyKey: "level2Story",
-        grid: { rows: 6, cols: 6 },
+        grid: { rows: 8, cols: 8 },
         player: { row: 0, col: 0 },
-        goal: { row: 5, col: 5 },
+        goal: { row: 7, col: 7 },
         walls: [
-            { row: 1, col: 3 }, { row: 2, col: 1 }, { row: 2, col: 2 },
-            { row: 3, col: 3 }, { row: 3, col: 4 }, { row: 4, col: 1 },
+            { row: 1, col: 2 }, { row: 2, col: 1 }, { row: 2, col: 6 },
+            { row: 3, col: 2 }, { row: 3, col: 5 },
+            { row: 6, col: 3 }, { row: 6, col: 5 },
         ],
         guards: [
             {
@@ -37,14 +45,22 @@ export const LEVELS = [
             },
             {
                 type: "static",
-                position: { row: 4, col: 2 },
+                position: { row: 5, col: 2 },
                 litCells: [
-                    { row: 3, col: 2 }, { row: 4, col: 3 },
-                    { row: 5, col: 2 },
+                    { row: 4, col: 2 }, { row: 5, col: 1 },
+                    { row: 5, col: 3 }, { row: 6, col: 2 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 5, col: 6 },
+                litCells: [
+                    { row: 4, col: 6 }, { row: 5, col: 5 },
+                    { row: 5, col: 7 }, { row: 6, col: 6 },
                 ],
             },
         ],
-        parMoves: 12,
+        parMoves: 18,
     },
 
     // === ACT 2: THE VEGETABLE GARDEN (walls as shields + rotating guards) ===
