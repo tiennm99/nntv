@@ -69,10 +69,7 @@ describe('level metadata invariants', () => {
         expect(l12.isFinalLevel).toBe(true);
     });
 
-    // Forward regression guard — several current levels (L2, L5 at least) have
-    // pre-existing wall-on-light overlaps. Full cleanup happens as each level is
-    // redesigned in its owning phase. Unskip in Phase 11 once all levels clean.
-    it.skip('no wall cell overlaps a guard lit cell (enable after all redesigns)', () => {
+    it('no wall cell overlaps a guard lit cell', () => {
         for (const lvl of LEVELS) {
             if (KNOWN_UNSOLVABLE_BUGS.has(lvl.id)) continue;
             const walls = new Set((lvl.walls ?? []).map(w => `${w.row},${w.col}`));
