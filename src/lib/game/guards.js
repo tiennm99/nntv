@@ -28,25 +28,46 @@ class Guard {
     }
 }
 
+// Wilting tomato — emits a Manhattan aura that shrinks by 1 each turn.
+// initialRadius 2 lights 13 cells at turn 0, 5 cells at turn 1, 1 cell at
+// turn 2, harmless thereafter. Pairs naturally with the `wait` action:
+// patient players can outlast an aura; impatient players must detour.
 export class StaticGuard extends Guard {
-    constructor(grid, row, col, litCells) {
+    constructor(grid, row, col, initialRadius) {
         super(grid, row, col, 'static');
-        this.litCells = litCells || [];
+        this.initialRadius = initialRadius ?? 2;
+        this.currentRadius = this.initialRadius;
     }
 
     updateLight() {
-        if (this.grid.isValidPosition(this.row, this.col)) {
-            this.grid.setLight(this.row, this.col, true);
-        }
-        this.litCells.forEach(cell => {
-            if (this.grid.isValidPosition(cell.row, cell.col)) {
-                this.grid.setLight(cell.row, cell.col, true);
+        if (this.currentRadius < 0) return;
+        const r0 = this.row, c0 = this.col;
+        const rad = this.currentRadius;
+        for (let r = r0 - rad; r <= r0 + rad; r++) {
+            for (let c = c0 - rad; c <= c0 + rad; c++) {
+                const dist = Math.abs(r - r0) + Math.abs(c - c0);
+                if (dist > rad) continue;
+                if (this.grid.isValidPosition(r, c)) {
+                    this.grid.setLight(r, c, true);
+                }
             }
-        });
+        }
     }
 
     onTurnChange() {
+        // Clamp at -1 (fully wilted, harmless). Prevents unbounded state growth
+        // for BFS solver — beyond -1, behavior is identical so keys stay finite.
+        if (this.currentRadius >= 0) this.currentRadius--;
         this.updateLight();
+    }
+
+    capture() {
+        return { ...super.capture(), currentRadius: this.currentRadius };
+    }
+
+    apply(s) {
+        super.apply(s);
+        this.currentRadius = s.currentRadius;
     }
 }
 
