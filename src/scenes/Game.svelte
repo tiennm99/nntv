@@ -56,7 +56,9 @@
     // Derived rendering data (depend on renderVersion to pick up class mutations)
     let cells = $derived((renderVersion, grid ? grid.getAllCells() : []));
     let turns = $derived((renderVersion, turnManager.turnCount));
-    let cellSize = $derived(grid ? Math.min(50, Math.floor(500 / grid.rows)) : 50);
+    // Fixed cellSize. Grids larger than the viewport scroll instead of shrinking cells,
+    // preserving readability on 11x11+ arenas. Viewport handles scroll-follow (see boardEl $effect below).
+    let cellSize = $derived(50);
     let playerRow = $derived((renderVersion, player ? player.row : 0));
     let playerCol = $derived((renderVersion, player ? player.col : 0));
     let guardSnapshots = $derived((renderVersion, guards.map(g => ({
@@ -70,6 +72,21 @@
 
     // Detection feedback timer — tracked so we can clear on unmount / re-init
     let detectionTimeout = null;
+
+    // Viewport scroll-follow — scrolls the board container so the player stays in view
+    // on grids larger than the viewport. Binds to .board-container element.
+    let boardEl = $state(null);
+    $effect(() => {
+        if (!boardEl || !grid) return;
+        // Read player position to establish reactivity
+        const pr = playerRow;
+        const pc = playerCol;
+        const target = {
+            left: pc * cellSize + cellSize / 2 - boardEl.clientWidth / 2,
+            top: pr * cellSize + cellSize / 2 - boardEl.clientHeight / 2,
+        };
+        boardEl.scrollTo({ left: Math.max(0, target.left), top: Math.max(0, target.top), behavior: 'smooth' });
+    });
 
     // Initialize level
     function initLevel() {
@@ -300,7 +317,7 @@
 
     {#if grid && player}
         <div class="board-wrapper">
-            <div class="board-container" style="position: relative;">
+            <div class="board-container" bind:this={boardEl} style="position: relative;">
                 <GameBoard
                     {cells}
                     rows={grid.rows}
@@ -390,6 +407,11 @@
         padding: 8px;
         border-radius: 6px;
         box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+        /* Cap viewport; grids larger than this scroll with camera-follow */
+        max-width: min(720px, 85vw, 85vh);
+        max-height: min(720px, 85vw, 85vh);
+        overflow: auto;
+        scroll-behavior: smooth;
     }
     .final-message {
         position: absolute;
