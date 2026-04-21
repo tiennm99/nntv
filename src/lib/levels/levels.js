@@ -468,65 +468,111 @@ export const LEVELS = [
         parMoves: 22,
     },
 
-    // === ACT 5: THE ROYAL PALACE (combinations + chaser + "The Decoy") ===
+    // === ACT 5: THE ROYAL PALACE (chaser intro) ===
     {
-        // The Decoy — chaser guard punishes the obvious short path
+        // L9 Decoy Path — 12x12, 8 guards including the chaser intro.
+        // Two possible routes: fast central (chaser ambush) vs long perimeter.
         id: 9,
         name: "The Decoy Path",
         storyKey: "level9Story",
-        grid: { rows: 8, cols: 8 },
+        grid: { rows: 12, cols: 12 },
         player: { row: 0, col: 0 },
-        goal: { row: 7, col: 7 },
+        goal: { row: 11, col: 11 },
         walls: [
-            { row: 1, col: 3 }, { row: 2, col: 3 }, { row: 3, col: 3 },
-            { row: 4, col: 4 }, { row: 5, col: 4 }, { row: 6, col: 4 },
-            { row: 5, col: 1 },
+            { row: 1, col: 4 }, { row: 1, col: 8 },
+            { row: 2, col: 2 }, { row: 2, col: 9 },
+            { row: 3, col: 5 }, { row: 3, col: 7 },
+            { row: 4, col: 1 }, { row: 4, col: 10 },
+            { row: 5, col: 3 }, { row: 5, col: 8 },
+            { row: 6, col: 5 }, { row: 6, col: 6 },
+            { row: 7, col: 2 }, { row: 7, col: 9 },
+            { row: 8, col: 4 }, { row: 8, col: 7 },
+            { row: 9, col: 1 }, { row: 9, col: 10 },
+            { row: 10, col: 5 }, { row: 10, col: 8 },
         ],
         guards: [
             {
+                type: "static",
+                position: { row: 2, col: 5 },
+                litCells: [
+                    { row: 1, col: 5 }, { row: 2, col: 4 },
+                    { row: 2, col: 6 }, { row: 3, col: 6 },
+                ],
+            },
+            {
                 type: "rotating",
-                position: { row: 4, col: 2 },
+                position: { row: 4, col: 5 },
                 startDirection: 1,
             },
             {
                 type: "blinking",
-                position: { row: 3, col: 6 },
+                position: { row: 3, col: 9 },
                 startState: false,
                 litCells: [
-                    { row: 2, col: 6 }, { row: 3, col: 5 },
-                    { row: 3, col: 7 }, { row: 4, col: 6 },
+                    { row: 2, col: 10 }, { row: 3, col: 8 },
+                    { row: 3, col: 10 }, { row: 4, col: 9 },
+                ],
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 6, col: 2 },
+                path: [
+                    { row: 6, col: 2 }, { row: 6, col: 3 },
+                    { row: 7, col: 3 }, { row: 7, col: 2 },
                 ],
             },
             {
                 type: "static",
-                position: { row: 6, col: 6 },
+                position: { row: 9, col: 5 },
                 litCells: [
-                    { row: 5, col: 6 }, { row: 6, col: 5 },
-                    { row: 6, col: 7 },
+                    { row: 8, col: 5 }, { row: 9, col: 4 },
+                    { row: 9, col: 6 },
                 ],
             },
             {
-                // Chaser lurks near the short route — triggers when player rushes
+                type: "blinking",
+                position: { row: 8, col: 9 },
+                startState: true,
+                litCells: [
+                    { row: 7, col: 10 }, { row: 8, col: 8 },
+                    { row: 8, col: 10 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 10, col: 10 },
+                litCells: [
+                    { row: 9, col: 11 }, { row: 10, col: 9 },
+                    { row: 10, col: 11 },
+                ],
+            },
+            {
+                // Chaser ambushes central path — forces player to take perimeter
                 type: "chaser",
-                position: { row: 2, col: 1 },
+                position: { row: 6, col: 8 },
                 detectionRadius: 3,
             },
         ],
-        parMoves: 19,
+        parMoves: 24,
     },
     {
-        // Hall of Mirrors — rotating guard + mirror guards redirect beams + chaser
+        // L10 Hall of Mirrors — 12x12, 9 guards: 2 rotating + 3 mirrors + chaser + more.
         id: 10,
         name: "Hall of Mirrors",
         storyKey: "level10Story",
-        grid: { rows: 8, cols: 8 },
+        grid: { rows: 12, cols: 12 },
         player: { row: 0, col: 0 },
-        goal: { row: 7, col: 7 },
+        goal: { row: 11, col: 11 },
         walls: [
-            { row: 2, col: 1 },
-            { row: 3, col: 3 }, { row: 3, col: 4 },
-            { row: 4, col: 3 }, { row: 4, col: 4 },
-            { row: 5, col: 6 },
+            { row: 1, col: 3 }, { row: 1, col: 8 },
+            { row: 2, col: 6 }, { row: 3, col: 1 },
+            { row: 3, col: 9 }, { row: 4, col: 4 },
+            { row: 4, col: 7 }, { row: 5, col: 2 },
+            { row: 5, col: 10 }, { row: 6, col: 5 },
+            { row: 7, col: 3 }, { row: 7, col: 8 },
+            { row: 8, col: 1 }, { row: 8, col: 6 },
+            { row: 9, col: 4 }, { row: 9, col: 9 },
+            { row: 10, col: 2 }, { row: 10, col: 7 },
         ],
         guards: [
             {
@@ -536,32 +582,56 @@ export const LEVELS = [
             },
             {
                 type: "mirror",
-                position: { row: 0, col: 2 },
+                position: { row: 2, col: 8 },
                 reflectDirection: "cw",
             },
             {
                 type: "mirror",
-                position: { row: 2, col: 5 },
+                position: { row: 5, col: 5 },
                 reflectDirection: "ccw",
             },
             {
-                type: "rotating",
-                position: { row: 5, col: 5 },
-                startDirection: 2,
-            },
-            {
                 type: "mirror",
-                position: { row: 5, col: 2 },
+                position: { row: 8, col: 8 },
                 reflectDirection: "cw",
             },
             {
-                // Chaser in bottom-right quadrant to pressure the player
+                type: "rotating",
+                position: { row: 8, col: 3 },
+                startDirection: 2,
+            },
+            {
+                type: "static",
+                position: { row: 4, col: 10 },
+                litCells: [
+                    { row: 3, col: 10 }, { row: 4, col: 9 },
+                    { row: 4, col: 11 }, { row: 5, col: 11 },
+                ],
+            },
+            {
+                type: "blinking",
+                position: { row: 6, col: 9 },
+                startState: true,
+                litCells: [
+                    { row: 5, col: 9 }, { row: 6, col: 8 },
+                    { row: 7, col: 9 },
+                ],
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 10, col: 4 },
+                path: [
+                    { row: 10, col: 4 }, { row: 10, col: 5 },
+                    { row: 10, col: 6 }, { row: 10, col: 5 },
+                ],
+            },
+            {
                 type: "chaser",
-                position: { row: 7, col: 4 },
+                position: { row: 9, col: 7 },
                 detectionRadius: 3,
             },
         ],
-        parMoves: 20,
+        parMoves: 24,
     },
     {
         // The Throne Room — all guard types combined including chaser
