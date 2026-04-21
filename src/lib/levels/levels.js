@@ -322,83 +322,150 @@ export const LEVELS = [
 
     // === ACT 4: THE UNDERGROUND (mirror intro) ===
     {
+        // L7 Underground Passage — 11x11, 7 guards with a single mirror intro.
         id: 7,
         name: "The Underground Passage",
         storyKey: "level7Story",
-        grid: { rows: 8, cols: 8 },
+        grid: { rows: 11, cols: 11 },
         player: { row: 0, col: 0 },
-        goal: { row: 7, col: 7 },
+        goal: { row: 10, col: 10 },
         walls: [
-            { row: 1, col: 2 }, { row: 1, col: 3 }, { row: 1, col: 4 }, { row: 1, col: 5 },
-            { row: 2, col: 2 }, { row: 2, col: 5 },
-            { row: 3, col: 5 },
-            { row: 4, col: 2 },
-            { row: 5, col: 2 }, { row: 5, col: 5 },
-            { row: 6, col: 2 }, { row: 6, col: 3 }, { row: 6, col: 4 }, { row: 6, col: 5 },
+            { row: 1, col: 3 }, { row: 2, col: 6 },
+            { row: 3, col: 1 }, { row: 3, col: 4 },
+            { row: 4, col: 7 }, { row: 5, col: 2 },
+            { row: 5, col: 9 }, { row: 6, col: 5 },
+            { row: 7, col: 3 }, { row: 7, col: 8 },
+            { row: 8, col: 1 }, { row: 9, col: 5 },
         ],
         guards: [
             {
-                type: "patrolling",
-                startPosition: { row: 3, col: 3 },
-                path: [
-                    { row: 3, col: 3 }, { row: 3, col: 4 },
-                    { row: 4, col: 4 }, { row: 4, col: 3 },
-                ],
+                type: "rotating",
+                position: { row: 2, col: 3 },
+                startDirection: 0,
+            },
+            {
+                type: "mirror",
+                position: { row: 2, col: 7 },
+                reflectDirection: "cw",
             },
             {
                 type: "static",
-                position: { row: 5, col: 7 },
+                position: { row: 4, col: 4 },
                 litCells: [
-                    { row: 4, col: 7 }, { row: 5, col: 6 },
-                    { row: 6, col: 7 },
-                ],
-            },
-        ],
-        parMoves: 17,
-    },
-    {
-        // Two patrols with interlocking paths + blinking gate
-        id: 8,
-        name: "The Gauntlet",
-        storyKey: "level8Story",
-        grid: { rows: 8, cols: 8 },
-        player: { row: 0, col: 0 },
-        goal: { row: 7, col: 7 },
-        walls: [
-            { row: 1, col: 1 }, { row: 1, col: 6 },
-            { row: 3, col: 3 }, { row: 3, col: 4 },
-            { row: 4, col: 3 }, { row: 4, col: 4 },
-            { row: 6, col: 1 }, { row: 6, col: 6 },
-        ],
-        guards: [
-            {
-                type: "patrolling",
-                startPosition: { row: 2, col: 1 },
-                path: [
-                    { row: 2, col: 1 }, { row: 2, col: 2 },
-                    { row: 2, col: 5 }, { row: 2, col: 6 },
-                    { row: 2, col: 5 }, { row: 2, col: 2 },
+                    { row: 3, col: 5 }, { row: 4, col: 3 },
+                    { row: 4, col: 5 }, { row: 5, col: 4 },
                 ],
             },
             {
                 type: "patrolling",
-                startPosition: { row: 5, col: 6 },
+                startPosition: { row: 6, col: 7 },
                 path: [
-                    { row: 5, col: 6 }, { row: 5, col: 5 },
-                    { row: 5, col: 2 }, { row: 5, col: 1 },
-                    { row: 5, col: 2 }, { row: 5, col: 5 },
+                    { row: 6, col: 7 }, { row: 6, col: 8 },
+                    { row: 6, col: 9 }, { row: 6, col: 8 },
                 ],
             },
             {
                 type: "blinking",
-                position: { row: 3, col: 7 },
-                startState: true,
+                position: { row: 8, col: 4 },
+                startState: false,
                 litCells: [
-                    { row: 2, col: 7 }, { row: 4, col: 7 },
+                    { row: 7, col: 4 }, { row: 8, col: 3 },
+                    { row: 8, col: 5 }, { row: 9, col: 4 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 9, col: 9 },
+                litCells: [
+                    { row: 8, col: 9 }, { row: 9, col: 8 },
+                    { row: 9, col: 10 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 5, col: 6 },
+                litCells: [
+                    { row: 4, col: 6 }, { row: 5, col: 5 },
+                    { row: 5, col: 7 }, { row: 6, col: 6 },
                 ],
             },
         ],
-        parMoves: 18,
+        parMoves: 22,
+    },
+    {
+        // L8 Gauntlet — 11x11, 8 guards with 2 mirrors + 2 patrollers + rotating.
+        id: 8,
+        name: "The Gauntlet",
+        storyKey: "level8Story",
+        grid: { rows: 11, cols: 11 },
+        player: { row: 0, col: 0 },
+        goal: { row: 10, col: 10 },
+        walls: [
+            { row: 1, col: 2 }, { row: 1, col: 8 },
+            { row: 2, col: 5 }, { row: 3, col: 2 },
+            { row: 3, col: 7 }, { row: 4, col: 4 },
+            { row: 4, col: 9 }, { row: 5, col: 1 },
+            { row: 5, col: 6 }, { row: 6, col: 3 },
+            { row: 6, col: 8 }, { row: 7, col: 5 },
+            { row: 8, col: 2 }, { row: 8, col: 7 },
+            { row: 9, col: 4 }, { row: 9, col: 9 },
+        ],
+        guards: [
+            {
+                type: "rotating",
+                position: { row: 3, col: 3 },
+                startDirection: 0,
+            },
+            {
+                type: "mirror",
+                position: { row: 3, col: 5 },
+                reflectDirection: "ccw",
+            },
+            {
+                type: "mirror",
+                position: { row: 7, col: 3 },
+                reflectDirection: "cw",
+            },
+            {
+                type: "rotating",
+                position: { row: 7, col: 7 },
+                startDirection: 2,
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 2, col: 7 },
+                path: [
+                    { row: 2, col: 7 }, { row: 2, col: 8 },
+                    { row: 2, col: 9 }, { row: 2, col: 8 },
+                ],
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 8, col: 4 },
+                path: [
+                    { row: 8, col: 4 }, { row: 8, col: 5 },
+                    { row: 8, col: 6 }, { row: 8, col: 5 },
+                ],
+            },
+            {
+                type: "blinking",
+                position: { row: 5, col: 9 },
+                startState: true,
+                litCells: [
+                    { row: 4, col: 9 }, { row: 5, col: 8 },
+                    { row: 5, col: 10 }, { row: 6, col: 9 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 9, col: 6 },
+                litCells: [
+                    { row: 8, col: 6 }, { row: 9, col: 5 },
+                    { row: 9, col: 7 }, { row: 10, col: 6 },
+                ],
+            },
+        ],
+        parMoves: 22,
     },
 
     // === ACT 5: THE ROYAL PALACE (combinations + chaser + "The Decoy") ===
