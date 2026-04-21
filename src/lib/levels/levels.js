@@ -63,18 +63,23 @@ export const LEVELS = [
         parMoves: 18,
     },
 
-    // === ACT 2: THE VEGETABLE GARDEN (walls as shields + rotating guards) ===
+    // === ACT 2: THE VEGETABLE GARDEN (rotating + blinking intro) ===
     {
+        // L3 Vegetable Patrol — 9x9, 4 guards (3 static + 1 rotating).
+        // Rotating guard introduced in the middle; static guards flank the edges.
         id: 3,
         name: "Vegetable Patrol",
         storyKey: "level3Story",
-        grid: { rows: 7, cols: 7 },
+        grid: { rows: 9, cols: 9 },
         player: { row: 0, col: 0 },
-        goal: { row: 6, col: 6 },
+        goal: { row: 8, col: 8 },
         walls: [
-            { row: 1, col: 1 }, { row: 2, col: 1 }, { row: 2, col: 5 },
+            { row: 1, col: 4 }, { row: 1, col: 5 },
+            { row: 2, col: 1 }, { row: 2, col: 7 },
             { row: 3, col: 3 }, { row: 3, col: 5 },
-            { row: 4, col: 1 }, { row: 5, col: 3 }, { row: 5, col: 4 },
+            { row: 5, col: 3 }, { row: 5, col: 6 },
+            { row: 6, col: 0 }, { row: 6, col: 7 },
+            { row: 7, col: 3 }, { row: 7, col: 4 },
         ],
         guards: [
             {
@@ -82,15 +87,20 @@ export const LEVELS = [
                 position: { row: 2, col: 3 },
                 litCells: [
                     { row: 1, col: 3 }, { row: 2, col: 2 },
-                    { row: 2, col: 4 }, { row: 3, col: 3 },
+                    { row: 2, col: 4 }, { row: 3, col: 2 },
                 ],
             },
             {
+                type: "rotating",
+                position: { row: 4, col: 4 },
+                startDirection: 0,
+            },
+            {
                 type: "static",
-                position: { row: 4, col: 5 },
+                position: { row: 6, col: 5 },
                 litCells: [
-                    { row: 3, col: 5 }, { row: 4, col: 4 },
-                    { row: 4, col: 6 }, { row: 5, col: 5 },
+                    { row: 5, col: 5 }, { row: 6, col: 4 },
+                    { row: 6, col: 6 }, { row: 7, col: 5 },
                 ],
             },
             {
@@ -102,42 +112,69 @@ export const LEVELS = [
                 ],
             },
         ],
-        parMoves: 14,
+        parMoves: 18,
     },
     {
-        // First rotating guard — must time passage; walls create a narrow corridor
+        // L4 Searchlight — 9x9, 5 guards: rotating + blinking intro + 3 static.
+        // Blinking guard creates a timing window — player must wait for lights off.
         id: 4,
         name: "The Searchlight",
         storyKey: "level4Story",
-        grid: { rows: 7, cols: 7 },
+        grid: { rows: 9, cols: 9 },
         player: { row: 0, col: 0 },
-        goal: { row: 6, col: 6 },
+        goal: { row: 8, col: 8 },
         walls: [
-            { row: 1, col: 2 }, { row: 1, col: 3 },
-            { row: 2, col: 2 }, { row: 2, col: 5 },
-            { row: 3, col: 4 }, { row: 3, col: 5 },
-            { row: 4, col: 1 }, { row: 4, col: 2 },
-            { row: 5, col: 4 },
+            { row: 1, col: 5 }, { row: 1, col: 6 },
+            { row: 2, col: 3 }, { row: 3, col: 1 }, { row: 3, col: 6 },
+            { row: 4, col: 3 }, { row: 4, col: 5 },
+            { row: 5, col: 1 }, { row: 5, col: 7 },
+            { row: 6, col: 3 }, { row: 6, col: 5 },
+            { row: 7, col: 7 },
         ],
         guards: [
             {
                 type: "rotating",
-                position: { row: 3, col: 2 },
+                position: { row: 2, col: 5 },
                 startDirection: 0,
             },
             {
-                type: "static",
-                position: { row: 5, col: 5 },
+                type: "blinking",
+                position: { row: 5, col: 4 },
+                startState: true,
                 litCells: [
-                    { row: 4, col: 5 }, { row: 5, col: 6 },
-                    { row: 6, col: 5 },
+                    { row: 4, col: 4 }, { row: 5, col: 3 },
+                    { row: 5, col: 5 }, { row: 6, col: 4 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 3, col: 3 },
+                litCells: [
+                    { row: 2, col: 3 }, { row: 3, col: 2 },
+                    { row: 3, col: 4 }, { row: 4, col: 3 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 7, col: 2 },
+                litCells: [
+                    { row: 6, col: 2 }, { row: 7, col: 1 },
+                    { row: 7, col: 3 }, { row: 8, col: 2 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 6, col: 7 },
+                litCells: [
+                    { row: 5, col: 7 }, { row: 6, col: 6 },
+                    { row: 6, col: 8 }, { row: 7, col: 7 },
                 ],
             },
         ],
-        parMoves: 15,
+        parMoves: 19,
     },
 
-    // === ACT 3: THE FORTRESS (blinking guards + timing puzzles) ===
+    // === ACT 3: THE FORTRESS (patrolling intro) ===
     {
         id: 5,
         name: "Fortress Gate",
