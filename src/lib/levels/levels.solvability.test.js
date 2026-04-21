@@ -17,8 +17,7 @@ const SOLVER_OPTS = { maxStates: 2_000_000 };
 // Levels known broken under current design. Each entry names the phase that
 // redesigns it — flip to expect `solvable: true` after the redesign lands.
 const KNOWN_UNSOLVABLE_BUGS = new Set([
-    // L2, L3, L4 fixed (phases 04-05).
-    9,  // redesign in phase-08-redesign-act5-l9-l10.md
+    // L2, L3, L4, L9 fixed (phases 04-08).
     11, // redesign in phase-09-redesign-l11.md
 ]);
 
