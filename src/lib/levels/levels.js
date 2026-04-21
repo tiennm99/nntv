@@ -176,63 +176,89 @@ export const LEVELS = [
 
     // === ACT 3: THE FORTRESS (patrolling intro) ===
     {
+        // L5 Fortress Gate — 10x10, 6 guards: static+rotating+blinking+1 patrolling intro.
         id: 5,
         name: "Fortress Gate",
         storyKey: "level5Story",
-        grid: { rows: 7, cols: 7 },
+        grid: { rows: 10, cols: 10 },
         player: { row: 0, col: 0 },
-        goal: { row: 6, col: 6 },
+        goal: { row: 9, col: 9 },
         walls: [
-            { row: 1, col: 3 }, { row: 2, col: 1 },
-            { row: 2, col: 5 }, { row: 3, col: 3 },
-            { row: 4, col: 1 }, { row: 4, col: 5 },
-            { row: 5, col: 3 },
+            { row: 1, col: 2 }, { row: 1, col: 6 },
+            { row: 2, col: 4 }, { row: 2, col: 8 },
+            { row: 3, col: 0 }, { row: 3, col: 6 },
+            { row: 4, col: 4 }, { row: 4, col: 8 },
+            { row: 6, col: 0 }, { row: 6, col: 4 },
+            { row: 7, col: 6 }, { row: 7, col: 8 },
+            { row: 8, col: 2 }, { row: 8, col: 5 },
         ],
         guards: [
             {
-                type: "blinking",
-                position: { row: 2, col: 3 },
-                startState: true,
+                type: "static",
+                position: { row: 2, col: 2 },
                 litCells: [
-                    { row: 1, col: 3 }, { row: 2, col: 2 },
-                    { row: 2, col: 4 },
+                    { row: 1, col: 1 }, { row: 2, col: 1 },
+                    { row: 2, col: 3 }, { row: 3, col: 2 },
                 ],
             },
             {
+                type: "rotating",
+                position: { row: 4, col: 6 },
+                startDirection: 0,
+            },
+            {
                 type: "blinking",
-                position: { row: 4, col: 3 },
-                startState: false,
+                position: { row: 5, col: 2 },
+                startState: true,
                 litCells: [
-                    { row: 4, col: 2 }, { row: 4, col: 4 },
-                    { row: 5, col: 3 },
+                    { row: 4, col: 2 }, { row: 5, col: 1 },
+                    { row: 5, col: 3 }, { row: 6, col: 2 },
                 ],
             },
             {
                 type: "static",
-                position: { row: 3, col: 6 },
+                position: { row: 7, col: 7 },
                 litCells: [
-                    { row: 2, col: 6 }, { row: 3, col: 5 },
-                    { row: 4, col: 6 },
+                    { row: 6, col: 7 }, { row: 7, col: 6 },
+                    { row: 8, col: 7 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 3, col: 8 },
+                litCells: [
+                    { row: 2, col: 8 }, { row: 3, col: 7 },
+                    { row: 3, col: 9 }, { row: 4, col: 8 },
+                ],
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 6, col: 5 },
+                path: [
+                    { row: 6, col: 5 }, { row: 6, col: 6 },
+                    { row: 7, col: 5 }, { row: 7, col: 4 },
                 ],
             },
         ],
-        parMoves: 14,
+        parMoves: 21,
     },
     {
-        // Blinking + static — narrow corridor requires precise timing and wait action
+        // L6 Flickering Corridor — 10x10, 7 guards with 2 patrollers + blinkers.
         id: 6,
         name: "The Flickering Corridor",
         storyKey: "level6Story",
-        grid: { rows: 8, cols: 8 },
+        grid: { rows: 10, cols: 10 },
         player: { row: 0, col: 0 },
-        goal: { row: 7, col: 7 },
+        goal: { row: 9, col: 9 },
         walls: [
-            { row: 1, col: 3 }, { row: 1, col: 4 },
-            { row: 2, col: 1 }, { row: 2, col: 6 },
-            { row: 3, col: 3 }, { row: 3, col: 4 },
-            { row: 4, col: 1 }, { row: 4, col: 6 },
-            { row: 5, col: 3 }, { row: 5, col: 4 },
-            { row: 6, col: 1 }, { row: 6, col: 6 },
+            { row: 1, col: 3 }, { row: 1, col: 7 },
+            { row: 2, col: 1 }, { row: 2, col: 5 },
+            { row: 3, col: 3 }, { row: 3, col: 8 },
+            { row: 4, col: 0 }, { row: 4, col: 6 },
+            { row: 5, col: 2 }, { row: 5, col: 8 },
+            { row: 6, col: 4 }, { row: 6, col: 5 },
+            { row: 7, col: 1 }, { row: 7, col: 7 },
+            { row: 8, col: 3 }, { row: 8, col: 6 },
         ],
         guards: [
             {
@@ -240,40 +266,61 @@ export const LEVELS = [
                 position: { row: 2, col: 3 },
                 startState: true,
                 litCells: [
-                    { row: 2, col: 2 }, { row: 2, col: 4 },
-                    { row: 3, col: 3 },
+                    { row: 1, col: 4 }, { row: 2, col: 2 },
+                    { row: 2, col: 4 }, { row: 3, col: 4 },
                 ],
             },
             {
                 type: "blinking",
-                position: { row: 5, col: 5 },
+                position: { row: 6, col: 7 },
                 startState: false,
                 litCells: [
-                    { row: 4, col: 5 }, { row: 5, col: 6 },
-                    { row: 6, col: 5 },
+                    { row: 5, col: 7 }, { row: 6, col: 6 },
+                    { row: 6, col: 8 }, { row: 7, col: 6 },
                 ],
             },
             {
                 type: "static",
-                position: { row: 1, col: 6 },
+                position: { row: 4, col: 4 },
                 litCells: [
-                    { row: 0, col: 6 }, { row: 1, col: 5 },
-                    { row: 1, col: 7 },
+                    { row: 3, col: 4 }, { row: 4, col: 3 },
+                    { row: 4, col: 5 },
                 ],
             },
             {
                 type: "static",
-                position: { row: 6, col: 2 },
+                position: { row: 8, col: 1 },
                 litCells: [
-                    { row: 5, col: 2 }, { row: 6, col: 3 },
-                    { row: 7, col: 2 },
+                    { row: 7, col: 2 }, { row: 8, col: 0 },
+                    { row: 8, col: 2 }, { row: 9, col: 1 },
+                ],
+            },
+            {
+                type: "rotating",
+                position: { row: 3, col: 6 },
+                startDirection: 0,
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 6, col: 2 },
+                path: [
+                    { row: 6, col: 2 }, { row: 6, col: 3 },
+                    { row: 7, col: 3 }, { row: 7, col: 2 },
+                ],
+            },
+            {
+                type: "patrolling",
+                startPosition: { row: 5, col: 5 },
+                path: [
+                    { row: 5, col: 5 }, { row: 5, col: 6 },
+                    { row: 4, col: 6 }, { row: 4, col: 5 },
                 ],
             },
         ],
-        parMoves: 16,
+        parMoves: 20,
     },
 
-    // === ACT 4: THE UNDERGROUND (patrolling guards + path prediction) ===
+    // === ACT 4: THE UNDERGROUND (mirror intro) ===
     {
         id: 7,
         name: "The Underground Passage",
