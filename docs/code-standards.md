@@ -276,3 +276,6 @@ audio.toggleMute();
 - [ ] Touch input debounced/throttled if needed
 - [ ] Audio context lazily initialized (autoplay policy compliance)
 - [ ] Pixel color semantics (`--guard-*` CSS vars ↔ `NNTV.guard*`) kept in sync when modifying theme
+- [ ] Any edit to `src/lib/levels/levels.js` runs `npm run test:solvability` and passes
+- [ ] L12 remains unsolvable (solver asserts this — never "fix" it)
+- [ ] No guard's `litCells` entry overlaps a wall cell in the same level

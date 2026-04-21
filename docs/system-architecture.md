@@ -25,10 +25,52 @@
          ┌──────────────────────────────────────┐
          │  Pure JS Game Engine (no framework)   │
          ├──────────────────────────────────────┤
-         │ GridSystem  │ Player    │ Guards     │
-         │ TurnManager │ Levels    │ Progress   │
+         │ GridSystem  │ Player       │ Guards     │
+         │ TurnManager │ LevelSolver  │ Progress   │
          └──────────────────────────────────────┘
 ```
+
+## Level Solver (Validation Tool)
+
+BFS-based solvability checker at `src/lib/game/level-solver.js`. Verdicts are
+test-only — the solver is not bundled into the runtime. It reuses the real
+`guards.js` + `princess-mechanic.js` AI so results match live gameplay.
+
+- **State key:** `(player.row, player.col, guardCaptures, princessCapture)` via
+  each guard's `capture()` method. Includes chaser positions and patroller
+  path indices.
+- **Actions:** `up / down / left / right / wait` per turn.
+- **Pruning:** after `turnManager.nextTurn` semantics, if player cell is lit
+  the branch dies.
+- **Budget:** 5M states default, caller-overridable. Returns
+  `{ solvable, path?, reason?, states_explored }`.
+
+CI-enforced invariants in `src/lib/levels/levels.solvability.test.js`:
+- L1–L11 must be solvable.
+- L12 must remain unsolvable (Princess Chamber easter-egg rule).
+- No guard may light a wall cell (pre-existing authoring bug guard).
+- Exactly 12 levels exist.
+
+## Viewport (Camera-Follow)
+
+`src/components/GameBoard.svelte` is wrapped by a scrollable `board-container`
+div in `Game.svelte` with `max-width/height: min(720px, 85vw, 85vh); overflow: auto`.
+A `$effect` in `Game.svelte` watches `player.row/col` and calls `scrollTo` with
+smooth behavior so the player stays roughly centered on grids larger than the
+viewport. `cellSize` is fixed at 50 — grids no longer shrink cells.
+
+## L12 Easter Egg (Console Teleport)
+
+`Game.svelte` `onMount` exposes `window.__nntvDev`:
+
+```js
+window.__nntvDev.teleport(row, col)  // Instantly move player; if on goal, win
+window.__nntvDev.reveal()             // Read player/goal positions
+```
+
+Intentional escape hatch for L12 "Princess Chamber", which is unsolvable by
+normal play. Teleporting to the goal fires the normal level-complete flow.
+Cleaned up in `onDestroy`. Not documented in README or in-game UI.
 
 ## Scene Flow
 

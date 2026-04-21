@@ -150,8 +150,7 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 3, col: 3 },
                 litCells: [
-                    { row: 2, col: 3 }, { row: 3, col: 2 },
-                    { row: 3, col: 4 }, { row: 4, col: 3 },
+                    { row: 3, col: 2 }, { row: 3, col: 4 },
                 ],
             },
             {
@@ -166,8 +165,7 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 6, col: 7 },
                 litCells: [
-                    { row: 5, col: 7 }, { row: 6, col: 6 },
-                    { row: 6, col: 8 }, { row: 7, col: 7 },
+                    { row: 6, col: 6 }, { row: 6, col: 8 },
                 ],
             },
         ],
@@ -219,16 +217,14 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 7, col: 7 },
                 litCells: [
-                    { row: 6, col: 7 }, { row: 7, col: 6 },
-                    { row: 8, col: 7 },
+                    { row: 6, col: 7 }, { row: 8, col: 7 },
                 ],
             },
             {
                 type: "static",
                 position: { row: 3, col: 8 },
                 litCells: [
-                    { row: 2, col: 8 }, { row: 3, col: 7 },
-                    { row: 3, col: 9 }, { row: 4, col: 8 },
+                    { row: 3, col: 7 }, { row: 3, col: 9 },
                 ],
             },
             {
@@ -452,8 +448,8 @@ export const LEVELS = [
                 position: { row: 5, col: 9 },
                 startState: true,
                 litCells: [
-                    { row: 4, col: 9 }, { row: 5, col: 8 },
-                    { row: 5, col: 10 }, { row: 6, col: 9 },
+                    { row: 5, col: 8 }, { row: 5, col: 10 },
+                    { row: 6, col: 9 },
                 ],
             },
             {
@@ -695,8 +691,8 @@ export const LEVELS = [
                 type: "static",
                 position: { row: 8, col: 2 },
                 litCells: [
-                    { row: 7, col: 2 }, { row: 8, col: 1 },
-                    { row: 8, col: 3 }, { row: 9, col: 2 },
+                    { row: 8, col: 1 }, { row: 8, col: 3 },
+                    { row: 9, col: 2 },
                 ],
             },
             {
