@@ -48,15 +48,17 @@ NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The c
 | guards.js | Guard base + 6 subclasses (Static, Rotating, Blinking, Mirror, Patrolling, Chaser) |
 | turn-manager.js | TurnManager: turn cycle, guard updates, detection |
 | level-manager.js | loadLevel(): GUARD_REGISTRY factory pattern for guard instantiation |
+| level-solver.js | BFS solvability checker (test-only); reuses runtime AI via capture()/apply() |
 | game-history.js | GameHistory class: undo/redo snapshots (Z/Y keys) |
 | princess-mechanic.js | Princess detection logic: escalating light rings on level 12 |
-| touch-controls.js | TouchControls class: swipe gesture detection for mobile |
+| touch-controls.js | TouchControls class: pointer gesture detection (legacy; no mobile support claim) |
 
 ### Level Data (src/lib/levels/)
 
 | File | Purpose |
 |------|---------|
-| levels.js | LEVELS array: 12 level definitions (grid, guards, walls, goals) |
+| levels.js | LEVELS array: 12 level definitions (grid, guards, walls, goals); L1-L11 solvable, L12 intentionally unsolvable |
+| levels.solvability.test.js | CI-enforced invariants: each L1-L11 solvable, L12 unsolvable, no wall/light overlaps, exactly 12 levels |
 
 ### Pixel-Art Pipeline (src/lib/pixel/)
 

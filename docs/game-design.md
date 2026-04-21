@@ -37,7 +37,7 @@ You infiltrate the kingdom's outskirts, fight through gardens, fortress walls, u
 ### Grid
 - Cells: empty (dark/safe), wall (impassable), goal (green), lit (yellow/dangerous)
 - Player starts at top-left (0,0), goal at bottom-right corner
-- Grid sizes: 6x6 → 10x10 as difficulty increases
+- Grid sizes: 8x8 → 13x13 as difficulty increases (camera-follow viewport on large arenas)
 
 ## Guard Types
 
@@ -48,6 +48,7 @@ You infiltrate the kingdom's outskirts, fight through gardens, fortress walls, u
 | Blinking | Yellow | Circle (dims when off) | Toggles lights on/off each turn; lights fixed cells when "on" |
 | Patrolling | Purple | Circle + direction line | Moves along predefined path; lights front + right cells relative to facing |
 | Mirror | Green | Diamond (rotated square) | Stationary; redirects rotating guard beams 90° (configurable cw/ccw); max 3 bounces |
+| Chaser | Orange | Circle + direction line | BFS pathfinding toward player when within detectionRadius; returns home otherwise |
 
 ### Guard Rules
 - Guards light their own cell (visible to player)
@@ -64,71 +65,73 @@ You infiltrate the kingdom's outskirts, fight through gardens, fortress walls, u
 
 | Act | Levels | Theme | Grid | Mechanic Focus |
 |-----|--------|-------|------|----------------|
-| 1: The Outskirts | 1-2 | Garden | 6x6 | Movement basics, first static guard |
-| 2: The Vegetable Garden | 3-4 | Garden/Walls | 7x7 | Walls as shields, first rotating guard |
-| 3: The Fortress | 5-6 | Fortress | 7x7, 8x8 | First blinking guard, timing puzzles |
-| 4: The Underground | 7-8 | Tunnels | 8x8 | First patrolling guard, dual patrols |
-| 5: The Royal Palace | 9-11 | Palace | 8x8, 9x9 | Combinations, decoy paths, mirrors |
-| 6: The Princess Chamber | 12 | Final | 10x10 | Escalating detection (unsolvable) |
+| 1: The Outskirts | 1-2 | Garden | 8x8 | Movement + static guards |
+| 2: The Vegetable Garden | 3-4 | Garden/Walls | 9x9 | First rotating + blinking guards |
+| 3: The Fortress | 5-6 | Fortress | 10x10 | First patrolling guard, timing + movement |
+| 4: The Underground | 7-8 | Tunnels | 11x11 | First mirror guard, beam redirection |
+| 5: The Royal Palace | 9-10 | Palace | 12x12 | First chaser guard, perimeter vs ambush |
+| 6: The Princess Chamber | 11-12 | Palace/Final | 12x12, 13x13 | All types combined; L12 unsolvable |
 
 ### Level-by-Level Specification
 
-**Level 1 — Garden Path** (6x6, 0 guards)
-- Tutorial: movement only. Walls block some paths. No danger.
-- Teaches: arrow keys, goal cell, walls.
+**Level 1 — Garden Path** (8x8, 0 guards)
+- Tutorial: movement only. Walls route the player through a winding corridor. No danger.
 
-**Level 2 — The Watchtower** (6x6, 1 static guard)
-- First guard encounter. Static guard lights 4 adjacent cells.
+**Level 2 — The Watchtower** (8x8, 3 static guards)
+- First guard encounter. Three static guards with two viable paths around them.
 - Teaches: lit cells = danger, plan around fixed obstacles.
 
-**Level 3 — Vegetable Patrol** (7x7, 2 static guards)
-- Multiple guards create overlapping danger zones.
-- Teaches: navigating between multiple light sources.
+**Level 3 — Vegetable Patrol** (9x9, 3 static + 1 rotating)
+- Rotating guard introduced in the middle of the map; static guards flank the edges.
+- Teaches: rotating beam cycles every 4 turns, read direction indicator.
 
-**Level 4 — The Searchlight** (7x7, 1 rotating guard)
-- Rotating guard enclosed in wall box so player can safely observe its pattern.
-- Teaches: rotating beam cycles every 4 turns, timing moves.
-
-**Level 5 — Fortress Gate** (7x7, 1 blinking guard)
-- Blinking guard toggles on/off. Safe passage on "off" turns.
+**Level 4 — The Searchlight** (9x9, rotating + blinking + 3 static)
+- Blinking guard introduced. Solution requires at least one `wait` action.
 - Teaches: counting turns, parity-based movement.
 
-**Level 6 — The Flickering Corridor** (8x8, 1 blinking + 2 static)
-- Must time passage through blinking zone while avoiding static lights.
-- Teaches: combining timing with spatial awareness.
-
-**Level 7 — The Underground Passage** (8x8, 1 patrolling guard)
-- Patrolling guard moves in a square loop inside a walled corridor.
+**Level 5 — Fortress Gate** (10x10, static + rotating + blinking + static + static + patrolling)
+- Patrolling guard introduced on a short circular path.
 - Teaches: predicting patrol path, front+right light pattern.
 
-**Level 8 — The Gauntlet** (8x8, 2 patrolling guards)
-- Two patrols with interlocking back-and-forth paths.
+**Level 6 — The Flickering Corridor** (10x10, 2 blinking + rotating + 2 patrolling + static + static)
+- Two patrollers with interlocking routes.
 - Teaches: weaving between multiple moving threats.
 
-**Level 9 — The Decoy Path** (8x8, 1 rotating + 1 blinking + 1 static)
-- Two visible routes: short (obvious) and long (safe). Short route becomes deadly when guard cycles synchronize around turn 6.
-- Teaches: observation beats impulse; not every shortcut is safe.
-
-**Level 10 — Hall of Mirrors** (8x8, 2 rotating + 2 mirror)
-- Rotating guard beams bounce off mirrors, creating reflected danger zones.
+**Level 7 — The Underground Passage** (11x11, rotating + mirror + blinking + patrolling + 3 static)
+- Mirror guard introduced; the rotating beam deflects off it.
 - Teaches: predicting reflected beam paths.
 
-**Level 11 — The Throne Room** (9x9, 1 static + 1 rotating + 1 blinking + 1 patrolling)
-- All guard types combined. Three horizontal wall rows create a zigzag path with narrow gaps.
+**Level 8 — The Gauntlet** (11x11, 2 rotating + 2 mirrors + 2 patrolling + blinking + static)
+- Two mirrors form a crossfire pattern.
+- Teaches: mastery of reflected beams in open arenas.
+
+**Level 9 — The Decoy Path** (12x12, chaser + rotating + 2 blinking + 2 static + patrolling + chaser-less guard)
+- Chaser guard introduced, ambushing the central shortcut.
+- Teaches: lure-and-retreat; perimeter path beats the tempting short route.
+
+**Level 10 — Hall of Mirrors** (12x12, 2 rotating + 3 mirrors + blinking + static + patrolling + chaser)
+- Mirrors create a crossfire with a hunting chaser.
+- Teaches: navigating reflected beams while evading a pursuer.
+
+**Level 11 — The Throne Room** (12x12, ALL 6 TYPES, 9 guards total)
+- Climax level: at least one of each guard type.
 - Teaches: mastery of all mechanics simultaneously.
 
-**Level 12 — The Princess Chamber** (10x10, 1 static + 1 rotating + 1 blinking + 2 patrolling)
-- **UNSOLVABLE BY DESIGN.** The level layout appears normal with multiple viable paths.
-- **Hidden mechanic**: When player reaches Manhattan distance ≤ 4 from goal (9,9), the princess "senses" the player. Light radiates outward from the goal one ring per turn (Manhattan distance). The expanding wave is unstoppable — it will always catch the player before they reach the goal.
-- **Narrative payoff**: Message appears: *"The Carrot Princess senses your presence! A wave of light radiates outward... Run!"* Then detection → game over screen with: *"Perhaps some rescues were never meant to be..."*
+**Level 12 — The Princess Chamber** (13x13, 10 guards + expanding wave)
+- **UNSOLVABLE BY DESIGN.** See memory `project_level12_unsolvable.md`.
+- **Hidden mechanic**: When player reaches Manhattan distance ≤ 4 from goal, the princess "senses" the player. Light radiates outward from the goal one ring per turn. The expanding wave is unstoppable.
+- **Easter egg**: `window.__nntvDev.teleport(12, 12)` from the browser console teleports the player to the goal and fires the normal win flow. Hidden from README and in-game UI.
+- **Narrative payoff**: *"The Carrot Princess senses your presence! A wave of light radiates outward... Run!"* Then detection → game over screen with: *"Perhaps some rescues were never meant to be..."*
 
 ### Level Design Constraints
 - Player always starts at (0, 0)
 - Goal always at (rows-1, cols-1) — bottom-right corner
-- Max 8 guards per level
-- Every level 1-11 must have at least one valid path from start to goal
+- Max 10 guards per level
+- Every level 1-11 must have at least one valid path from start to goal (solver-verified)
+- No guard's `litCells` may overlap a wall cell (solver lints this)
 - Walls should create interesting routing decisions, not dead ends
 - Each new mechanic gets a solo introduction level before combining
+- All `levels.js` edits must pass `npm run test:solvability`
 
 ## Visual Design
 

@@ -22,13 +22,14 @@ In Night Ninja: Twilight Voyage, you play as a ninja rabbit trying to navigate t
   - Patrolling Guards (purple): Move along predefined paths, lighting cells around them
   - Mirror Guards (green): Deflect rotating beams 90 degrees
   - Chaser Guards (orange): Detect nearby players and hunt them using pathfinding
-- **Progressive difficulty**: 12 levels across 6 acts with increasing complexity
-- **Grid-based movement**: Move one cell at a time using arrow keys, WASD, clicking, or swiping
+- **Progressive difficulty**: 12 levels across 6 acts, arenas growing from 8x8 up to 13x13
+- **Grid-based movement**: Move one cell at a time using arrow keys, WASD, or clicking
 - **Stealth mechanics**: Avoid lit cells to remain undetected
 - **Undo/redo**: Press Z to undo moves, Y to redo — experiment without full restarts
 - **Turn preview**: Press V to see where lights will be next turn
+- **Camera-follow viewport**: Large arenas scroll smoothly to keep the ninja in view
 - **Sound effects**: Procedural audio feedback for moves, detection, and completion
-- **Mobile support**: Touch controls with swipe gestures
+- **Solvability-verified**: A BFS solver runs in CI to guarantee every level can be beaten
 - **Accessibility**: ARIA labels on grid cells for screen readers
 - **Bilingual**: English and Vietnamese language support
 - **Lives system**: You have 3 lives to complete all levels
@@ -45,7 +46,7 @@ In Night Ninja: Twilight Voyage, you play as a ninja rabbit trying to navigate t
 ## How to Play
 
 - Use **arrow keys** or **WASD** to move your rabbit character one cell at a time
-- **Click** on an adjacent cell or **swipe** on mobile to move
+- **Click** on an adjacent cell to move
 - Press **Space** to wait a turn without moving
 - Press **V** to preview where lights will be next turn
 - Press **Z** to undo your last move, **Y** to redo
@@ -67,6 +68,8 @@ In Night Ninja: Twilight Voyage, you play as a ninja rabbit trying to navigate t
 | `npm run dev` | Launch a development web server |
 | `npm run build` | Create a production build in the `dist` folder |
 | `npm run preview` | Preview the production build locally |
+| `npm test` | Run all unit + solvability tests |
+| `npm run test:solvability` | Run only the BFS level-solvability suite |
 
 ## Development
 
@@ -84,9 +87,9 @@ The local development server runs on `http://localhost:5173` by default. Vite wi
 | `src/App.svelte`             | Scene router                                               |
 | `src/scenes/`                | Game scenes (MainMenu, Game, Guide, Settings, etc.)        |
 | `src/components/`            | Reusable UI components (GameBoard, PlayerSprite, etc.)     |
-| `src/lib/game/`              | Pure JS game engine (grid, player, guards, turns, history) |
+| `src/lib/game/`              | Pure JS game engine (grid, player, guards, turns, history, solver) |
 | `src/lib/pixel/`             | Pixel-art renderer + palette + sprite/tile/UI/scene art    |
-| `src/lib/levels/`            | Level definitions (12 levels)                              |
+| `src/lib/levels/`            | Level definitions (12 levels) + solvability test suite     |
 | `src/lib/`                   | Audio, localization, progress persistence                  |
 | `src/styles/theme.css`       | Global layout styles and CSS variables                     |
 
@@ -99,6 +102,7 @@ Pure JS game engine (no framework dependency) with Svelte 5 rendering:
 - **Guards**: 6 guard types with distinct AI (static, rotating, blinking, patrolling, mirror, chaser)
 - **TurnManager**: Turn cycle with preview simulation
 - **GameHistory**: Undo/redo via state snapshots
+- **LevelSolver**: BFS solvability checker (CI-enforced; reuses runtime AI)
 - **Audio**: Procedural Web Audio API sound effects
 
 ## Credits
