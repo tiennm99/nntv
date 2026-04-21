@@ -16,7 +16,7 @@ export const LEVELS = [
             { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 5 }, { row: 5, col: 6 }, { row: 5, col: 7 },
         ],
         guards: [],
-        parMoves: 26,
+        parMoves: 22,
     },
     {
         // L2 Watchtower — 8x8, 3 wilting tomatoes (initialRadius 2). Same zigzag as
@@ -51,7 +51,7 @@ export const LEVELS = [
                 initialRadius: 2,
             },
         ],
-        parMoves: 30,
+        parMoves: 24,
     },
 
     // === ACT 2: THE VEGETABLE GARDEN (rotating + blinking intro) ===
