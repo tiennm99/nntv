@@ -117,9 +117,34 @@
         completionMoves = 0;
     }
 
-    onMount(() => { initLevel(); });
+    onMount(() => {
+        initLevel();
+        // Dev easter egg — intentional escape hatch for L12 "Princess Chamber",
+        // which is unsolvable by normal play. Console-savvy users who discover
+        // this teleport win the game. Not documented in UI/README.
+        // See memory: project_level12_unsolvable.md.
+        if (typeof window !== 'undefined') {
+            window.__nntvDev = {
+                teleport: (row, col) => {
+                    if (!player || !grid) return false;
+                    if (!grid.isValidPosition(row, col)) return false;
+                    player.row = row;
+                    player.col = col;
+                    renderVersion++;
+                    if (player.isAtGoal()) handleLevelComplete();
+                    return true;
+                },
+                reveal: () => ({
+                    player: player ? { row: player.row, col: player.col } : null,
+                    goal: { row: goalRow, col: goalCol },
+                    level: currentLevel,
+                }),
+            };
+        }
+    });
     onDestroy(() => {
         if (detectionTimeout) clearTimeout(detectionTimeout);
+        if (typeof window !== 'undefined') delete window.__nntvDev;
     });
 
     // Capture current state as a snapshot object (does not push to history)

@@ -722,31 +722,40 @@ export const LEVELS = [
         parMoves: 24,
     },
     {
-        // THE PRINCESS CHAMBER — unbeatable: expanding light wave from goal
-        // When player reaches distance 4, one ring per turn lights up.
+        // L12 THE PRINCESS CHAMBER — 13x13, 10 guards + expanding light wave.
+        // INVARIANT: must be unsolvable by normal play. Only the console
+        // easter egg (window.__nntvDev.teleport) wins this level.
+        // See memory: project_level12_unsolvable.md.
         id: 12,
         name: "The Princess Chamber",
         storyKey: "level12Story",
-        grid: { rows: 10, cols: 10 },
+        grid: { rows: 13, cols: 13 },
         player: { row: 0, col: 0 },
-        goal: { row: 9, col: 9 },
+        goal: { row: 12, col: 12 },
         walls: [
+            // Barrier walls forming concentric barriers around the princess
             { row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 },
             { row: 2, col: 3 }, { row: 2, col: 4 }, { row: 2, col: 5 },
-            { row: 2, col: 6 }, { row: 2, col: 7 },
-            { row: 4, col: 2 }, { row: 4, col: 3 }, { row: 4, col: 4 },
-            { row: 4, col: 5 }, { row: 4, col: 6 }, { row: 4, col: 7 },
-            { row: 4, col: 8 }, { row: 4, col: 9 },
+            { row: 2, col: 6 }, { row: 2, col: 7 }, { row: 2, col: 8 }, { row: 2, col: 9 },
+            { row: 4, col: 3 }, { row: 4, col: 4 }, { row: 4, col: 5 },
+            { row: 4, col: 6 }, { row: 4, col: 7 }, { row: 4, col: 8 },
+            { row: 4, col: 9 }, { row: 4, col: 10 }, { row: 4, col: 11 }, { row: 4, col: 12 },
             { row: 6, col: 0 }, { row: 6, col: 1 }, { row: 6, col: 2 },
             { row: 6, col: 3 }, { row: 6, col: 4 }, { row: 6, col: 5 },
-            { row: 6, col: 6 }, { row: 6, col: 7 },
+            { row: 6, col: 6 }, { row: 6, col: 7 }, { row: 6, col: 8 },
+            { row: 8, col: 3 }, { row: 8, col: 4 }, { row: 8, col: 5 },
+            { row: 8, col: 6 }, { row: 8, col: 7 }, { row: 8, col: 8 },
+            { row: 8, col: 9 }, { row: 8, col: 10 }, { row: 8, col: 11 },
+            { row: 10, col: 1 }, { row: 10, col: 2 }, { row: 10, col: 3 },
+            { row: 10, col: 4 }, { row: 10, col: 5 }, { row: 10, col: 6 },
+            { row: 10, col: 7 }, { row: 10, col: 8 }, { row: 10, col: 9 },
         ],
         guards: [
             {
                 type: "static",
-                position: { row: 1, col: 8 },
+                position: { row: 1, col: 10 },
                 litCells: [
-                    { row: 0, col: 8 }, { row: 1, col: 7 }, { row: 1, col: 9 },
+                    { row: 0, col: 10 }, { row: 1, col: 9 }, { row: 1, col: 11 },
                 ],
             },
             {
@@ -756,11 +765,16 @@ export const LEVELS = [
             },
             {
                 type: "blinking",
-                position: { row: 5, col: 8 },
+                position: { row: 5, col: 1 },
                 startState: true,
                 litCells: [
-                    { row: 5, col: 7 }, { row: 5, col: 9 },
+                    { row: 5, col: 0 }, { row: 5, col: 2 },
                 ],
+            },
+            {
+                type: "mirror",
+                position: { row: 3, col: 11 },
+                reflectDirection: "cw",
             },
             {
                 type: "patrolling",
@@ -768,23 +782,43 @@ export const LEVELS = [
                 path: [
                     { row: 7, col: 1 }, { row: 7, col: 2 },
                     { row: 7, col: 3 }, { row: 7, col: 4 },
+                    { row: 7, col: 5 }, { row: 7, col: 6 },
                     { row: 7, col: 5 }, { row: 7, col: 4 },
                     { row: 7, col: 3 }, { row: 7, col: 2 },
                 ],
             },
             {
                 type: "patrolling",
-                startPosition: { row: 8, col: 8 },
+                startPosition: { row: 9, col: 10 },
                 path: [
-                    { row: 8, col: 8 }, { row: 8, col: 7 },
-                    { row: 8, col: 6 }, { row: 8, col: 5 },
-                    { row: 8, col: 6 }, { row: 8, col: 7 },
+                    { row: 9, col: 10 }, { row: 9, col: 9 },
+                    { row: 9, col: 8 }, { row: 9, col: 7 },
+                    { row: 9, col: 8 }, { row: 9, col: 9 },
                 ],
             },
             {
-                // Extra chaser to make it even more hopeless
+                type: "static",
+                position: { row: 11, col: 11 },
+                litCells: [
+                    { row: 10, col: 11 }, { row: 11, col: 10 },
+                    { row: 11, col: 12 }, { row: 12, col: 11 },
+                ],
+            },
+            {
+                type: "static",
+                position: { row: 12, col: 10 },
+                litCells: [
+                    { row: 12, col: 9 }, { row: 12, col: 11 },
+                ],
+            },
+            {
                 type: "chaser",
-                position: { row: 8, col: 2 },
+                position: { row: 11, col: 2 },
+                detectionRadius: 4,
+            },
+            {
+                type: "chaser",
+                position: { row: 9, col: 11 },
                 detectionRadius: 4,
             },
         ],
