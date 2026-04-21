@@ -103,7 +103,7 @@ NNTV is a turn-based stealth puzzle game built with Svelte 5 and Vite 6.x. The c
 
 ```
 Guard (abstract base: grid, row, col, type, direction, isOn)
-├── StaticGuard     — lights fixed litCells array
+├── StaticGuard     — wilting tomato: Manhattan aura shrinks by 1 per turn (initialRadius → currentRadius)
 ├── RotatingGuard   — rotates beam 90°/turn, castBeam with mirror bounce
 ├── BlinkingGuard   — toggles isOn, lights litCells when on
 ├── MirrorGuard     — lights own cell, stores reflectDirection (cw/ccw)
@@ -122,11 +122,12 @@ Guard (abstract base: grid, row, col, type, direction, isOn)
   goal: { row: 5, col: 5 },
   walls: [{ row: 1, col: 1 }, ...],
   guards: [
-    { type: "static", position: { row: 2, col: 4 }, litCells: [...] },
+    { type: "static", position: { row: 2, col: 4 }, initialRadius: 2 },
     { type: "rotating", position: { row: 3, col: 3 }, startDirection: 0 },
     { type: "blinking", position: {...}, litCells: [...], startState: true },
     { type: "mirror", position: {...}, reflectDirection: "cw" },
     { type: "patrolling", startPosition: {...}, path: [...] },
+    { type: "chaser", position: {...}, detectionRadius: 3 },
   ],
   isFinalLevel: false
 }

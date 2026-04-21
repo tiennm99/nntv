@@ -7,7 +7,7 @@ import { StaticGuard, RotatingGuard, BlinkingGuard, PatrollingGuard, MirrorGuard
 
 // Guard type registry — maps type strings to factory functions
 const GUARD_REGISTRY = {
-    static: (grid, g) => new StaticGuard(grid, g.position.row, g.position.col, g.litCells),
+    static: (grid, g) => new StaticGuard(grid, g.position.row, g.position.col, g.initialRadius),
     rotating: (grid, g) => new RotatingGuard(grid, g.position.row, g.position.col, g.startDirection),
     blinking: (grid, g) => new BlinkingGuard(grid, g.position.row, g.position.col, g.litCells, g.startState),
     patrolling: (grid, g) => new PatrollingGuard(grid, g.startPosition.row, g.startPosition.col, g.path),

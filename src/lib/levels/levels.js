@@ -1,8 +1,9 @@
 export const LEVELS = [
     // === ACT 1: THE OUTSKIRTS (movement + static guards) ===
     {
-        // L1 Garden Path — 8x8, 0 guards. Teaches movement with a winding corridor
-        // that has no true "wrong" branches — every open cell leads somewhere useful.
+        // L1 Garden Path — 8x8, 0 guards. Real zigzag via two offset wall bands
+        // that force the player LEFT after going right (or vice versa), not just
+        // the Manhattan diagonal. Solver-verified ~24 moves optimal.
         id: 1,
         name: "Garden Path",
         storyKey: "level1Story",
@@ -10,19 +11,18 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 7, col: 7 },
         walls: [
-            { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 }, { row: 1, col: 4 },
-            { row: 2, col: 4 }, { row: 2, col: 6 },
-            { row: 3, col: 0 }, { row: 3, col: 1 }, { row: 3, col: 4 }, { row: 3, col: 6 },
-            { row: 4, col: 4 }, { row: 4, col: 6 },
-            { row: 5, col: 1 }, { row: 5, col: 2 }, { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 6 },
-            { row: 6, col: 1 },
+            { row: 1, col: 4 }, { row: 1, col: 5 }, { row: 1, col: 6 },
+            { row: 3, col: 0 }, { row: 3, col: 1 }, { row: 3, col: 2 }, { row: 3, col: 3 }, { row: 3, col: 4 },
+            { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 5 }, { row: 5, col: 6 }, { row: 5, col: 7 },
         ],
         guards: [],
-        parMoves: 16,
+        parMoves: 26,
     },
     {
-        // L2 Watchtower — 8x8, 3 static guards with TWO disjoint paths around them.
-        // Fixes the original L2 connectivity bug (right-side region unreachable).
+        // L2 Watchtower — 8x8, 3 wilting tomatoes (initialRadius 2). Same zigzag as
+        // L1 plus three tomato auras parked on the detour path. Player can EITHER
+        // wait 2-3 turns for each aura to shrink OR take a longer detour. Teaches
+        // the wilting mechanic + the Space (wait) action naturally.
         id: 2,
         name: "The Watchtower",
         storyKey: "level2Story",
@@ -30,37 +30,28 @@ export const LEVELS = [
         player: { row: 0, col: 0 },
         goal: { row: 7, col: 7 },
         walls: [
-            { row: 1, col: 2 }, { row: 2, col: 1 }, { row: 2, col: 6 },
-            { row: 3, col: 2 }, { row: 3, col: 5 },
-            { row: 6, col: 3 }, { row: 6, col: 5 },
+            { row: 1, col: 4 }, { row: 1, col: 5 }, { row: 1, col: 6 },
+            { row: 3, col: 0 }, { row: 3, col: 1 }, { row: 3, col: 2 }, { row: 3, col: 3 }, { row: 3, col: 4 },
+            { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 5 }, { row: 5, col: 6 }, { row: 5, col: 7 },
         ],
         guards: [
             {
                 type: "static",
-                position: { row: 2, col: 4 },
-                litCells: [
-                    { row: 1, col: 4 }, { row: 2, col: 3 },
-                    { row: 2, col: 5 }, { row: 3, col: 4 },
-                ],
+                position: { row: 2, col: 6 },
+                initialRadius: 2,
             },
             {
                 type: "static",
-                position: { row: 5, col: 2 },
-                litCells: [
-                    { row: 4, col: 2 }, { row: 5, col: 1 },
-                    { row: 5, col: 3 }, { row: 6, col: 2 },
-                ],
+                position: { row: 4, col: 1 },
+                initialRadius: 2,
             },
             {
                 type: "static",
-                position: { row: 5, col: 6 },
-                litCells: [
-                    { row: 4, col: 6 }, { row: 5, col: 5 },
-                    { row: 5, col: 7 }, { row: 6, col: 6 },
-                ],
+                position: { row: 6, col: 4 },
+                initialRadius: 2,
             },
         ],
-        parMoves: 18,
+        parMoves: 30,
     },
 
     // === ACT 2: THE VEGETABLE GARDEN (rotating + blinking intro) ===
@@ -85,10 +76,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 2, col: 3 },
-                litCells: [
-                    { row: 1, col: 3 }, { row: 2, col: 2 },
-                    { row: 2, col: 4 }, { row: 3, col: 2 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -98,18 +86,12 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 6, col: 5 },
-                litCells: [
-                    { row: 5, col: 5 }, { row: 6, col: 4 },
-                    { row: 6, col: 6 }, { row: 7, col: 5 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 5, col: 1 },
-                litCells: [
-                    { row: 4, col: 1 }, { row: 5, col: 0 },
-                    { row: 5, col: 2 }, { row: 6, col: 1 },
-                ],
+                initialRadius: 2,
             },
         ],
         parMoves: 18,
@@ -149,24 +131,17 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 3, col: 3 },
-                litCells: [
-                    { row: 3, col: 2 }, { row: 3, col: 4 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 7, col: 2 },
-                litCells: [
-                    { row: 6, col: 2 }, { row: 7, col: 1 },
-                    { row: 7, col: 3 }, { row: 8, col: 2 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 6, col: 7 },
-                litCells: [
-                    { row: 6, col: 6 }, { row: 6, col: 8 },
-                ],
+                initialRadius: 2,
             },
         ],
         parMoves: 19,
@@ -194,10 +169,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 2, col: 2 },
-                litCells: [
-                    { row: 1, col: 1 }, { row: 2, col: 1 },
-                    { row: 2, col: 3 }, { row: 3, col: 2 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -216,16 +188,12 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 7, col: 7 },
-                litCells: [
-                    { row: 6, col: 7 }, { row: 8, col: 7 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 3, col: 8 },
-                litCells: [
-                    { row: 3, col: 7 }, { row: 3, col: 9 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "patrolling",
@@ -278,18 +246,12 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 4, col: 4 },
-                litCells: [
-                    { row: 3, col: 4 }, { row: 4, col: 3 },
-                    { row: 4, col: 5 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 8, col: 1 },
-                litCells: [
-                    { row: 7, col: 2 }, { row: 8, col: 0 },
-                    { row: 8, col: 2 }, { row: 9, col: 1 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -347,10 +309,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 4, col: 4 },
-                litCells: [
-                    { row: 3, col: 5 }, { row: 4, col: 3 },
-                    { row: 4, col: 5 }, { row: 5, col: 4 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "patrolling",
@@ -372,18 +331,12 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 9, col: 9 },
-                litCells: [
-                    { row: 8, col: 9 }, { row: 9, col: 8 },
-                    { row: 9, col: 10 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 5, col: 6 },
-                litCells: [
-                    { row: 4, col: 6 }, { row: 5, col: 5 },
-                    { row: 5, col: 7 }, { row: 6, col: 6 },
-                ],
+                initialRadius: 2,
             },
         ],
         parMoves: 22,
@@ -455,10 +408,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 9, col: 6 },
-                litCells: [
-                    { row: 8, col: 6 }, { row: 9, col: 5 },
-                    { row: 9, col: 7 }, { row: 10, col: 6 },
-                ],
+                initialRadius: 2,
             },
         ],
         parMoves: 22,
@@ -490,10 +440,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 2, col: 5 },
-                litCells: [
-                    { row: 1, col: 5 }, { row: 2, col: 4 },
-                    { row: 2, col: 6 }, { row: 3, col: 6 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -520,10 +467,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 9, col: 5 },
-                litCells: [
-                    { row: 8, col: 5 }, { row: 9, col: 4 },
-                    { row: 9, col: 6 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "blinking",
@@ -537,10 +481,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 10, col: 10 },
-                litCells: [
-                    { row: 9, col: 11 }, { row: 10, col: 9 },
-                    { row: 10, col: 11 },
-                ],
+                initialRadius: 2,
             },
             {
                 // Chaser ambushes central path — forces player to take perimeter
@@ -599,10 +540,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 4, col: 10 },
-                litCells: [
-                    { row: 3, col: 10 }, { row: 4, col: 9 },
-                    { row: 4, col: 11 }, { row: 5, col: 11 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "blinking",
@@ -655,10 +593,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 1, col: 2 },
-                litCells: [
-                    { row: 0, col: 2 }, { row: 1, col: 1 },
-                    { row: 1, col: 3 }, { row: 2, col: 1 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -690,10 +625,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 8, col: 2 },
-                litCells: [
-                    { row: 8, col: 1 }, { row: 8, col: 3 },
-                    { row: 9, col: 2 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -750,9 +682,7 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 1, col: 10 },
-                litCells: [
-                    { row: 0, col: 10 }, { row: 1, col: 9 }, { row: 1, col: 11 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "rotating",
@@ -795,17 +725,12 @@ export const LEVELS = [
             {
                 type: "static",
                 position: { row: 11, col: 11 },
-                litCells: [
-                    { row: 10, col: 11 }, { row: 11, col: 10 },
-                    { row: 11, col: 12 }, { row: 12, col: 11 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "static",
                 position: { row: 12, col: 10 },
-                litCells: [
-                    { row: 12, col: 9 }, { row: 12, col: 11 },
-                ],
+                initialRadius: 2,
             },
             {
                 type: "chaser",

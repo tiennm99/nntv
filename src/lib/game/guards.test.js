@@ -10,7 +10,7 @@ describe('Guard.capture()/apply()', () => {
     beforeEach(() => { grid = new GridSystem(6, 6, 50); });
 
     it('base fields round-trip on StaticGuard', () => {
-        const g = new StaticGuard(grid, 2, 2, []);
+        const g = new StaticGuard(grid, 2, 2, 2);
         g.direction = 2;
         g.isOn = false;
         const s = g.capture();
@@ -19,6 +19,34 @@ describe('Guard.capture()/apply()', () => {
         g.apply(s);
         expect(g.direction).toBe(2);
         expect(g.isOn).toBe(false);
+    });
+
+    it('StaticGuard wilts — currentRadius decrements per turn', () => {
+        const g = new StaticGuard(grid, 2, 2, 2);
+        expect(g.currentRadius).toBe(2);
+        g.onTurnChange();
+        expect(g.currentRadius).toBe(1);
+        g.onTurnChange();
+        expect(g.currentRadius).toBe(0);
+    });
+
+    it('StaticGuard emits no light once wilted (currentRadius < 0)', () => {
+        const g = new StaticGuard(grid, 2, 2, 0);
+        g.updateLight();
+        expect(grid.isLight(2, 2)).toBe(true);
+        g.onTurnChange();  // radius now -1
+        grid.clearAllLight();
+        g.updateLight();
+        expect(grid.isLight(2, 2)).toBe(false);
+    });
+
+    it('StaticGuard currentRadius round-trips via capture/apply', () => {
+        const g = new StaticGuard(grid, 2, 2, 2);
+        g.currentRadius = 0;
+        const s = g.capture();
+        g.currentRadius = 99;
+        g.apply(s);
+        expect(g.currentRadius).toBe(0);
     });
 
     it('ChaserGuard preserves chase state', () => {

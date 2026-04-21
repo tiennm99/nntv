@@ -43,7 +43,7 @@ You infiltrate the kingdom's outskirts, fight through gardens, fortress walls, u
 
 | Type | Color | Shape | Behavior |
 |------|-------|-------|----------|
-| Static | Red | Circle | Lights fixed adjacent cells every turn |
+| Static (Wilting Tomato) | Red | Circle | Emits a Manhattan aura of initialRadius cells; shrinks by 1 per turn until harmless. Lit cells = death. Reward patience — wait out the burn. |
 | Rotating | Blue | Circle + direction line | Rotates beam 90° clockwise each turn; 2-cell range; stopped by walls; reflects off mirrors |
 | Blinking | Yellow | Circle (dims when off) | Toggles lights on/off each turn; lights fixed cells when "on" |
 | Patrolling | Purple | Circle + direction line | Moves along predefined path; lights front + right cells relative to facing |
@@ -77,12 +77,12 @@ You infiltrate the kingdom's outskirts, fight through gardens, fortress walls, u
 **Level 1 — Garden Path** (8x8, 0 guards)
 - Tutorial: movement only. Walls route the player through a winding corridor. No danger.
 
-**Level 2 — The Watchtower** (8x8, 3 static guards)
-- First guard encounter. Three static guards with two viable paths around them.
-- Teaches: lit cells = danger, plan around fixed obstacles.
+**Level 2 — The Watchtower** (8x8, 3 wilting tomatoes on the zigzag detour)
+- First guard encounter. Three wilting tomatoes (initialRadius 2) each emit a Manhattan aura that shrinks by 1 per turn until harmless.
+- Teaches: lit cells = danger, but they fade. Wait or detour — both are valid tactics.
 
-**Level 3 — Vegetable Patrol** (9x9, 3 static + 1 rotating)
-- Rotating guard introduced in the middle of the map; static guards flank the edges.
+**Level 3 — Vegetable Patrol** (9x9, 3 wilting tomatoes + 1 rotating)
+- Rotating guard introduced in the middle of the map; wilting tomatoes flank the edges.
 - Teaches: rotating beam cycles every 4 turns, read direction indicator.
 
 **Level 4 — The Searchlight** (9x9, rotating + blinking + 3 static)
@@ -128,7 +128,7 @@ You infiltrate the kingdom's outskirts, fight through gardens, fortress walls, u
 - Goal always at (rows-1, cols-1) — bottom-right corner
 - Max 10 guards per level
 - Every level 1-11 must have at least one valid path from start to goal (solver-verified)
-- No guard's `litCells` may overlap a wall cell (solver lints this)
+- No guard's computed lit cells may overlap a wall cell (solver lints blinking-type `litCells`; static-type wilting auras naturally pass through walls but are set-but-never-checked on wall cells)
 - Walls should create interesting routing decisions, not dead ends
 - Each new mechanic gets a solo introduction level before combining
 - All `levels.js` edits must pass `npm run test:solvability`
