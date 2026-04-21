@@ -37,8 +37,9 @@
 | Win Condition | Reach goal cell to advance; level 12 is unbeatable (narrative twist) | Complete |
 | Lives System | 3 lives per play session; game over at zero lives | Complete |
 | Escalating Detection | Level 12: light radiates outward from princess when player approaches | Complete |
-| Mobile Touch Controls | Swipe gestures (up/down/left/right) for full mobile gameplay support | Complete |
 | Audio Feedback | Web Audio API procedural sounds for moves, detection, level completion | Complete |
+| Camera-Follow Viewport | Large arenas scroll smoothly to keep the player in view | Complete |
+| Solvability CI Guard | BFS solver asserts L1-L11 solvable, L12 unsolvable on every PR | Complete |
 
 ### Non-Functional Requirements
 
@@ -86,34 +87,34 @@
 - **Level 12 Special**: Princess detection — light radiates from goal at distance 4, expanding 1 ring per turn
 
 **Player Abilities:**
-- **Movement**: Arrow keys, WASD, cell click, or swipe gestures (mobile)
+- **Movement**: Arrow keys, WASD, or adjacent cell click
 - **Undo/Redo**: Z key to undo, Y key to redo (up to 50 turns)
 
 ### Level Progression (6 Acts)
 
-| Act | Levels | Focus |
-|-----|--------|-------|
-| 1: Outskirts | 1-2 | Movement basics + static guards |
-| 2: Garden | 3-4 | Walls as shields + rotating guards |
-| 3: Fortress | 5-6 | Blinking guards + timing puzzles |
-| 4: Underground | 7-8 | Patrolling guards + path prediction |
-| 5: Palace | 9-11 | Combinations, decoy paths, mirror guards |
-| 6: Chamber | 12 | Narrative twist with escalating detection |
+| Act | Levels | Grid | Focus |
+|-----|--------|------|-------|
+| 1: Outskirts | 1-2 | 8x8 | Movement + static guards |
+| 2: Garden | 3-4 | 9x9 | Rotating + blinking guards |
+| 3: Fortress | 5-6 | 10x10 | Patrolling guards |
+| 4: Underground | 7-8 | 11x11 | Mirror guards (beam deflection) |
+| 5: Palace | 9-10 | 12x12 | Chaser guards |
+| 6: Chamber | 11-12 | 12x12, 13x13 | All types; L12 unsolvable narrative twist |
 
 ### Success Metrics
 
-- All 11 levels completable without game crashes (level 12 is intentionally unbeatable)
+- All 11 levels BFS-verified solvable; L12 BFS-verified unsolvable (CI enforced)
 - Turn-based mechanics execute without delay
 - No memory leaks during extended gameplay sessions
-- UI responsive to all input methods (keyboard, mouse)
+- UI responsive to keyboard + mouse input
 - Localization string coverage 100%
 
 ### Technical Constraints
 
 - Svelte 5 runes mode (`$state`, `$derived`, `$props`)
 - Class instances require `renderVersion` pattern for reactivity
-- Grid size capped at 10x10
-- Max 8 guards per level
+- Grid size capped at 13x13 (viewport scrolls beyond 9x9)
+- Max 10 guards per level
 - ES modules only
 
 ## Project Status
