@@ -319,6 +319,116 @@ export const PRINCESS_PAL = {
     Y: NNTV.carrotDark, L: NNTV.leafGreen, S: NNTV.leafDark, G: NNTV.gold,
 };
 
+// ── SNIPER PEPPER — dark red, elongated pointing body, 32×32 ──────────────────
+// Represents the new sniper guard type. Body is a dark-red chili pepper shape
+// with a triangular "aim cone" pointing in facing direction.
+export const SNIPER_ART = [
+    '................................',
+    '................................',
+    '..............GGG...............',
+    '.............GLLLG..............',
+    '............GLDDLG..............',
+    '...........GLDLLDLG.............',
+    '..........GGLLLLLLGG............',
+    '.........KKKKKKKKKKKK...........',
+    '.......KKDDDDDDDDDDDKK..........',
+    '......KDDHHHDDDDHHHDDK..........',
+    '.....KDDHHHHDDDDHHHHDK..........',
+    '....KDDHHWWHDDDDHWWHHDK.........',
+    '....KDDHWWWHDDDDDHWWHDDK........',
+    '...KDDDHHHHDDDDDDDHHHHDDDK......',
+    '...KDDDDDDDDDDAADDDDDDDDDK......',
+    '...KDDDDDDDDDAAADDDDDDDDDK......',
+    '...KDDDDDDDDDDDDDDDDDDDDK.......',
+    '...KDDDDHHDDDDDDDDDDHHDDDK......',
+    '....KDDDHHHDDDDDDDDHHHDDK.......',
+    '....KDDDDHHHDDDDDDHHHDDDK.......',
+    '.....KDDDDDHHHHHHHHDDDDK........',
+    '......KDDDDDDDDDDDDDDK..........',
+    '.......KKDDDDDDDDDKK............',
+    '.........KKDDDDDKK..............',
+    '...........KKKKKK...............',
+    '................................',
+    '................................',
+    '................................',
+    '................................',
+    '................................',
+    '................................',
+    '................................',
+];
+export const SNIPER_PAL = {
+    K: NNTV.ink,
+    D: '#8b1a1a',   // dark red body
+    H: '#5a0a0a',   // deep shadow
+    W: NNTV.eyeShine,
+    A: '#ffaaaa',   // aim indicator dot
+    G: NNTV.leafGreen,
+    L: NNTV.leafDark,
+};
+
+// ── SUSPICION ONION — violet/purple, tier-state variants, 32×32 ───────────────
+// Calm state (tier 0): relaxed onion face
+export const SUSPICION_CALM_ART = [
+    '................................',
+    '................................',
+    '..............PPP...............',
+    '.............PLLLP..............',
+    '............PLDDDLP.............',
+    '...........PLDDDDLP.............',
+    '...........KLLLLLLK.............',
+    '..........KKPPPPPPKK............',
+    '.........KPPOOOOOOPPK...........',
+    '........KPPOOPPPPOOPPK..........',
+    '.......KPPOOOPPPPOOOPPK.........',
+    '......KPPOOOPPPPPPOOOPPK........',
+    '.....KPOOOPPPPPPPPPPOOOPK.......',
+    '.....KPOOPPPPPPPPPPPPOOPK.......',
+    '....KPPOOPHHPPPPPPHHPPOOPK......',
+    '....KPOOPPHWHPPPPPHWHPPOOPK.....',
+    '....KPOOPPHWHPPPPPHWHPPOOPK.....',
+    '....KPOOPPPHHPPPPPPHHPPOOPK.....',
+    '....KPOOOPPPPPPPPPPPPPOOOPK.....',
+    '....KPOOPPPPPUUUUUPPPPOOPK......',
+    '....KPPOOPPKUUUUUUKPPPOOPK......',
+    '.....KPOOPKUUUUUUUKPPOOPK.......',
+    '.....KPPOOPKUUUUUKPPOOPPK.......',
+    '......KPOOOPKKKKKPOOOPK.........',
+    '.......KPOOOOPPPPOOOOPK.........',
+    '........KPPOOOOOOOOPPK..........',
+    '.........KKPPOOOOOOPPKK.........',
+    '...........KKPPPPPPKK...........',
+    '.............KKKKKK.............',
+    '................................',
+    '................................',
+    '................................',
+];
+export const SUSPICION_CALM_PAL = {
+    K: NNTV.ink, P: NNTV.onionPurp, O: NNTV.onionDark,
+    H: NNTV.onionDark, W: NNTV.eyeShine, U: NNTV.cream,
+    L: NNTV.leafGreen, D: NNTV.leafDark,
+};
+
+// Alerted state (tier 1): one eye wide open, eyebrow raised
+export const SUSPICION_ALERT_ART = SUSPICION_CALM_ART.map((row, i) => {
+    // Widen the left eye row — same art, just reuse CALM with alert palette
+    return row;
+});
+export const SUSPICION_ALERT_PAL = {
+    ...SUSPICION_CALM_PAL,
+    P: '#cc66ff',   // brighter violet — alarmed
+    O: '#7a2a9a',
+    W: '#ffeeaa',   // yellow-tinted shine — alarmed
+};
+
+// Firing state (tier 2): flush bright, all eyes open
+export const SUSPICION_FIRE_PAL = {
+    ...SUSPICION_CALM_PAL,
+    P: '#ff88ff',   // magenta — full alert
+    O: '#991a99',
+    W: '#ffffff',
+    U: '#ff4444',   // red mouth — hostile
+};
+
 // Map game guard types → sprite data. Blinking uses on/off variants.
 export const GUARD_SPRITES = {
     static: { art: TOMATO_ART, pal: TOMATO_PAL },
@@ -327,4 +437,11 @@ export const GUARD_SPRITES = {
     patrolling: { art: EGGPLANT_ART, pal: EGGPLANT_PAL },
     mirror: { art: LETTUCE_ART, pal: LETTUCE_PAL },
     chaser: { art: PUMPKIN_ART, pal: PUMPKIN_PAL },
+    sniper: { art: SNIPER_ART, pal: SNIPER_PAL },
+    suspicion: {
+        art: SUSPICION_CALM_ART,
+        pal: SUSPICION_CALM_PAL,
+        palAlert: SUSPICION_ALERT_PAL,
+        palFire: SUSPICION_FIRE_PAL,
+    },
 };
