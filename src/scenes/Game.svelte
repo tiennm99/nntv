@@ -91,10 +91,11 @@
     // HUD reactive values
     let stonesLeft = $derived((renderVersion, throwSystem ? throwSystem.stonesLeft : 0));
     let keysHeld = $derived((renderVersion, player ? player.getKeysHeld() : 0));
+    let lockedDoorCount = $derived((renderVersion, grid ? grid.getDoorSnapshot().length : 0));
 
     // Audio delta tracking — previous values to detect changes each render
     let _prevKeysHeld = $state(0);
-    let _prevOpenDoors = $state(0);   // count of open doors tracked via grid cell flags
+    let _prevLockedDoorCount = $state(0);
     let _prevSuspicionTier = $state(0); // highest suspicion tier across guards
 
     // Fire key-pickup / door-unlock / suspicion audio on state changes
@@ -104,6 +105,14 @@
             playKeyPickup();
         }
         _prevKeysHeld = keysHeld;
+    });
+
+    // Doors: locked-door count drops when player traverses with matching key
+    $effect(() => {
+        if (lockedDoorCount < _prevLockedDoorCount) {
+            playDoorUnlock();
+        }
+        _prevLockedDoorCount = lockedDoorCount;
     });
 
     // Suspicion guard tier monitoring
