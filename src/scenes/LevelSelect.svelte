@@ -10,7 +10,7 @@
 
     function selectLevel(num) {
         if (num <= progress.maxLevel) {
-            navigate('LevelIntro', { level: num, lives: 3 });
+            navigate('LevelIntro', { level: num });
         }
     }
 </script>
