@@ -9,13 +9,13 @@
         const el = document.querySelector('.story-scroll');
         if (el) {
             el.addEventListener('animationend', () => {
-                if (!scrollDone) { scrollDone = true; navigate('LevelIntro', { level: 1, lives: 3 }); }
+                if (!scrollDone) { scrollDone = true; navigate('LevelIntro', { level: 1 }); }
             });
         }
     });
 
     function skip() {
-        if (!scrollDone) { scrollDone = true; navigate('LevelIntro', { level: 1, lives: 3 }); }
+        if (!scrollDone) { scrollDone = true; navigate('LevelIntro', { level: 1 }); }
     }
 </script>
 
