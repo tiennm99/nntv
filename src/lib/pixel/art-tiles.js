@@ -123,3 +123,167 @@ export const TILE_PREVIEW = [
     'yyyy........yyyy',
 ];
 export const TILE_PREVIEW_PAL = { y: NNTV.gridLit };
+
+// ── DOOR LOCKED — 16×16, color keyed by keyId ────────────────────────────────
+// Base art shape; palette swapped per keyId (gold=1, silver=2, copper=3)
+export const TILE_DOOR_LOCKED = [
+    'kkkkkkkkkkkkkkkk',
+    'kcccccccccccccc k',
+    'kcdddddddddddcck',
+    'kcdkkkkkkkkkdcck',
+    'kcdkbbbbbbbbkcck',
+    'kcdkbhhbbhhbkck.',
+    'kcdkbhwbbhwbkck.',
+    'kcdkbbbbbbbbkck.',
+    'kcdkbbbbbbbbkck.',
+    'kcdkbbXXbbbbkck.',
+    'kcdkbbXXbbbbkck.',
+    'kcdkbbbbbbbbkck.',
+    'kcdkkkkkkkkkdcck',
+    'kcdddddddddddcck',
+    'kcccccccccccccc k',
+    'kkkkkkkkkkkkkkkk',
+];
+// Gold door (key 1)
+export const TILE_DOOR_GOLD_PAL = {
+    k: NNTV.ink, c: NNTV.stoneDark, d: NNTV.stone,
+    b: NNTV.gold, h: NNTV.goldDark, w: NNTV.cream,
+    X: NNTV.ink,
+};
+// Silver door (key 2)
+export const TILE_DOOR_SILVER_PAL = {
+    k: NNTV.ink, c: NNTV.stoneDark, d: NNTV.stone,
+    b: '#c0c0c0', h: '#707070', w: NNTV.cream,
+    X: NNTV.ink,
+};
+// Copper door (key 3)
+export const TILE_DOOR_COPPER_PAL = {
+    k: NNTV.ink, c: NNTV.stoneDark, d: NNTV.stone,
+    b: '#b87333', h: '#7a4a1a', w: NNTV.cream,
+    X: NNTV.ink,
+};
+
+// ── DOOR OPEN — same silhouette, brighter frame, open gap ────────────────────
+export const TILE_DOOR_OPEN = [
+    'kkkkkkkkkkkkkkkk',
+    'k..............k',
+    'kd..............dk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kdk..........kdk',
+    'kd..............dk',
+    'k..............k',
+    'kkkkkkkkkkkkkkkk',
+];
+export const TILE_DOOR_OPEN_PAL = { k: NNTV.ink, d: NNTV.stoneLight };
+
+// ── KEY ITEM — 16×16, color-coded per keyId ───────────────────────────────────
+export const TILE_KEY = [
+    '................',
+    '................',
+    '.....kkkkk......',
+    '....kbbbbbk.....',
+    '...kbbhhhbbk....',
+    '...kbhwwwhbk....',
+    '...kbbhhhbbk....',
+    '....kbbbbbk.....',
+    '.....kkbkk......',
+    '......kbk.......',
+    '......kbk.......',
+    '.....kbbkk......',
+    '.....kbbbk......',
+    '......kkkk......',
+    '................',
+    '................',
+];
+export const TILE_KEY_GOLD_PAL   = { k: NNTV.ink, b: NNTV.gold, h: NNTV.goldDark, w: NNTV.cream };
+export const TILE_KEY_SILVER_PAL = { k: NNTV.ink, b: '#c0c0c0', h: '#707070', w: NNTV.cream };
+export const TILE_KEY_COPPER_PAL = { k: NNTV.ink, b: '#b87333', h: '#7a4a1a', w: NNTV.cream };
+
+// ── ONE-WAY ARROW — 16×16, 4 rotations ────────────────────────────────────────
+// Direction: 0=up, 1=right, 2=down, 3=left (matches level data encoding)
+export const TILE_ONEWAY_RIGHT = [
+    'aaaaaaaaaaaaaaa.',
+    'abbbbbbbbbbbbbba',
+    'abccccccccccccba',
+    'abccccccc...ccba',
+    'abcccccca...cba.',
+    'abccccca.....ba.',
+    'abcaaaaaaaaaa.a.',
+    'abcaaaaaaaaaaaaa',
+    'abcaaaaaaaaaaaaa',
+    'abcaaaaaaaaaa.a.',
+    'abccccca.....ba.',
+    'abcccccca...cba.',
+    'abccccccc...ccba',
+    'abccccccccccccba',
+    'abbbbbbbbbbbbbba',
+    'aaaaaaaaaaaaaaa.',
+];
+export const TILE_ONEWAY_PAL = { a: NNTV.gridBorder, b: NNTV.twilight, c: NNTV.gridEmpty, a: '#3a3a5a' };
+// Separate palette with arrow color distinct from background
+export const TILE_ONEWAY_BASE_PAL = {
+    a: NNTV.gridBorder, b: NNTV.twilight, c: NNTV.gridEmpty,
+};
+export const TILE_ONEWAY_ARROW_PAL = {
+    ...TILE_ONEWAY_BASE_PAL,
+    a: '#5a5a8a',  // subtle blue-grey arrow
+};
+
+// ── WARM CELL OVERLAY — 16×16, dim orange glow, distinct from bright TILE_LIT ─
+export const TILE_WARM = [
+    'oooooooooooooooo',
+    'owwwwwwwwwwwwwwo',
+    'owooooooooooooowo',
+    'owooofffoooooowo',
+    'owooofffooooowo.',
+    'owoooofoooooowo.',
+    'owo..........owo',
+    'owo..........owo',
+    'owo..........owo',
+    'owo..........owo',
+    'owooooooooooowo.',
+    'owooofffooooowo.',
+    'owooofffoooooowo',
+    'owooooooooooooowo',
+    'owwwwwwwwwwwwwwo',
+    'oooooooooooooooo',
+];
+export const TILE_WARM_PAL = {
+    o: '#2a1a0a',   // very dark orange border
+    w: '#5a3010',   // dim amber rim
+    f: '#884422',   // warm ember glow
+};
+
+// ── STONE HUD ICON — 16×16 small grey rock ────────────────────────────────────
+export const ICON_STONE = [
+    '................',
+    '................',
+    '......kkk.......',
+    '.....kmmmk......',
+    '....kmsslmk.....',
+    '....kmsllmk.....',
+    '...kmslllmmk....',
+    '...kmllllmmk....',
+    '...kmmllmmmk....',
+    '....kmmmmmk.....',
+    '.....kkkkk......',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+];
+export const ICON_STONE_PAL = {
+    k: NNTV.ink,
+    m: NNTV.stone,
+    l: NNTV.stoneLight,
+    s: '#9a9ab0',
+};
