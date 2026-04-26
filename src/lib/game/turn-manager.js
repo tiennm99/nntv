@@ -5,17 +5,28 @@ export class TurnManager {
         this.turnCount = 0;
     }
 
-    // Process a turn: update guards, check detection
+    // Process a turn: update guards, check detection.
+    // Turn order:
+    //   1. Goal check (early-out)
+    //   2. throwSystem?.resolve(guards) — stone lands, guards face it
+    //   3. grid.clearAllLight()
+    //   4. guards.forEach onTurnChange — guards move/rotate, emit light
+    //   5. grid.tickWarmTimers() — warm cells expire
+    //   6. Detection check
     // Returns { detected, levelComplete }
-    nextTurn(grid, player, guards) {
+    nextTurn(grid, player, guards, throwSystem = null) {
         this.turnCount++;
 
         if (grid.isGoal(player.row, player.col)) {
             return { detected: false, levelComplete: true };
         }
 
+        if (throwSystem) throwSystem.resolve(guards);
+
         grid.clearAllLight();
         guards.forEach(guard => guard.onTurnChange(guards, player));
+
+        grid.tickWarmTimers();
 
         if (grid.isLight(player.row, player.col)) {
             return { detected: true, levelComplete: false };
@@ -25,12 +36,17 @@ export class TurnManager {
     }
 
     // Simulate next turn to preview future lit cells (non-destructive).
-    // Uses each guard's capture()/apply() so new dynamic fields are picked up
-    // automatically without touching this method.
-    previewNextTurn(grid, player, guards) {
-        const snaps = guards.map(g => g.capture());
+    // Captures and restores guard state AND throwSystem state so the preview
+    // leaves nothing mutated.
+    previewNextTurn(grid, player, guards, throwSystem = null) {
+        const guardSnaps = guards.map(g => g.capture());
+        const throwSnap = throwSystem ? throwSystem.capture() : null;
 
         grid.clearAllLight();
+
+        // Apply throw distraction before guard update (same as nextTurn)
+        if (throwSystem) throwSystem.resolve(guards);
+
         guards.forEach(g => g.onTurnChange(guards, player));
 
         const previewSet = new Set();
@@ -40,7 +56,10 @@ export class TurnManager {
             }
         }
 
-        guards.forEach((g, i) => g.apply(snaps[i]));
+        // Restore guard state
+        guards.forEach((g, i) => g.apply(guardSnaps[i]));
+        if (throwSystem && throwSnap) throwSystem.apply(throwSnap);
+
         grid.clearAllLight();
         guards.forEach(g => g.updateLight(guards));
 

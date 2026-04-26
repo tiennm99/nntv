@@ -15,9 +15,10 @@ class Guard {
     onTurnChange() {}
 
     // Dynamic state snapshot — override in subclasses to add per-type fields.
-    // Used by GameHistory (undo/redo) and TurnManager.previewNextTurn.
+    // Used by GameHistory (undo/redo), TurnManager.previewNextTurn, and the BFS solver.
+    // `type` is included so solver's canonicalGuardKey can route without a back-reference.
     capture() {
-        return { row: this.row, col: this.col, direction: this.direction, isOn: this.isOn };
+        return { type: this.type, row: this.row, col: this.col, direction: this.direction, isOn: this.isOn };
     }
 
     apply(s) {
@@ -82,6 +83,9 @@ export class RotatingGuard extends Guard {
             { row: 1, col: 0 },  // down
             { row: 0, col: -1 }, // left
         ];
+        // Set by ThrowableSystem.resolve() to override normal rotation for N turns
+        this.forcedFacingTurns = 0;
+        this.forcedFacingTarget = null;
     }
 
     updateLight(allGuards) {
@@ -124,8 +128,35 @@ export class RotatingGuard extends Guard {
     }
 
     onTurnChange(allGuards) {
-        this.direction = (this.direction + 1) % 4;
+        if (this.forcedFacingTurns > 0 && this.forcedFacingTarget) {
+            // Override normal rotation: face toward throw target
+            this.direction = computeFacingToward(
+                this.row, this.col,
+                this.forcedFacingTarget.row, this.forcedFacingTarget.col
+            );
+            this.forcedFacingTurns--;
+        } else {
+            this.direction = (this.direction + 1) % 4;
+        }
         this.updateLight(allGuards);
+    }
+
+    capture() {
+        return {
+            ...super.capture(),
+            forcedFacingTurns: this.forcedFacingTurns,
+            forcedFacingTarget: this.forcedFacingTarget
+                ? { ...this.forcedFacingTarget }
+                : null,
+        };
+    }
+
+    apply(s) {
+        super.apply(s);
+        this.forcedFacingTurns = s.forcedFacingTurns ?? 0;
+        this.forcedFacingTarget = s.forcedFacingTarget
+            ? { ...s.forcedFacingTarget }
+            : null;
     }
 }
 
@@ -185,6 +216,9 @@ export class ChaserGuard extends Guard {
         this.isReturning = false;
         this.targetRow = row;
         this.targetCol = col;
+        // Set by ThrowableSystem.resolve() to override normal movement for N turns
+        this.forcedFacingTurns = 0;
+        this.forcedFacingTarget = null;
     }
 
     updateLight() {
@@ -253,6 +287,10 @@ export class ChaserGuard extends Guard {
             isReturning: this.isReturning,
             targetRow: this.targetRow,
             targetCol: this.targetCol,
+            forcedFacingTurns: this.forcedFacingTurns,
+            forcedFacingTarget: this.forcedFacingTarget
+                ? { ...this.forcedFacingTarget }
+                : null,
         };
     }
 
@@ -262,11 +300,26 @@ export class ChaserGuard extends Guard {
         this.isReturning = s.isReturning;
         this.targetRow = s.targetRow;
         this.targetCol = s.targetCol;
+        this.forcedFacingTurns = s.forcedFacingTurns ?? 0;
+        this.forcedFacingTarget = s.forcedFacingTarget
+            ? { ...s.forcedFacingTarget }
+            : null;
     }
 
     // Chaser has two states: hunting player or returning home
     onTurnChange(allGuards, player) {
         if (!player) { this.updateLight(); return; }
+
+        if (this.forcedFacingTurns > 0 && this.forcedFacingTarget) {
+            // Distracted: face the throw target, don't move
+            this.direction = computeFacingToward(
+                this.row, this.col,
+                this.forcedFacingTarget.row, this.forcedFacingTarget.col
+            );
+            this.forcedFacingTurns--;
+            this.updateLight();
+            return;
+        }
 
         const dist = Math.abs(this.row - player.row) + Math.abs(this.col - player.col);
 
@@ -315,6 +368,9 @@ export class PatrollingGuard extends Guard {
         this.isCircularPath = this.checkIfCircularPath();
         this.isReversing = false;
         this.updateInitialDirection();
+        // Set by ThrowableSystem.resolve() to override normal movement for N turns
+        this.forcedFacingTurns = 0;
+        this.forcedFacingTarget = null;
     }
 
     checkIfCircularPath() {
@@ -372,6 +428,10 @@ export class PatrollingGuard extends Guard {
             ...super.capture(),
             currentPathIndex: this.currentPathIndex,
             isReversing: this.isReversing,
+            forcedFacingTurns: this.forcedFacingTurns,
+            forcedFacingTarget: this.forcedFacingTarget
+                ? { ...this.forcedFacingTarget }
+                : null,
         };
     }
 
@@ -379,9 +439,24 @@ export class PatrollingGuard extends Guard {
         super.apply(s);
         this.currentPathIndex = s.currentPathIndex;
         this.isReversing = s.isReversing;
+        this.forcedFacingTurns = s.forcedFacingTurns ?? 0;
+        this.forcedFacingTarget = s.forcedFacingTarget
+            ? { ...s.forcedFacingTarget }
+            : null;
     }
 
     onTurnChange() {
+        if (this.forcedFacingTurns > 0 && this.forcedFacingTarget) {
+            // Distracted: face the throw target, don't advance path
+            this.direction = computeFacingToward(
+                this.row, this.col,
+                this.forcedFacingTarget.row, this.forcedFacingTarget.col
+            );
+            this.forcedFacingTurns--;
+            this.updateLight();
+            return;
+        }
+
         if (this.path.length <= 1) return;
 
         let nextIndex;
@@ -410,4 +485,167 @@ export class PatrollingGuard extends Guard {
         this.col = nextPos.col;
         this.updateLight();
     }
+}
+
+// --- SniperGuard ---
+// Casts a line-of-sight beam from its position in `facing` direction.
+// Beam stops at first wall, mirror, or grid edge. Bounces off mirrors
+// up to 3 times (reuses RotatingGuard.castBeam logic).
+// Rotates 90° CW every `rotateCadence` turns (default 2).
+export class SniperGuard extends Guard {
+    constructor(grid, row, col, facing, rotateCadence = 2) {
+        super(grid, row, col, 'sniper');
+        // facing: 0=up, 1=right, 2=down, 3=left
+        this.facing = facing ?? 0;
+        this.direction = this.facing; // keep `direction` in sync for rendering
+        this.rotateCadence = rotateCadence;
+        this.turnsSinceRotate = 0;
+        this.lightRange = Math.max(grid.rows, grid.cols); // effectively unbounded
+        this.facingDirs = [
+            { row: -1, col: 0 }, // up
+            { row: 0, col: 1 },  // right
+            { row: 1, col: 0 },  // down
+            { row: 0, col: -1 }, // left
+        ];
+    }
+
+    updateLight(allGuards) {
+        if (this.grid.isValidPosition(this.row, this.col)) {
+            this.grid.setLight(this.row, this.col, true);
+        }
+        const dir = this.facingDirs[this.facing];
+        this._castBeam(dir, this.row, this.col, allGuards, 0);
+    }
+
+    // Beam travels until wall/edge; reflects off mirrors (up to 3 bounces).
+    // Uses same unlimited-step approach but respects grid bounds.
+    _castBeam(dir, fromRow, fromCol, allGuards, depth) {
+        if (depth > 3) return;
+        for (let i = 1; i <= this.lightRange; i++) {
+            const r = fromRow + dir.row * i;
+            const c = fromCol + dir.col * i;
+            if (!this.grid.isValidPosition(r, c) || this.grid.isWall(r, c)) break;
+            this.grid.setLight(r, c, true);
+
+            if (allGuards) {
+                const mirror = allGuards.find(g =>
+                    g.type === 'mirror' && g.row === r && g.col === c
+                );
+                if (mirror) {
+                    const reflected = this._reflectDir(dir, mirror.reflectDirection);
+                    this._castBeam(reflected, r, c, allGuards, depth + 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    _reflectDir(dir, reflectType) {
+        if (reflectType === 'cw') {
+            return { row: dir.col, col: -dir.row };
+        }
+        return { row: -dir.col, col: dir.row };
+    }
+
+    onTurnChange(allGuards) {
+        this.turnsSinceRotate++;
+        if (this.turnsSinceRotate >= this.rotateCadence) {
+            this.facing = (this.facing + 1) % 4;
+            this.direction = this.facing; // keep direction in sync for rendering
+            this.turnsSinceRotate = 0;
+        }
+        this.updateLight(allGuards);
+    }
+
+    capture() {
+        return {
+            ...super.capture(),
+            facing: this.facing,
+            turnsSinceRotate: this.turnsSinceRotate,
+        };
+    }
+
+    apply(s) {
+        super.apply(s);
+        this.facing = s.facing;
+        this.direction = s.facing; // keep in sync
+        this.turnsSinceRotate = s.turnsSinceRotate;
+    }
+}
+
+// --- SuspicionGuard ---
+// 3-tier suspicion meter (0=idle, 1=alerted, 2=firing).
+// Increments tier when player is within Manhattan `range`; decrements when out.
+// At tier 2, lights all 8 surrounding cells (Manhattan ≤1 + diagonals).
+// After a firing turn (tier starts at 2), always decays to 0 that same call.
+export class SuspicionGuard extends Guard {
+    constructor(grid, row, col, range) {
+        super(grid, row, col, 'suspicion');
+        this.range = range ?? 3;
+        this.tier = 0;
+    }
+
+    updateLight() {
+        if (this.tier < 2) return;
+        // Tier 2: light own cell + all 8 neighbours
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                const r = this.row + dr;
+                const c = this.col + dc;
+                if (this.grid.isValidPosition(r, c)) {
+                    this.grid.setLight(r, c, true);
+                }
+            }
+        }
+    }
+
+    onTurnChange(allGuards, player) {
+        const startedAtFiring = this.tier === 2;
+
+        if (startedAtFiring) {
+            // After a firing turn: always drop to 0 regardless of player distance
+            this.tier = 0;
+            this.updateLight();
+            return;
+        }
+
+        if (player) {
+            const dist = Math.abs(this.row - player.row) + Math.abs(this.col - player.col);
+            if (dist <= this.range) {
+                this.tier = Math.min(2, this.tier + 1);
+            } else {
+                this.tier = Math.max(0, this.tier - 1);
+            }
+        } else {
+            this.tier = Math.max(0, this.tier - 1);
+        }
+
+        this.updateLight();
+    }
+
+    capture() {
+        return {
+            ...super.capture(),
+            tier: this.tier,
+            range: this.range,
+        };
+    }
+
+    apply(s) {
+        super.apply(s);
+        this.tier = s.tier;
+        this.range = s.range;
+    }
+}
+
+// --- Shared utility ---
+// Returns cardinal direction index (0=up,1=right,2=down,3=left) from
+// (fromRow,fromCol) toward (toRow,toCol). Falls back to 0 if same cell.
+function computeFacingToward(fromRow, fromCol, toRow, toCol) {
+    const dr = toRow - fromRow;
+    const dc = toCol - fromCol;
+    if (Math.abs(dr) >= Math.abs(dc)) {
+        return dr >= 0 ? 2 : 0; // down or up
+    }
+    return dc >= 0 ? 1 : 3; // right or left
 }
