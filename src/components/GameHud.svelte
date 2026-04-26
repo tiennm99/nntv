@@ -2,10 +2,15 @@
     import { getText } from '../lib/localization.js';
     import { isMuted, setMuted, playClick } from '../lib/audio.js';
     import Button from './Button.svelte';
+    import StonesCounter from './StonesCounter.svelte';
+    import KeyInventory from './KeyInventory.svelte';
     import Pixel from '../lib/pixel/Pixel.svelte';
-    import { HEART_ART, HEART_ART_EMPTY, HEART_PAL,
-             ICON_UNDO, ICON_EYE, ICON_PAUSE, ICON_PAL } from '../lib/pixel/art-ui.js';
-    let { lives = 3, level = 1, turns = 0, showPreview = false, canUndo = false,
+    import { ICON_UNDO, ICON_EYE, ICON_PAUSE, ICON_PAL } from '../lib/pixel/art-ui.js';
+
+    let { level = 1, turns = 0, showPreview = false, canUndo = false,
+          allowUndo = true, allowPreview = true,
+          stonesLeft = 0, showStones = false,
+          keysHeld = 0, showKeys = false,
           ontogglepreview, onpause, onmenu, onundo, onshowcontrols } = $props();
     let muted = $state(isMuted());
 
@@ -14,29 +19,31 @@
         setMuted(muted);
         if (!muted) playClick();
     }
-
-    const MAX_LIVES = 3;
-    let hearts = $derived(Array.from({ length: MAX_LIVES }, (_, i) => i < lives));
 </script>
 
 <div class="hud">
     <div class="hud-left">
-        <div class="lives" aria-label="{getText('lives')}{lives}">
-            {#each hearts as full}
-                <Pixel art={full ? HEART_ART : HEART_ART_EMPTY} palette={HEART_PAL} width={20} height={20} />
-            {/each}
-        </div>
         <span class="turns">Turns: {turns}</span>
+        {#if showStones}
+            <StonesCounter {stonesLeft} />
+        {/if}
+        {#if showKeys}
+            <KeyInventory {keysHeld} />
+        {/if}
     </div>
     <div class="hud-right">
         <span class="level-label">{getText('level')}{level}</span>
-        <button class="icon-btn" onclick={onundo} disabled={!canUndo} aria-label="Undo">
-            <Pixel art={ICON_UNDO} palette={ICON_PAL} width={20} height={20} />
-        </button>
+        {#if allowUndo}
+            <button class="icon-btn" onclick={onundo} disabled={!canUndo} aria-label="Undo">
+                <Pixel art={ICON_UNDO} palette={ICON_PAL} width={20} height={20} />
+            </button>
+        {/if}
         <Button text={muted ? 'MUTE' : 'SND'} onclick={toggleMute} small />
-        <button class="icon-btn" class:active={showPreview} onclick={ontogglepreview} aria-label="Toggle preview">
-            <Pixel art={ICON_EYE} palette={ICON_PAL} width={20} height={20} />
-        </button>
+        {#if allowPreview}
+            <button class="icon-btn" class:active={showPreview} onclick={ontogglepreview} aria-label="Toggle preview">
+                <Pixel art={ICON_EYE} palette={ICON_PAL} width={20} height={20} />
+            </button>
+        {/if}
         <Button text="?" onclick={onshowcontrols} small />
         <button class="icon-btn" onclick={onpause} aria-label={getText('pause')}>
             <Pixel art={ICON_PAUSE} palette={ICON_PAL} width={20} height={20} />
@@ -58,11 +65,6 @@
         display: flex;
         align-items: center;
         gap: 12px;
-    }
-    .lives {
-        display: flex;
-        gap: 2px;
-        align-items: center;
     }
     .turns { color: var(--text-secondary); font: var(--font-small); }
     .level-label { font: var(--font-ui); color: var(--text-primary); }

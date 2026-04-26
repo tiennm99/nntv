@@ -4,6 +4,7 @@ import { Player } from './player.js';
 import { TurnManager } from './turn-manager.js';
 import { GameHistory } from './game-history.js';
 import { PrincessMechanic } from './princess-mechanic.js';
+import { ThrowableSystem } from './throwable.js';
 import { RotatingGuard, ChaserGuard, PatrollingGuard } from './guards.js';
 
 describe('GameHistory', () => {
@@ -113,5 +114,101 @@ describe('GameHistory', () => {
     it('undo returns null on empty stack', () => {
         expect(history.undo(player, [], tm, princess.capture())).toBeNull();
         expect(history.redo(player, [], tm, princess.capture())).toBeNull();
+    });
+});
+
+describe('GameHistory — keys/doors/throwSystem snapshots', () => {
+    let grid, player, tm, history, princess;
+
+    beforeEach(() => {
+        grid = new GridSystem(6, 6, 50);
+        player = new Player(grid, 0, 0);
+        tm = new TurnManager();
+        history = new GameHistory();
+        princess = new PrincessMechanic();
+    });
+
+    it('snapshot includes keysHeld', () => {
+        player.addKey(1);
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        expect(snap.keysHeld).toBe(1);
+    });
+
+    it('snapshot includes keySnapshot (sparse array of remaining key cells)', () => {
+        grid.setKey(2, 3, 1);
+        grid.setKey(4, 5, 2);
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        expect(snap.keySnapshot).toEqual([[2, 3, 1], [4, 5, 2]]);
+    });
+
+    it('snapshot includes doorSnapshot (sparse array of remaining doors)', () => {
+        grid.setDoor(1, 2, 1);
+        grid.setDoor(3, 4, 2);
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        expect(snap.doorSnapshot).toEqual([[1, 2, 1], [3, 4, 2]]);
+    });
+
+    it('snapshot without grid yields null key/door snapshots (backward compat)', () => {
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture());
+        expect(snap.keySnapshot).toBeNull();
+        expect(snap.doorSnapshot).toBeNull();
+    });
+
+    it('undo round-trips keysHeld: collect key → snapshot+push → undo → keysHeld=0', () => {
+        grid.setKey(1, 0, 1);
+        // Capture before key collection
+        const before = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        history.pushSnapshot(before);
+        // Simulate player walking onto key cell
+        player.moveTo(1, 0, 2); // moveDir=2=down; auto-collects key
+        expect(player.getKeysHeld()).toBe(1);
+        expect(grid.isKey(1, 0)).toBe(false); // key cleared from grid
+        // Undo restores position, keysHeld, and key cell
+        history.undo(player, [], tm, princess.capture(), grid, null);
+        expect(player.row).toBe(0);
+        expect(player.col).toBe(0);
+        expect(player.getKeysHeld()).toBe(0);
+        expect(grid.isKey(1, 0)).toBe(true);
+        expect(grid.getKeyId(1, 0)).toBe(1);
+    });
+
+    it('undo round-trips door open: use key → open door → undo → door back, keysHeld=1', () => {
+        grid.setKey(1, 0, 1);
+        grid.setDoor(2, 0, 1);
+        // Snapshot before key pickup
+        const snap0 = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        history.pushSnapshot(snap0);
+        // Collect key
+        player.moveTo(1, 0, 2);
+        expect(player.getKeysHeld()).toBe(1);
+        // Snapshot before opening door
+        const snap1 = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        history.pushSnapshot(snap1);
+        // Open door (player has key, door clears on entry)
+        player.moveTo(2, 0, 2);
+        expect(grid.isDoor(2, 0)).toBe(false); // door opened
+        // Undo: door reopens, player back at key cell
+        history.undo(player, [], tm, princess.capture(), grid, null);
+        expect(grid.isDoor(2, 0)).toBe(true);
+        expect(player.row).toBe(1);
+        expect(player.getKeysHeld()).toBe(1); // still holds key from snap1
+    });
+
+    it('snapshot captures throwSystem state', () => {
+        const ts = new ThrowableSystem(3);
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, ts);
+        expect(snap.throwSystem).toEqual({ stonesLeft: 3, pendingTarget: null });
+    });
+
+    it('undo restores stonesLeft via throwSystem', () => {
+        const ts = new ThrowableSystem(3);
+        // Snapshot at 3 stones
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, ts);
+        history.pushSnapshot(snap);
+        // Use a stone (simulate)
+        ts.stonesLeft = 2;
+        // Undo: stone count restored
+        history.undo(player, [], tm, princess.capture(), grid, ts);
+        expect(ts.stonesLeft).toBe(3);
     });
 });

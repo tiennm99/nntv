@@ -2,14 +2,18 @@
     import { getText } from '../lib/localization.js';
     import { LEVELS } from '../lib/levels/levels.js';
     import Button from '../components/Button.svelte';
+    import AffordanceBanner from '../components/AffordanceBanner.svelte';
     import Pixel from '../lib/pixel/Pixel.svelte';
     import { sceneForLevel } from '../lib/pixel/art-scenes.js';
-    let { navigate, level = 1, lives = 3 } = $props();
+    let { navigate, level = 1 } = $props();
 
     let levelData = $derived(LEVELS[level - 1]);
     let levelName = $derived(levelData?.name || `Level ${level}`);
     let storyText = $derived(levelData?.storyKey ? getText(levelData.storyKey) : '');
     let scene = $derived(sceneForLevel(level));
+
+    // Affordance gates — default both enabled until phase 04 populates levels.js
+    let affordances = $derived(levelData?.affordances ?? { undo: true, preview: true });
 </script>
 
 <div class="intro">
@@ -22,7 +26,8 @@
         {#if storyText}
             <p class="story">{storyText}</p>
         {/if}
-        <Button text={getText('continue')} onclick={() => navigate('Game', { level, lives })} />
+        <AffordanceBanner undo={affordances.undo} preview={affordances.preview} />
+        <Button text={getText('continue')} onclick={() => navigate('Game', { level })} />
     </div>
 </div>
 
