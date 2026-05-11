@@ -1,120 +1,117 @@
 # Night Ninja: Twilight Voyage
 
-Night Ninja: Twilight Voyage is a turn-based stealth puzzle game where you play as a ninja rabbit navigating through a grid-based environment while avoiding detection by vegetable guards. Your goal is to rescue the missing carrot princess of the vegetable kingdom.
+Turn-based stealth puzzle game built with Svelte 5. Play as a ninja rabbit navigating
+grid-based levels inside the Vegetable Kingdom, avoiding detection by vegetable guards
+to rescue the missing carrot princess.
 
-## Game Overview
+Play: `npm run dev` → `http://localhost:5173`
 
-Guide the ninja rabbit through 12 levels of escalating danger inside the Vegetable Kingdom. Each level is a grid where:
+---
 
-- Move from your starting position (top-left) to the green goal cell (bottom-right)
-- Gray cells are walls — impassable
-- Yellow lit cells are danger zones — step into one and the level restarts
-- Colored guards illuminate cells around them in various patterns
-- New mechanics unlock across acts: one-way tiles, throwable stones, locked doors, decay tiles, and more
+## Features
 
-## Game Features
+- **12 levels across 6 acts** — grids grow from 8×8 to 13×13; difficulty escalates per act
+- **8 guard types** — Static (wilting aura), Rotating (beam), Blinking (toggle), Patrolling,
+  Mirror (beam redirect), Chaser (BFS hunt), Sniper (fixed line of sight), Suspicion (tier alert)
+- **Throwable stones** — press **E** to distract rotating, patrolling, and chaser guards
+- **Doors and keys** — color-coded key items unlock matching doors
+- **One-way tiles** — arrow tiles enforce entry direction
+- **Decay tiles** — cells that cool over turns; dangerous while warm
+- **Undo/redo** — press **Z** / **Y** (when level allows); full state snapshots including door state
+- **Turn preview** — press **V** to preview next-turn lighting (when level allows)
+- **Procedural audio** — Web Audio API; move, detect, throw, key pickup, door unlock, suspicion
+- **Pixel-art rendering** — all sprites drawn as string-art palettes → SVG rects
+- **BFS solvability CI** — levels L1–L11 verified beatable in CI; L12 intentionally unsolvable
+- **Bilingual** — English and Vietnamese (VI) locale support
 
-- **Turn-based stealth**: Each move triggers all guards simultaneously — plan before stepping
-- **Level-restart on detection**: No lives counter; every detection restarts the current level only
-- **Guard types (8 total)**:
-  - Static Guards (red/wilting tomato): Manhattan aura shrinks each turn — wait them out
-  - Rotating Guards (blue): Beam rotates 90° clockwise each turn
-  - Blinking Guards (yellow): Toggle lights on/off each turn
-  - Patrolling Guards (purple): Move along a path, lighting front and right cells
-  - Mirror Guards (green): Redirect rotating beams 90°
-  - Chaser Guards (orange): BFS-hunt the player when in detection radius
-  - **Sniper Guards (dark red)**: Aim along a fixed line of sight — step into the aim line, instant detection
-  - **Suspicion Guards (violet)**: Tier-based alert system: calm → alerted (tier 1) → firing (tier 2)
-- **Throwable stones**: Press **E** to enter targeting mode, throw a stone to distract guards (rotating, patrolling, chaser types)
-- **Doors + keys**: Color-coded key items unlock matching doors (gold/silver/copper)
-- **One-way tiles**: Arrow tiles only allow entry from the designated direction — commitment ratchets
-- **Decay/warm tiles**: Cells that cool over turns; danger if stepped on while warm
-- **Per-level affordance gates**: Some levels disable undo or preview to raise stakes
-- **Undo/redo**: Press Z to undo moves, Y to redo (when level allows)
-- **Turn preview**: Press V to preview next-turn lighting (when level allows)
-- **Progressive difficulty**: 12 levels across 6 acts, grids growing from 8×8 to 13×13
-- **Camera-follow viewport**: Large arenas scroll to keep the ninja in view
-- **Procedural audio**: Web Audio API sound effects — moves, detection, throw, key pickup, door unlock, suspicion alerts
-- **Pixel-art rendering**: All sprites and tiles drawn as string-art + palette → SVG rects
-- **Solvability-verified**: BFS solver runs in CI to guarantee L1–L11 are beatable; L12 is intentionally unsolvable
-- **Bilingual**: English and Vietnamese language support
-- **Accessibility**: ARIA labels on grid cells, HUD elements, and mechanic overlays
-
-## Tech Stack
-
-- [Svelte 5](https://svelte.dev) — UI framework with runes reactivity
-- [Vite 6](https://github.com/vitejs/vite) — Build tool and dev server
+---
 
 ## Requirements
 
-[Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.
+[Node.js](https://nodejs.org) 18+ and npm.
 
-## How to Play
+---
 
-- Use **arrow keys** or **WASD** to move the rabbit one cell per turn
-- **Click** on an adjacent cell to move
-- Press **Space** to wait a turn without moving
-- Press **V** to preview next-turn lighting (if level allows)
-- Press **Z** to undo last move, **Y** to redo (if level allows)
-- Press **E** to enter stone-throw targeting mode — arrow keys move cursor, **Enter/E** throws, **Esc** cancels
-- Reach the **green goal cell** to complete the level
-- Avoid **yellow lit cells** — detection restarts the level
-- Guard behaviors:
-  - **Red (wilting)**: Aura shrinks each turn — waiting is valid
-  - **Blue (rotating)**: Direction indicator shows next aim — time your crossing
-  - **Yellow (blinking)**: Move on the dark turn
-  - **Purple (patrolling)**: Memorise the patrol path
-  - **Green (mirror)**: Predicts reflected beam landing spots
-  - **Orange (chaser)**: Stay out of detection radius or lure away
-  - **Dark red (sniper)**: Never step onto the aim line
-  - **Violet (suspicion)**: Don't cross their view — two crosses and they fire
+## Quick Start
 
-## Available Commands
+```sh
+git clone https://github.com/tiennm99/nntv
+cd nntv
+npm install
+npm run dev        # dev server at http://localhost:5173
+```
+
+---
+
+## Commands
 
 | Command | Description |
-|---------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Launch development server |
-| `npm run build` | Production build in `dist/` |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build → `dist/` |
 | `npm run preview` | Preview production build locally |
 | `npm test` | Run all unit + solvability tests |
 | `npm run test:solvability` | Run only the BFS solvability suite |
 
-## Development
+---
 
-After cloning, run `npm install` then `npm run dev`. Dev server at `http://localhost:5173` by default.
+## Controls
+
+| Input | Action |
+|---|---|
+| Arrow keys / WASD | Move one cell |
+| Click adjacent cell | Move |
+| Space | Wait one turn |
+| V | Preview next-turn lighting |
+| Z / Y | Undo / redo |
+| E | Enter stone-throw targeting mode |
+| Enter / E (in throw mode) | Throw stone |
+| Esc | Cancel throw |
+
+---
+
+## Architecture
+
+Pure JavaScript game engine with a Svelte 5 rendering layer.
+
+```
+src/
+├── lib/game/        # Pure JS engine
+│   ├── grid.js      # Cell state: walls, goals, lighting, doors, warm tiles
+│   ├── player.js    # Position, movement validation, key inventory (bitmask)
+│   ├── guards.js    # 8 guard type implementations
+│   ├── throwable.js # Stone inventory, throw validation (Manhattan ≤3, LoS)
+│   ├── turn.js      # Turn cycle with preview simulation
+│   ├── history.js   # Undo/redo via state snapshots
+│   └── solver.js    # BFS solvability checker (reused by CI + runtime AI)
+├── lib/levels/      # 12 level definitions + solvability test suite
+├── lib/pixel/       # Pixel-art renderer, palette, sprite/tile/scene art
+├── lib/locales/     # en.json + vi.json
+├── lib/audio.js     # Procedural Web Audio sound effects
+├── scenes/          # MainMenu, Game, Guide, Settings, GameOver
+└── components/      # GameBoard, HUD, sprites, overlays
+```
+
+**Engine loop:** each player action triggers `TurnManager`, which advances all guard
+states simultaneously, recomputes lit cells, checks detection, and appends a snapshot
+to `GameHistory`. `LevelSolver` (BFS over the same state machine) is run in CI against
+every level definition to catch regressions before merge.
+
+---
 
 ## Project Structure
 
 | Path | Description |
-|------|-------------|
+|---|---|
 | `index.html` | HTML entry point |
 | `src/main.js` | Application bootstrap |
 | `src/App.svelte` | Scene router + migration modal |
-| `src/scenes/` | Game scenes (MainMenu, Game, Guide, Settings, GameOver, etc.) |
-| `src/components/` | Reusable UI components (GameBoard, HUD, sprites, overlays) |
-| `src/lib/game/` | Pure JS engine (grid, player, guards, turns, history, solver, throwable) |
-| `src/lib/pixel/` | Pixel-art renderer + palette + sprite/tile/UI/scene art |
-| `src/lib/levels/` | 12 level definitions + BFS solvability test suite |
-| `src/lib/locales/` | EN + VI JSON locale files |
-| `src/lib/` | Audio (Web Audio), localization, progress persistence |
-| `src/styles/theme.css` | CSS variables: colors, fonts, guard colors |
+| `src/styles/theme.css` | CSS variables: colors, fonts, guard palette |
+| `svelte.config.js` | Svelte 5 + Vite config |
+| `vite.config.js` | Vite build config |
 
-## Game Architecture
+---
 
-Pure JS game engine with Svelte 5 rendering layer:
+## License
 
-- **GridSystem**: Cell state management (walls, goals, lighting, doors, warm tiles)
-- **Player**: Position, movement validation, key inventory (bitmask)
-- **Guards**: 8 guard types — Static, Rotating, Blinking, Mirror, Patrolling, Chaser, SniperGuard, SuspicionGuard
-- **ThrowableSystem**: Stone inventory, throw validation (Manhattan ≤3, line-of-sight, guard proximity), distraction turn logic
-- **TurnManager**: Turn cycle with preview simulation and throwable integration
-- **GameHistory**: Undo/redo via state snapshots (includes grid door state + throwable inventory)
-- **LevelSolver**: BFS solvability checker (CI-enforced; reuses runtime AI)
-- **PrincessMechanic**: Escalating light-ring detection on L12
-- **Audio**: Procedural Web Audio — move, wait, detect, complete, undo, stone throw/impact, key pickup, door unlock, suspicion alert/fire
-
-## Credits
-
-- Built with [Svelte 5](https://svelte.dev) and [Vite 6](https://vitejs.dev)
-- Inspired by classic stealth games and vegetable kingdom stories
+Apache 2.0
