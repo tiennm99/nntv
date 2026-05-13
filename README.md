@@ -4,7 +4,7 @@ Turn-based stealth puzzle game built with Svelte 5. Play as a ninja rabbit navig
 grid-based levels inside the Vegetable Kingdom, avoiding detection by vegetable guards
 to rescue the missing carrot princess.
 
-Play: `npm run dev` → `http://localhost:5173`
+Play: `pnpm dev` → `http://localhost:5173`
 
 ---
 
@@ -28,7 +28,7 @@ Play: `npm run dev` → `http://localhost:5173`
 
 ## Requirements
 
-[Node.js](https://nodejs.org) 18+ and npm.
+[Node.js](https://nodejs.org) 18+ and [pnpm](https://pnpm.io).
 
 ---
 
@@ -37,8 +37,8 @@ Play: `npm run dev` → `http://localhost:5173`
 ```sh
 git clone https://github.com/tiennm99/nntv
 cd nntv
-npm install
-npm run dev        # dev server at http://localhost:5173
+pnpm install
+pnpm dev        # dev server at http://localhost:5173
 ```
 
 ---
@@ -47,11 +47,11 @@ npm run dev        # dev server at http://localhost:5173
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start development server |
-| `npm run build` | Production build → `dist/` |
-| `npm run preview` | Preview production build locally |
-| `npm test` | Run all unit + solvability tests |
-| `npm run test:solvability` | Run only the BFS solvability suite |
+| `pnpm dev` | Start development server |
+| `pnpm build` | Production build → `dist/` |
+| `pnpm preview` | Preview production build locally |
+| `pnpm test` | Run all unit + solvability tests |
+| `pnpm test:solvability` | Run only the BFS solvability suite |
 
 ---
 
