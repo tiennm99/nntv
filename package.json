@@ -3,6 +3,7 @@
   "description": "Night Ninja: Twilight Voyage",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@11.1.1",
   "type": "module",
   "license": "Apache-2.0",
   "scripts": {
