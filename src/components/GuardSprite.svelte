@@ -1,7 +1,6 @@
 <script>
-    import Pixel from '../lib/pixel/Pixel.svelte';
     import SuspicionRing from './SuspicionRing.svelte';
-    import { GUARD_SPRITES } from '../lib/pixel/art-characters.js';
+    import { GENERATED_CHARACTERS } from '../lib/generated-assets.js';
 
     let { guard, cellSize = 50, allCells = [] } = $props();
 
@@ -10,12 +9,16 @@
     let size = $derived(Math.floor(cellSize * 0.95));
     let rotation = $derived(guard.direction * 90);
     let hasDirection = $derived(
-        guard.type === 'rotating' || guard.type === 'patrolling' || guard.type === 'chaser'
+        guard.type === 'rotating' || guard.type === 'patrolling' || guard.type === 'chaser' || guard.type === 'sniper'
     );
-    let sprite = $derived(GUARD_SPRITES[guard.type]);
-    let activePal = $derived(
-        guard.type === 'blinking' && !guard.isOn ? sprite?.palOff : sprite?.pal
-    );
+    let spriteSrc = $derived.by(() => {
+        if (guard.type === 'suspicion') {
+            if ((guard.tier ?? 0) >= 2) return GENERATED_CHARACTERS.guards.suspicion.fire;
+            if ((guard.tier ?? 0) === 1) return GENERATED_CHARACTERS.guards.suspicion.alert;
+            return GENERATED_CHARACTERS.guards.suspicion.calm;
+        }
+        return GENERATED_CHARACTERS.guards[guard.type];
+    });
 
     // Sniper: compute beam cells visually by re-walking beam logic from guard position.
     // NOTE: this duplicates SniperGuard._castBeam logic. If engine beam logic changes,
@@ -58,29 +61,6 @@
         guard.type === 'sniper' ? computeBeamCells(guard, allCells) : []
     );
 
-    // Triangle polygon points for sniper sprite, pointing in `facing` direction
-    // Triangle is drawn within a [0,size] × [0,size] box
-    function sniperTrianglePoints(sz, dir) {
-        const h = sz;
-        const w = sz;
-        const m = sz / 2;
-        // Points: (tip, base-left, base-right) depending on direction
-        switch (dir) {
-            case 0: return `${m},2 2,${h - 2} ${w - 2},${h - 2}`; // up
-            case 1: return `${w - 2},${m} 2,2 2,${h - 2}`;        // right
-            case 2: return `${m},${h - 2} 2,2 ${w - 2},2`;        // down
-            case 3: return `2,${m} ${w - 2},2 ${w - 2},${h - 2}`; // left
-            default: return `${m},2 2,${h - 2} ${w - 2},${h - 2}`;
-        }
-    }
-
-    // Suspicion tier color for the guard body tint
-    function suspicionColor(tier) {
-        if (tier >= 2) return '#ff3300';
-        if (tier === 1) return '#ffcc00';
-        return '#8844aa'; // idle purple
-    }
-
     // Human-readable ARIA label for the guard sprite
     let ariaLabel = $derived((() => {
         switch (guard.type) {
@@ -101,6 +81,8 @@
     class="guard {guard.type}"
     class:off={guard.type === 'blinking' && !guard.isOn}
     class:alert={guard.type === 'chaser' && guard.isChasing}
+    class:tier-alert={guard.type === 'suspicion' && (guard.tier ?? 0) === 1}
+    class:tier-fire={guard.type === 'suspicion' && (guard.tier ?? 0) >= 2}
     style="top: {top}px; left: {left}px; width: {size}px; height: {size}px;"
     role="img"
     aria-label={ariaLabel}
@@ -129,47 +111,30 @@
                     stroke-dasharray="5 4"
                 />
             {/if}
-            <!-- Triangle body pointing in facing direction -->
-            <polygon
-                points={sniperTrianglePoints(size, facing)}
-                fill="#cc3300"
-                stroke="#ff6600"
-                stroke-width="2"
-            />
-            <!-- Eye dot at center -->
-            <circle
-                cx={size / 2} cy={size / 2}
-                r={size * 0.08}
-                fill="#ffaa00"
-            />
         </svg>
+        {#if spriteSrc}
+            <div class="sprite-motion">
+                <img class="sprite-image" src={spriteSrc} alt="" draggable="false" />
+            </div>
+        {/if}
+        <div class="direction-indicator" style="transform: rotate({rotation}deg);"></div>
 
     <!-- ── Suspicion guard: circle with tier ring overlay ── -->
     {:else if guard.type === 'suspicion'}
-        <svg width={size} height={size} viewBox="0 0 {size} {size}" aria-hidden="true">
-            <circle
-                cx={size / 2} cy={size / 2}
-                r={size * 0.38}
-                fill={suspicionColor(guard.tier ?? 0)}
-                stroke="rgba(255,255,255,0.3)"
-                stroke-width="1.5"
-            />
-            <!-- Suspicion level dots -->
-            {#if (guard.tier ?? 0) >= 1}
-                <circle cx={size / 2} cy={size * 0.22} r={size * 0.07} fill="#fff" opacity="0.9" />
-            {/if}
-            {#if (guard.tier ?? 0) >= 2}
-                <circle cx={size * 0.3} cy={size * 0.72} r={size * 0.07} fill="#fff" opacity="0.9" />
-                <circle cx={size * 0.7} cy={size * 0.72} r={size * 0.07} fill="#fff" opacity="0.9" />
-            {/if}
-        </svg>
+        {#if spriteSrc}
+            <div class="sprite-motion">
+                <img class="sprite-image" src={spriteSrc} alt="" draggable="false" />
+            </div>
+        {/if}
         <!-- SuspicionRing overlay positioned over this sprite -->
         <SuspicionRing tier={guard.tier ?? 0} {size} />
 
     <!-- ── Standard guard types (existing behavior unchanged) ── -->
     {:else}
-        {#if sprite}
-            <Pixel art={sprite.art} palette={activePal} width={size} height={size} />
+        {#if spriteSrc}
+            <div class="sprite-motion">
+                <img class="sprite-image" src={spriteSrc} alt="" draggable="false" />
+            </div>
         {/if}
         {#if hasDirection}
             <div class="direction-indicator" style="transform: rotate({rotation}deg);"></div>
@@ -191,6 +156,56 @@
     .guard.off {
         opacity: 0.85;
     }
+    .sprite-motion {
+        width: 100%;
+        height: 100%;
+        transform-origin: 50% 84%;
+        animation: guard-idle 1.7s steps(2, end) infinite;
+    }
+    .sprite-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
+    }
+    .guard.static .sprite-motion {
+        animation: tomato-wilt 2.2s steps(3, end) infinite;
+    }
+    .guard.rotating .sprite-motion {
+        animation: blueberry-scan 1.1s steps(4, end) infinite;
+    }
+    .guard.blinking .sprite-motion {
+        animation: corn-blink 1s steps(2, end) infinite;
+    }
+    .guard.blinking.off .sprite-motion {
+        animation: corn-off 1.2s steps(2, end) infinite;
+        filter: saturate(0.75) brightness(0.72);
+    }
+    .guard.patrolling .sprite-motion {
+        animation: patrol-step 600ms steps(2, end) infinite;
+    }
+    .guard.mirror .sprite-motion {
+        animation: mirror-shimmer 1.6s steps(3, end) infinite;
+    }
+    .guard.chaser .sprite-motion {
+        animation: pumpkin-stomp 850ms steps(3, end) infinite;
+    }
+    .guard.chaser.alert .sprite-motion {
+        animation: pumpkin-chase 420ms steps(3, end) infinite;
+    }
+    .guard.sniper .sprite-motion {
+        animation: sniper-breathe 1.8s steps(2, end) infinite;
+    }
+    .guard.suspicion .sprite-motion {
+        animation: onion-watch 1.5s steps(2, end) infinite;
+    }
+    .guard.suspicion.tier-alert .sprite-motion {
+        animation: onion-alert 700ms steps(2, end) infinite;
+    }
+    .guard.suspicion.tier-fire .sprite-motion {
+        animation: onion-fire 360ms steps(2, end) infinite;
+    }
 
     .direction-indicator {
         position: absolute;
@@ -203,5 +218,84 @@
         transform-origin: bottom center;
         translate: -50% 0;
     }
+    .guard.rotating .direction-indicator {
+        animation: beam-tick 1s steps(4, end) infinite;
+    }
+    .guard.sniper .direction-indicator {
+        height: 46%;
+        background: #ffb24a;
+        animation: sniper-aim-pulse 900ms ease-in-out infinite alternate;
+    }
 
+    @keyframes guard-idle {
+        0%, 100% { transform: translateY(0) scaleY(1); }
+        50% { transform: translateY(-1px) scaleY(1.02); }
+    }
+    @keyframes tomato-wilt {
+        0%, 100% { transform: translateY(0) rotate(0deg); filter: brightness(1); }
+        50% { transform: translateY(1px) rotate(-1deg); filter: brightness(0.9); }
+    }
+    @keyframes blueberry-scan {
+        0%, 100% { transform: translateX(0); filter: drop-shadow(0 0 0 rgba(68, 136, 255, 0)); }
+        25% { transform: translateX(1px); filter: drop-shadow(0 0 5px rgba(68, 136, 255, 0.35)); }
+        75% { transform: translateX(-1px); filter: drop-shadow(0 0 5px rgba(68, 136, 255, 0.35)); }
+    }
+    @keyframes corn-blink {
+        0%, 100% { filter: brightness(1.05); }
+        50% { filter: brightness(1.28) drop-shadow(0 0 5px rgba(255, 221, 68, 0.45)); }
+    }
+    @keyframes corn-off {
+        0%, 100% { opacity: 0.72; }
+        50% { opacity: 0.56; }
+    }
+    @keyframes patrol-step {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        25% { transform: translateY(-2px) rotate(-1deg); }
+        75% { transform: translateY(-2px) rotate(1deg); }
+    }
+    @keyframes mirror-shimmer {
+        0%, 100% { filter: brightness(1) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8)); }
+        50% { filter: brightness(1.18) drop-shadow(0 0 7px rgba(170, 235, 255, 0.55)); }
+    }
+    @keyframes pumpkin-stomp {
+        0%, 100% { transform: translateY(0) scaleX(1); }
+        50% { transform: translateY(-2px) scaleX(1.03); }
+    }
+    @keyframes pumpkin-chase {
+        0%, 100% { transform: translateY(0) scaleX(1.04); }
+        50% { transform: translateY(-4px) scaleX(1.08); }
+    }
+    @keyframes sniper-breathe {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(1px); }
+    }
+    @keyframes onion-watch {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-1px); }
+    }
+    @keyframes onion-alert {
+        0%, 100% { transform: translateY(0) scale(1); filter: brightness(1.05); }
+        50% { transform: translateY(-2px) scale(1.04); filter: brightness(1.25); }
+    }
+    @keyframes onion-fire {
+        0%, 100% { transform: translateX(0) scale(1.02); filter: brightness(1.2); }
+        33% { transform: translateX(-2px) scale(1.06); filter: brightness(1.45); }
+        66% { transform: translateX(2px) scale(1.06); filter: brightness(1.45); }
+    }
+    @keyframes beam-tick {
+        0%, 100% { opacity: 0.75; }
+        50% { opacity: 1; }
+    }
+    @keyframes sniper-aim-pulse {
+        from { opacity: 0.55; box-shadow: 0 0 2px rgba(255, 178, 74, 0.4); }
+        to { opacity: 1; box-shadow: 0 0 7px rgba(255, 178, 74, 0.75); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .guard,
+        .sprite-motion,
+        .direction-indicator {
+            transition: none;
+            animation: none !important;
+        }
+    }
 </style>

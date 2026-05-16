@@ -1,10 +1,8 @@
 <script>
     // StonesCounter — HUD pill showing remaining throwable stones.
     // Only mounted when level.stones > 0.
-    // Uses SVG pixel-art stone icon instead of emoji for consistent rendering.
     import { getText } from '../lib/localization.js';
-    import Pixel from '../lib/pixel/Pixel.svelte';
-    import { ICON_STONE, ICON_STONE_PAL } from '../lib/pixel/art-tiles.js';
+    import { GENERATED_TILES } from '../lib/generated-assets.js';
 
     let { stonesLeft = 0 } = $props();
 
@@ -13,7 +11,7 @@
 
 <div class="stones-counter" aria-label={label}>
     <span class="stone-icon" aria-hidden="true">
-        <Pixel art={ICON_STONE} palette={ICON_STONE_PAL} scale={1.5} />
+        <img src={GENERATED_TILES.stone} alt="" draggable="false" />
     </span>
     <span class="stone-times" aria-hidden="true">×</span>
     <span class="stone-count">{stonesLeft}</span>
@@ -36,6 +34,12 @@
         display: flex;
         align-items: center;
         line-height: 0;
+    }
+    .stone-icon img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+        image-rendering: pixelated;
     }
     .stone-times { color: var(--text-secondary); font-size: 0.75em; }
     .stone-count { font-weight: bold; min-width: 1ch; text-align: center; }

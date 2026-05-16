@@ -3,7 +3,7 @@
     import Button from '../components/Button.svelte';
     import Pixel from '../lib/pixel/Pixel.svelte';
     import { MOON_ART, MOON_PAL } from '../lib/pixel/art-ui.js';
-    import { RABBIT_ART, RABBIT_PAL } from '../lib/pixel/art-characters.js';
+    import { GENERATED_CHARACTERS } from '../lib/generated-assets.js';
     let { navigate } = $props();
 
     const stars = Array.from({ length: 40 }, () => ({
@@ -28,7 +28,7 @@
 
     <h1>{getText('gameTitle')}</h1>
     <div class="hero">
-        <Pixel art={RABBIT_ART} palette={RABBIT_PAL} width={96} height={96} />
+        <img src={GENERATED_CHARACTERS.player} alt="" draggable="false" />
     </div>
 
     <div class="buttons">
@@ -70,6 +70,12 @@
         margin-bottom: 24px;
         z-index: 1;
         filter: drop-shadow(0 4px 12px rgba(83, 52, 131, 0.6));
+    }
+    .hero img {
+        width: 108px;
+        height: 108px;
+        object-fit: contain;
+        image-rendering: pixelated;
     }
     .buttons {
         display: flex; flex-direction: column;

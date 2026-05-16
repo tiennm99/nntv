@@ -22,8 +22,7 @@
     import LevelCompletePopup from '../components/LevelCompletePopup.svelte';
     import PauseMenu from '../components/PauseMenu.svelte';
     import ControlsOverlay from '../components/ControlsOverlay.svelte';
-    import Pixel from '../lib/pixel/Pixel.svelte';
-    import { sceneForLevel } from '../lib/pixel/art-scenes.js';
+    import { generatedSceneForLevel } from '../lib/generated-assets.js';
 
     let { navigate, level = 1 } = $props();
 
@@ -86,7 +85,7 @@
         ? turnManager.previewNextTurn(grid, player, guards, throwSystem)
         : new Set()));
     let canUndo = $derived((renderVersion, history.canUndo()));
-    let scene = $derived(sceneForLevel(currentLevel));
+    let scene = $derived(generatedSceneForLevel(currentLevel));
 
     // HUD reactive values
     let stonesLeft = $derived((renderVersion, throwSystem ? throwSystem.stonesLeft : 0));
@@ -534,7 +533,7 @@
 <div class="game-scene" class:flash={showFlash}
      ontouchstart={onTouchStart} ontouchend={onTouchEnd}>
     <div class="scene-backdrop">
-        <Pixel art={scene.art} palette={scene.pal} width={1024} height={384} />
+        <img src={scene} alt="" draggable="false" />
     </div>
     <GameHud
         level={currentLevel}
@@ -641,6 +640,12 @@
         display: flex;
         align-items: flex-start;
         justify-content: center;
+    }
+    .scene-backdrop img {
+        width: 100%;
+        height: 384px;
+        object-fit: cover;
+        image-rendering: pixelated;
     }
     .game-scene.flash {
         animation: level-flash 0.4s ease-out;

@@ -3,14 +3,13 @@
     import { LEVELS } from '../lib/levels/levels.js';
     import Button from '../components/Button.svelte';
     import AffordanceBanner from '../components/AffordanceBanner.svelte';
-    import Pixel from '../lib/pixel/Pixel.svelte';
-    import { sceneForLevel } from '../lib/pixel/art-scenes.js';
+    import { generatedSceneForLevel } from '../lib/generated-assets.js';
     let { navigate, level = 1 } = $props();
 
     let levelData = $derived(LEVELS[level - 1]);
     let levelName = $derived(levelData?.name || `Level ${level}`);
     let storyText = $derived(levelData?.storyKey ? getText(levelData.storyKey) : '');
-    let scene = $derived(sceneForLevel(level));
+    let scene = $derived(generatedSceneForLevel(level));
 
     // Affordance gates — default both enabled until phase 04 populates levels.js
     let affordances = $derived(levelData?.affordances ?? { undo: true, preview: true });
@@ -18,7 +17,7 @@
 
 <div class="intro">
     <div class="backdrop">
-        <Pixel art={scene.art} palette={scene.pal} width={1024} height={480} />
+        <img src={scene} alt="" draggable="false" />
     </div>
     <div class="foreground">
         <span class="level-num">{getText('level')}{level}</span>
@@ -46,6 +45,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    .backdrop img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
     }
     .foreground {
         position: relative;

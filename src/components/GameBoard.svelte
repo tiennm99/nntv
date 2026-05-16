@@ -1,17 +1,8 @@
 <script>
-    import Pixel from '../lib/pixel/Pixel.svelte';
-    import {
-        TILE_EMPTY, TILE_EMPTY_PAL,
-        TILE_WALL, TILE_WALL_PAL,
-        TILE_GOAL, TILE_GOAL_PAL,
-        TILE_LIT, TILE_LIT_PAL,
-        TILE_PREVIEW, TILE_PREVIEW_PAL,
-    } from '../lib/pixel/art-tiles.js';
+    import { GENERATED_TILES } from '../lib/generated-assets.js';
 
     // Key color palette by keyId: 1=gold, 2=silver, 3=copper
     const KEY_COLORS = { 1: '#d4af37', 2: '#c0c0c0', 3: '#b87333' };
-    // One-way arrow glyphs by numeric direction encoding (0=up,1=right,2=down,3=left)
-    const ONEWAY_ARROWS = { 0: '↑', 1: '→', 2: '↓', 3: '←' };
     // Human-readable direction names for ARIA
     const DIR_NAMES = { 0: 'up', 1: 'right', 2: 'down', 3: 'left' };
 
@@ -49,16 +40,15 @@
 
     // Resolve the base tile art/palette. Priority: lit > door > goal > wall > empty.
     // Key, one-way, warm overlays are rendered on top of the base tile separately.
-    function tileFor(cell) {
-        if (cell.isLight) return { art: TILE_LIT, pal: TILE_LIT_PAL };
-        if (cell.isGoal) return { art: TILE_GOAL, pal: TILE_GOAL_PAL };
-        if (cell.isWall) return { art: TILE_WALL, pal: TILE_WALL_PAL };
-        return { art: TILE_EMPTY, pal: TILE_EMPTY_PAL };
+    function tileSrcFor(cell) {
+        if (cell.isLight) return GENERATED_TILES.lit;
+        if (cell.isGoal) return GENERATED_TILES.goal;
+        if (cell.isWall) return GENERATED_TILES.wall;
+        return GENERATED_TILES.empty;
     }
 
-    // Border color for door overlay (keyed by keyId)
-    function doorBorderColor(keyId) {
-        return KEY_COLORS[keyId] ?? '#888888';
+    function oneWayRotation(dir) {
+        return `${((dir ?? 1) - 1) * 90}deg`;
     }
 </script>
 
@@ -69,7 +59,7 @@
     style="grid-template-columns: repeat({cols}, {cellSize}px); grid-template-rows: repeat({rows}, {cellSize}px);"
 >
     {#each cells as cell (cell.row * cols + cell.col)}
-        {@const tile = tileFor(cell)}
+        {@const tileSrc = tileSrcFor(cell)}
         <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_interactive_supports_focus -->
         <div
             tabindex="-1"
@@ -79,51 +69,54 @@
             class:detected-flash={isDetected(cell)}
             class:throw-target={isThrowTarget(cell)}
             class:throw-cursor={isThrowCursor(cell)}
+            class:lit={cell.isLight}
+            class:warm={cell.isWarm && !cell.isLight}
+            class:key-cell={cell.isKey}
+            class:door-cell={cell.isDoor}
+            class:oneway-cell={cell.isOneWay}
             role="gridcell"
             aria-label={cellLabel(cell)}
             onclick={() => oncellclick?.(cell.row, cell.col)}
         >
-            <Pixel art={tile.art} palette={tile.pal} width={cellSize} height={cellSize} />
+            <img class="tile-image" src={tileSrc} alt="" draggable="false" />
 
             <!-- Preview overlay (turn-preview ghost) -->
             {#if previewCells.has(`${cell.row},${cell.col}`) && !cell.isLight}
                 <div class="preview-overlay">
-                    <Pixel art={TILE_PREVIEW} palette={TILE_PREVIEW_PAL} width={cellSize} height={cellSize} />
-                </div>
-            {/if}
-
-            <!-- Door overlay: colored border + padlock glyph -->
-            {#if cell.isDoor}
-                <div
-                    class="door-overlay"
-                    style="border-color: {doorBorderColor(cell.doorKeyId)}; box-shadow: inset 0 0 0 2px {doorBorderColor(cell.doorKeyId)};"
-                    aria-hidden="true"
-                >
-                    <span class="door-glyph">🔒</span>
-                </div>
-            {/if}
-
-            <!-- Key overlay: colored circle + key glyph -->
-            {#if cell.isKey}
-                <div
-                    class="key-overlay"
-                    style="background: radial-gradient(circle, {KEY_COLORS[cell.keyId] ?? '#888'}44 60%, transparent 100%);"
-                    aria-hidden="true"
-                >
-                    <span class="key-glyph" style="color: {KEY_COLORS[cell.keyId] ?? '#888'};">🗝</span>
-                </div>
-            {/if}
-
-            <!-- One-way overlay: arrow glyph in allowed-entry direction -->
-            {#if cell.isOneWay}
-                <div class="oneway-overlay" aria-hidden="true">
-                    <span class="oneway-arrow">{ONEWAY_ARROWS[cell.oneWayDir] ?? '?'}</span>
+                    <div class="preview-corners"></div>
                 </div>
             {/if}
 
             <!-- Warm cell overlay: dim orange glow (distinct from yellow lit cells) -->
             {#if cell.isWarm && !cell.isLight}
-                <div class="warm-overlay" aria-hidden="true"></div>
+                <div class="tile-overlay warm-overlay" aria-hidden="true">
+                    <img class="tile-image" src={GENERATED_TILES.warm} alt="" draggable="false" />
+                </div>
+            {/if}
+
+            <!-- One-way overlay: pixel arrow in allowed-entry direction -->
+            {#if cell.isOneWay}
+                <div
+                    class="tile-overlay oneway-overlay"
+                    style="transform: rotate({oneWayRotation(cell.oneWayDir)});"
+                    aria-hidden="true"
+                >
+                    <img class="tile-image" src={GENERATED_TILES.oneway} alt="" draggable="false" />
+                </div>
+            {/if}
+
+            <!-- Door overlay: color keyed by matching keyId -->
+            {#if cell.isDoor}
+                <div class="tile-overlay door-overlay" aria-hidden="true">
+                    <img class="tile-image" src={GENERATED_TILES.doors[cell.doorKeyId] ?? GENERATED_TILES.doors[1]} alt="" draggable="false" />
+                </div>
+            {/if}
+
+            <!-- Key overlay: color keyed to matching door -->
+            {#if cell.isKey}
+                <div class="tile-overlay key-overlay" aria-hidden="true">
+                    <img class="key-image" src={GENERATED_TILES.keys[cell.keyId] ?? GENERATED_TILES.keys[1]} alt="" draggable="false" />
+                </div>
             {/if}
 
             <!-- Throw targeting overlays -->
@@ -149,6 +142,28 @@
         cursor: pointer;
     }
     .cell.wall { cursor: default; }
+    .cell.lit .tile-image {
+        animation: lit-tile-pulse 900ms steps(3, end) infinite;
+    }
+    .cell.warm .tile-image {
+        animation: warm-tile-breathe 1.2s steps(3, end) infinite;
+    }
+    .cell.door-cell .door-overlay {
+        animation: door-lock-glint 1.7s steps(4, end) infinite;
+    }
+    .cell.key-cell .key-overlay {
+        animation: key-bob 1s steps(3, end) infinite;
+    }
+    .cell.oneway-cell .oneway-overlay {
+        animation: oneway-nudge 1.1s steps(3, end) infinite;
+    }
+    .tile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+        display: block;
+    }
 
     /* Preview ghost overlay */
     .preview-overlay {
@@ -156,6 +171,18 @@
         inset: 0;
         pointer-events: none;
         opacity: 0.7;
+    }
+    .preview-corners {
+        position: absolute;
+        inset: 4px;
+        border: 3px solid rgba(255, 234, 0, 0.65);
+        clip-path: polygon(
+            0 0, 28% 0, 28% 8%, 8% 8%, 8% 28%, 0 28%,
+            0 72%, 8% 72%, 8% 92%, 28% 92%, 28% 100%, 0 100%,
+            72% 100%, 72% 92%, 92% 92%, 92% 72%, 100% 72%,
+            100% 28%, 92% 28%, 92% 8%, 72% 8%, 72% 0, 100% 0,
+            100% 100%, 0 100%
+        );
     }
 
     /* Detection flash animation */
@@ -166,64 +193,58 @@
         0% { filter: brightness(2) hue-rotate(-60deg); }
         100% { filter: none; }
     }
-
-    /* ── Door overlay ── */
-    .door-overlay {
-        position: absolute;
-        inset: 3px;
-        border: 3px solid; /* color set inline */
-        border-radius: 3px;
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.35);
+    @keyframes lit-tile-pulse {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.22) saturate(1.1); }
     }
-    .door-glyph {
-        font-size: 1.1em;
-        line-height: 1;
-        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+    @keyframes warm-tile-breathe {
+        0%, 100% { opacity: 0.82; }
+        50% { opacity: 1; }
     }
-
-    /* ── Key overlay ── */
-    .key-overlay {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    @keyframes door-lock-glint {
+        0%, 100% { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75)) brightness(1); }
+        50% { filter: drop-shadow(0 0 5px rgba(255, 244, 214, 0.35)) brightness(1.08); }
     }
-    .key-glyph {
-        font-size: 1em;
-        line-height: 1;
-        filter: drop-shadow(0 1px 3px rgba(0,0,0,0.9));
+    @keyframes key-bob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+    }
+    @keyframes oneway-nudge {
+        0%, 100% { translate: 0 0; opacity: 0.82; }
+        50% { translate: 2px 0; opacity: 1; }
     }
 
-    /* ── One-way overlay ── */
-    .oneway-overlay {
+    .tile-overlay {
         position: absolute;
         inset: 0;
         pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(100, 180, 255, 0.08);
-    }
-    .oneway-arrow {
-        font-size: 1.3em;
-        color: rgba(140, 210, 255, 0.75);
-        line-height: 1;
-        text-shadow: 0 0 4px rgba(0,0,0,0.8);
+        transform-origin: center;
     }
 
-    /* ── Warm cell overlay (distinct orange from yellow isLight) ── */
     .warm-overlay {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background: rgba(255, 140, 0, 0.25);
-        border-radius: 1px;
+        opacity: 0.9;
+        mix-blend-mode: screen;
+    }
+
+    .oneway-overlay {
+        opacity: 0.82;
+    }
+
+    .door-overlay {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75));
+    }
+
+    .key-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+    }
+    .key-image {
+        width: 76%;
+        height: 76%;
+        object-fit: contain;
+        image-rendering: pixelated;
     }
 
     /* ── Throw targeting rings ── */
@@ -247,5 +268,13 @@
     @keyframes cursor-pulse {
         from { opacity: 0.7; }
         to   { opacity: 1.0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .cell .tile-image,
+        .tile-overlay,
+        .key-overlay,
+        .throw-cursor-ring {
+            animation: none !important;
+        }
     }
 </style>

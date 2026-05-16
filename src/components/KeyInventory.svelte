@@ -3,13 +3,12 @@
     // keysHeld is a bitmask: bit 0 = key 1 (gold), bit 1 = key 2 (silver), bit 2 = key 3 (copper).
     // Only mounted when level.keys?.length > 0.
     import { getText } from '../lib/localization.js';
-    import Pixel from '../lib/pixel/Pixel.svelte';
-    import { TILE_KEY, TILE_KEY_GOLD_PAL, TILE_KEY_SILVER_PAL, TILE_KEY_COPPER_PAL } from '../lib/pixel/art-tiles.js';
+    import { GENERATED_TILES } from '../lib/generated-assets.js';
 
     const KEY_DEFS = [
-        { id: 1, color: '#d4af37', pal: TILE_KEY_GOLD_PAL   },
-        { id: 2, color: '#c0c0c0', pal: TILE_KEY_SILVER_PAL },
-        { id: 3, color: '#b87333', pal: TILE_KEY_COPPER_PAL },
+        { id: 1, color: '#d4af37', src: GENERATED_TILES.keys[1] },
+        { id: 2, color: '#c0c0c0', src: GENERATED_TILES.keys[2] },
+        { id: 3, color: '#b87333', src: GENERATED_TILES.keys[3] },
     ];
 
     let { keysHeld = 0 } = $props();
@@ -33,7 +32,7 @@
                 aria-label={k.label}
             >
                 <span class="key-icon" aria-hidden="true">
-                    <Pixel art={TILE_KEY} palette={k.pal} scale={1.5} />
+                    <img src={k.src} alt="" draggable="false" />
                 </span>
             </div>
         {/each}
@@ -60,5 +59,11 @@
         display: flex;
         align-items: center;
         line-height: 0;
+    }
+    .key-icon img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+        image-rendering: pixelated;
     }
 </style>
