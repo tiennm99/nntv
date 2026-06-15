@@ -1,2 +1,8 @@
 allowBuilds:
   esbuild: true
+
+# Force patched esbuild (>= 0.28.1) to close GHSA-gv7w-rqvm-qjhr
+# esbuild is a transitive devDependency pulled in by Vite; pinning it here
+# overrides every consumer regardless of the version Vite requested.
+overrides:
+  esbuild: ^0.28.1
