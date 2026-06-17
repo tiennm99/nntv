@@ -1,0 +1,49 @@
+{
+  "requests": [
+    {
+      "text": "Trong vương quốc Rau Củ Quả thanh bình, nơi cà rốt, bắp cải và đủ loại rau củ sống hòa thuận với nhau, một bi kịch khủng khiếp đã xảy ra. Công chúa Cà Rốt yêu quý, con gái của Vua Cà Rốt đệ tam, đã bí ẩn biến mất khỏi cung điện hoàng gia. Vương quốc đang trong tình trạng hỗn loạn. Các Vệ Binh Rau Củ đã được đặt trong tình trạng báo động cao, tuần tra mọi ngóc ngách của vương quốc với đôi mắt cảnh giác. Là hy vọng cuối cùng của vương quốc, bạn, một ninja thỏ tài năng từ bóng tối, đã được gọi đến cho nhiệm vụ nguy hiểm này. Bạn phải xâm nhập vào các khu vực được canh gác nghiêm ngặt, tránh bị phát hiện bằng mọi giá, và giải cứu Công chúa Cà Rốt mất tích. Số phận của Vương quốc Rau Củ Quả nằm trong đôi bàn chân của bạn. Chúc may mắn, Ninja Đêm.",
+      "voice_id": "Vietnamese_kindhearted_girl",
+      "speed": 0.92
+    },
+    {
+      "text": "Bạn đã bị phát hiện! Khởi động lại cấp độ.",
+      "voice_id": "Vietnamese_kindhearted_girl",
+      "speed": 1.05
+    },
+    {
+      "text": "Chào mừng, Ninja Đêm. Vương quốc Rau Củ đang trông cậy vào bạn.",
+      "voice_id": "Vietnamese_kindhearted_girl",
+      "speed": 0.95
+    },
+    {
+      "text": "Act one. The Outskirts. A quiet garden path lies ahead. No guards in sight. Learn your footing before the dark closes in.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    },
+    {
+      "text": "Act two. The Vegetable Garden. Brick walls laced with one-way passages. Choose your route before you step. There is no going back.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    },
+    {
+      "text": "Act three. The Fortress. Battlements and flickering torches. A blinking guard's light pulses on and off. Move on the dark turns.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    },
+    {
+      "text": "Act four. The Underground. A tunnel winds beneath the fortress walls. A patrolling guard marches the corridor.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    },
+    {
+      "text": "Act five. The Royal Palace. The Hall of Mirrors. Reflected beams multiply with every turn. The Princess can sense any living thing nearby.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    },
+    {
+      "text": "Act six. The Princess Chamber. A strange warmth emanates from within. The air itself feels watchful. She already knows you are here.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    }
+  ]
+}

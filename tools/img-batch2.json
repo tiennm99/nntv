@@ -1,0 +1,12 @@
+{
+  "requests": [
+    {
+      "prompt": "Pixel art underground tunnel scene. A long dark stone tunnel lit by a single distant torch. Moss-covered bricks, water dripping, a winding path disappearing into shadow. Tiny glowing fireflies. 16-bit retro game art aesthetic, deep navy and dark green palette, mysterious atmosphere. Studio quality.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "prompt": "Pixel art royal palace hall scene. A grand mirrored hall with golden pillars, polished marble floor reflecting the light from a chandelier. Carved vegetable motifs on the walls. Empty and majestic, awaiting the princess. 16-bit retro game art aesthetic, deep plum and gold palette, opulent but quiet. Studio quality.",
+      "aspect_ratio": "16:9"
+    }
+  ]
+}

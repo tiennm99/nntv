@@ -1,0 +1,9 @@
+{
+  "requests": [
+    {
+      "text": "Chào mừng Ninja Đêm.",
+      "voice_id": "Vietnamese_kindhearted_girl",
+      "speed": 0.95
+    }
+  ]
+}

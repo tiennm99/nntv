@@ -20,6 +20,9 @@
 </script>
 
 <div class="intro">
+    <div class="scene-backdrop">
+        <img src="assets/scene-story.png" alt="" draggable="false" />
+    </div>
     <h2>{getText('storyTitle')}</h2>
     <div class="scroll-area">
         <p class="story-scroll">{getText('storyText')}</p>
@@ -38,6 +41,22 @@
         position: relative;
         overflow: hidden;
     }
+    .scene-backdrop {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 192px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .scene-backdrop img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+    }
+    h2, .scroll-area, .skip-btn { position: relative; z-index: 1; }
     h2 {
         font: var(--font-title);
         color: var(--text-accent);

@@ -1,0 +1,112 @@
+{
+  "generated": "2026-06-17",
+  "game": "Night Ninja: Twilight Voyage",
+  "root": "public/assets/",
+  "files": {
+    "logo.png": {
+      "kind": "wordmark",
+      "size": "216×54",
+      "source": "NNTV_ART (replaces broken PHASER logo)"
+    },
+    "logo-nntv-compact.png": {
+      "kind": "wordmark",
+      "size": "216×54",
+      "source": "NNTV_ART"
+    },
+    "logo-nntv-wordmark.png": {
+      "kind": "wordmark",
+      "size": "360×90",
+      "source": "NNTV_ART (scale 10)"
+    },
+    "favicon-32.png": {
+      "kind": "icon",
+      "size": "32×32",
+      "source": "RABBIT_ART"
+    },
+    "favicon-16.png": {
+      "kind": "icon",
+      "size": "32×32 (downscaled at display)",
+      "source": "RABBIT_ART"
+    },
+    "../favicon.png": {
+      "kind": "icon",
+      "size": "32×32",
+      "source": "RABBIT_ART (replaces old favicon)"
+    },
+    "scene-menu.png": {
+      "kind": "scene",
+      "size": "640×192",
+      "source": "SCENE_MENU (new)"
+    },
+    "scene-story.png": {
+      "kind": "scene",
+      "size": "640×192",
+      "source": "SCENE_STORY (new)"
+    },
+    "scene-guide.png": {
+      "kind": "scene",
+      "size": "640×192",
+      "source": "SCENE_GUIDE (new)"
+    },
+    "scene-settings.png": {
+      "kind": "scene",
+      "size": "640×192",
+      "source": "SCENE_SETTINGS (new)"
+    },
+    "poster.png": {
+      "kind": "key-art",
+      "size": "800×600",
+      "source": "composite of NNTV + scene + characters"
+    }
+  },
+  "existing": {
+    "tiles": [
+      "tile-empty",
+      "tile-wall",
+      "tile-goal",
+      "tile-lit",
+      "tile-warm",
+      "tile-mirror",
+      "tile-oneway",
+      "tile-door-gold",
+      "tile-door-silver",
+      "tile-door-copper"
+    ],
+    "icons": [
+      "icon-key-gold",
+      "icon-key-silver",
+      "icon-key-copper",
+      "icon-stone"
+    ],
+    "characters": [
+      "player-rabbit",
+      "princess-carrot",
+      "guard-tomato (static)",
+      "guard-blueberry (rotating)",
+      "guard-corn (blinking)",
+      "guard-eggplant (patrolling)",
+      "guard-lettuce (mirror)",
+      "guard-pumpkin (chaser)",
+      "guard-sniper",
+      "guard-suspicion-calm",
+      "guard-suspicion-alert",
+      "guard-suspicion-fire"
+    ],
+    "actScenes": [
+      "scene-garden (L1-2)",
+      "scene-walls (L3-4)",
+      "scene-fortress (L5-6)",
+      "scene-underground (L7-8)",
+      "scene-palace (L9-11)",
+      "scene-chamber (L12)"
+    ]
+  },
+  "removed": [
+    "public/assets/bg.png — unused generic blue gradient (leftover)",
+    "public/assets/scraps/ — empty napkin design note (v1 placeholder)",
+    "public/assets/generated/nntv-generated-sheet.png — 2.3MB orphan bundle, not referenced",
+    "public/assets/logo.png (PHASER text) — replaced with proper NNTV wordmark"
+  ],
+  "renderer": "tools/render-assets.mjs (pure JS, no deps, zlib deflate)",
+  "poster": "tools/make-poster.mjs (composite key-art renderer)"
+}

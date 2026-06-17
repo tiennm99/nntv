@@ -1,0 +1,39 @@
+{
+  "requests": [
+    {
+      "text": "In the peaceful Vegetable Kingdom, where carrots, cabbages, and all manner of vegetables lived in harmony, a terrible tragedy has occurred. The beloved Carrot Princess, daughter of King Carrot the Third, has mysteriously disappeared from the royal palace. The kingdom is in chaos. The Vegetable Guards have been placed on high alert, patrolling every corner of the realm with their watchful eyes. As the kingdom's last hope, you, a skilled ninja rabbit from the shadows, have been called upon for this dangerous mission. You must infiltrate the heavily guarded areas, avoid detection at all costs, and rescue the missing Carrot Princess. The fate of the Vegetable Kingdom rests in your paws. Good luck, Night Ninja.",
+      "voice_id": "English_expressive_narrator",
+      "speed": 0.92
+    },
+    {
+      "text": "Detected! You have been spotted. Restarting level.",
+      "voice_id": "English_magnetic_voiced_man",
+      "speed": 1.05
+    },
+    {
+      "text": "Level clear! Well done, ninja. The path ahead awaits.",
+      "voice_id": "English_Upbeat_Woman",
+      "speed": 1.0
+    },
+    {
+      "text": "Help me... please... I am here, in the dark... waiting for you...",
+      "voice_id": "English_Whispering_girl",
+      "speed": 0.85
+    },
+    {
+      "text": "Run! The Carrot Princess has sensed your presence! A wave of light radiates outward!",
+      "voice_id": "English_StressedLady",
+      "speed": 1.1
+    },
+    {
+      "text": "Welcome, Night Ninja. The Vegetable Kingdom is counting on you.",
+      "voice_id": "English_CaptivatingStoryteller",
+      "speed": 0.95
+    },
+    {
+      "text": "Some rescues were never meant to be. The Carrot Princess remains beyond your reach.",
+      "voice_id": "English_SentimentalLady",
+      "speed": 0.85
+    }
+  ]
+}

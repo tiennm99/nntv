@@ -1,0 +1,84 @@
+{
+  "generated": "2026-06-17",
+  "game": "Night Ninja: Twilight Voyage",
+  "summary": "Image + Voice + Audio deliverables for the game. Pixel art assets remain in public/assets/generated/. BGM, voice, and key art live alongside.",
+  "images": {
+    "directory": "public/assets/images/",
+    "files": {
+      "keyart-garden.png":      { "kind": "key-art", "size": "1280x720", "subject": "Ninja rabbit in moonlit vegetable garden", "use": "Main menu background / store screenshot" },
+      "keyart-portrait.png":    { "kind": "portrait", "size": "1024x1024", "subject": "Cinematic close-up of ninja rabbit", "use": "App icon / social card", "regen_note": "Regenerated 2026-06-17 to true 16-bit pixel art (was 3D/cinematic)" },
+      "keyart-gameover.png":    { "kind": "key-art", "size": "1280x720", "subject": "Rabbit silhouette before distant palace", "use": "Game over screen background" },
+      "keyart-throne.png":      { "kind": "key-art", "size": "1280x720", "subject": "Carrot princess on golden throne", "use": "Princess chamber / final level intro" },
+      "keyart-underground.png": { "kind": "key-art", "size": "1280x720", "subject": "Underground tunnel with distant torch", "use": "Act 4 underground level intro" },
+      "keyart-palace.png":      { "kind": "key-art", "size": "1280x720", "subject": "Royal palace mirrored hall with chandelier", "use": "Act 5 palace level intro", "regen_note": "Regenerated 2026-06-17 to remove STUDIOSWAG watermark (regen prompt explicitly forbids watermark/signature/text overlay)" }
+    }
+  },
+  "voice": {
+    "directory": "public/assets/voice/",
+    "files": {
+      "en-story.mp3":           { "lang": "en", "voice": "English_expressive_narrator", "kind": "narration", "subject": "Story intro — the missing carrot princess" },
+      "en-welcome.mp3":         { "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "greeting", "subject": "Welcome to Night Ninja" },
+      "en-detected.mp3":        { "lang": "en", "voice": "English_magnetic_voiced_man", "kind": "sfx-callout", "subject": "Detected — restarting level" },
+      "en-levelclear.mp3":      { "lang": "en", "voice": "English_Upbeat_Woman", "kind": "sfx-callout", "subject": "Level clear — well done" },
+      "en-princess-help.mp3":   { "lang": "en", "voice": "English_Whispering_girl", "kind": "character", "subject": "Princess whisper: help me" },
+      "en-princess-run.mp3":    { "lang": "en", "voice": "English_StressedLady", "kind": "sfx-callout", "subject": "Run — princess sensed you" },
+      "en-gameover.mp3":        { "lang": "en", "voice": "English_SentimentalLady", "kind": "sfx-callout", "subject": "Some rescues were never meant to be" },
+      "en-act1-garden.mp3":     { "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "level-intro", "subject": "Act 1 — The Outskirts" },
+      "en-act2-walls.mp3":      { "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "level-intro", "subject": "Act 2 — The Vegetable Garden" },
+      "en-act3-fortress.mp3":   { "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "level-intro", "subject": "Act 3 — The Fortress" },
+      "en-act4-underground.mp3":{ "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "level-intro", "subject": "Act 4 — The Underground" },
+      "en-act5-palace.mp3":     { "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "level-intro", "subject": "Act 5 — The Royal Palace" },
+      "en-act6-chamber.mp3":    { "lang": "en", "voice": "English_CaptivatingStoryteller", "kind": "level-intro", "subject": "Act 6 — The Princess Chamber" },
+      "vi-story.mp3":           { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "narration", "subject": "Câu chuyện — công chúa cà rốt mất tích" },
+      "vi-welcome.mp3":         { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "greeting", "subject": "Chào mừng Ninja Đêm (regen 2026-06-17: 31KB short line, was 808KB misplaced story)" },
+      "vi-detected.mp3":        { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "sfx-callout", "subject": "Bạn đã bị phát hiện" },
+      "vi-levelclear.mp3":      { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "sfx-callout", "subject": "Hoàn thành — giỏi lắm ninja (added 2026-06-17)" },
+      "vi-princess-help.mp3":   { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "character", "subject": "Công chúa thì thầm: cứu tôi (added 2026-06-17)" },
+      "vi-princess-run.mp3":    { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "sfx-callout", "subject": "Chạy đi — công chúa đã cảm nhận bạn (added 2026-06-17)" },
+      "vi-gameover.mp3":        { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "sfx-callout", "subject": "Có những cuộc giải cứu chưa định sẵn (added 2026-06-17)" },
+      "vi-act1-garden.mp3":     { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "level-intro", "subject": "Hồi 1 — Vùng ngoại ô (added 2026-06-17)" },
+      "vi-act2-walls.mp3":      { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "level-intro", "subject": "Hồi 2 — Vườn Rau Củ (added 2026-06-17)" },
+      "vi-act3-fortress.mp3":   { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "level-intro", "subject": "Hồi 3 — Pháo đài (added 2026-06-17)" },
+      "vi-act4-underground.mp3":{ "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "level-intro", "subject": "Hồi 4 — Tầng ngầm (added 2026-06-17)" },
+      "vi-act5-palace.mp3":     { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "level-intro", "subject": "Hồi 5 — Hoàng cung (added 2026-06-17)" },
+      "vi-act6-chamber.mp3":    { "lang": "vi", "voice": "Vietnamese_kindhearted_girl", "kind": "level-intro", "subject": "Hồi 6 — Phòng Công chúa (added 2026-06-17)" }
+    }
+  },
+  "keyart_regen": {
+    "date": "2026-06-17",
+    "regenerated": {
+      "keyart-palace.png":   { "reason": "STUDIOSWAG watermark in bottom-left of original; regenerated as clean pixel art palace hall" },
+      "keyart-portrait.png": { "reason": "Original was 3D/cinematic rendered, style mismatch with game's pixel art language; regenerated as strict 16-bit pixel art" },
+      "vi-welcome.mp3":      { "reason": "Original was 808KB — contained the long story narration misplaced under welcome filename; regenerated as a 31KB short welcome line" }
+    }
+  },
+  "audio": {
+    "directory": "public/assets/audio/",
+    "files": {
+      "bgm-menu.mp3":      { "kind": "bgm", "scene": "main-menu", "mood": "calm, mysterious, night", "duration_estimate": "~60s loopable" },
+      "bgm-story.mp3":     { "kind": "bgm", "scene": "story-intro", "mood": "dramatic, cinematic, suspenseful", "duration_estimate": "~60s" },
+      "bgm-levels.mp3":    { "kind": "bgm", "scene": "levels 1-11", "mood": "stealthy, tense, quiet", "duration_estimate": "~60s loopable" },
+      "bgm-chamber.mp3":   { "kind": "bgm", "scene": "level 12 princess chamber", "mood": "climactic, intense, epic", "duration_estimate": "~60s" },
+      "bgm-gameover.mp3":  { "kind": "bgm", "scene": "game-over", "mood": "melancholic, sad, resigned", "duration_estimate": "~60s" }
+    }
+  },
+  "existing_audio": {
+    "directory": "src/lib/audio.js",
+    "kind": "procedural (Web Audio API)",
+    "calls": [
+      "playMove", "playWait", "playDetection", "playLevelComplete", "playClick",
+      "playUndo", "playStoneThrow", "playStoneImpact", "playKeyPickup",
+      "playDoorUnlock", "playSuspicionAlert", "playSuspicionFire"
+    ]
+  },
+  "renderer_tools": {
+    "tools/render-assets.mjs": "Pixel-art PNG renderer (logo, favicon, scene backgrounds)",
+    "tools/make-poster.mjs":   "Composite key-art renderer"
+  },
+  "notes": [
+    "BGMs are loopable chiptune/8-bit flavored tracks; no explicit loop markers are encoded — playback apps should loop them via audio element loop attribute.",
+    "Voice lines are short enough (most <15s) for in-game playback.",
+    "Key art PNGs are 1280x720 (16:9) except portrait (1024x1024). Suitable for README/store hero/social card use.",
+    "All generated media is created via the matrix MCP — image (text-to-image), voice (TTS), audio (text-to-music)."
+  ]
+}

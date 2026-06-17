@@ -1,6 +1,7 @@
 <script>
     import { getText } from '../lib/localization.js';
     import { isMuted, setMuted, playClick } from '../lib/audio.js';
+    import { setMasterMuted } from '../lib/bgm.js';
     import Button from './Button.svelte';
     import StonesCounter from './StonesCounter.svelte';
     import KeyInventory from './KeyInventory.svelte';
@@ -15,8 +16,11 @@
     let muted = $state(isMuted());
 
     function toggleMute() {
+        // Master mute: silences both SFX and BGM in one click. Most natural
+        // behavior for an in-game "I want quiet" button.
         muted = !muted;
         setMuted(muted);
+        setMasterMuted(muted);
         if (!muted) playClick();
     }
 </script>
@@ -38,7 +42,7 @@
                 <Pixel art={ICON_UNDO} palette={ICON_PAL} width={20} height={20} />
             </button>
         {/if}
-        <Button text={muted ? 'MUTE' : 'SND'} onclick={toggleMute} small />
+        <Button text={muted ? getText('muted') : getText('sound')} onclick={toggleMute} small />
         {#if allowPreview}
             <button class="icon-btn" class:active={showPreview} onclick={ontogglepreview} aria-label="Toggle preview">
                 <Pixel art={ICON_EYE} palette={ICON_PAL} width={20} height={20} />

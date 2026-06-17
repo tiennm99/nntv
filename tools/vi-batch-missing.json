@@ -1,0 +1,14 @@
+{
+  "requests": [
+    { "text": "Hoàn thành! Giỏi lắm, ninja. Con đường phía trước đang chờ.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 1.0 },
+    { "text": "Cứu tôi... làm ơn... tôi ở đây, trong bóng tối... đang chờ bạn...", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.85 },
+    { "text": "Chạy đi! Công chúa Cà Rốt đã cảm nhận được sự hiện diện của bạn! Một làn sóng ánh sáng tỏa ra!", "voice_id": "Vietnamese_kindhearted_girl", "speed": 1.1 },
+    { "text": "Có những cuộc giải cứu chưa bao giờ được định sẵn. Công chúa Cà Rốt vẫn ngoài tầm với của bạn.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.85 },
+    { "text": "Hồi một. Vùng ngoại ô. Một con đường vườn yên tĩnh phía trước. Không có lính canh trong tầm mắt. Hãy làm quen với bước chân trước khi bóng tối kéo đến.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.95 },
+    { "text": "Hồi hai. Vườn Rau Củ. Tường gạch với những lối đi một chiều. Chọn đường trước khi bước. Không có đường quay lại.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.95 },
+    { "text": "Hồi ba. Pháo đài. Chiến lũy và đuốc lập lòe. Ánh sáng của lính canh chớp tắt. Hãy di chuyển vào những lượt tối.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.95 },
+    { "text": "Hồi bốn. Tầng ngầm. Một đường hầm uốn lượn dưới tường thành pháo đài. Lính canh tuần tra hành lang.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.95 },
+    { "text": "Hồi năm. Hoàng cung. Đại sảnh gương. Những tia sáng phản chiếu nhân lên theo mỗi lượt. Công chúa có thể cảm nhận bất kỳ sinh vật sống nào ở gần.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.95 },
+    { "text": "Hồi sáu. Phòng Công chúa. Một hơi ấm lạ kỳ tỏa ra từ bên trong. Không khí như đang canh chừng. Nàng ấy đã biết bạn ở đây.", "voice_id": "Vietnamese_kindhearted_girl", "speed": 0.95 }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "requests": [
+    {
+      "prompt": "Pixel art style, dark twilight garden scene. A small cute ninja rabbit wearing a dark scarf stands in a moonlit vegetable garden. The rabbit has large red eyes and is sneaking between rows of carrots and cabbages. A full moon shines bright in a deep navy sky scattered with stars. Hedge silhouette in the background. Retro 16-bit game art style, 8-bit, low resolution pixel art aesthetic. Color palette: deep navy, moonlight white, sage green, carrot orange, dark plum. Studio quality digital art.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "prompt": "Cinematic close-up portrait of a small cute ninja rabbit, pixel art style. The rabbit has determined red eyes, dark ninja wrap, and a red scarf. Soft moonlight rim lighting from the left, deep purple and navy background. Bokeh stars. 16-bit retro game art aesthetic, studio quality, dramatic lighting, low resolution pixel art with rich shading.",
+      "aspect_ratio": "1:1"
+    },
+    {
+      "prompt": "Pixel art game over scene. A ninja rabbit silhouette stands in a vast moonlit carrot field at twilight, looking up at a distant palace window where a faint glowing princess silhouette stands. Deep navy sky, full moon, scattered stars, a single carrot lies abandoned on the ground. Sad, contemplative, bittersweet mood. 16-bit retro game art aesthetic. Color palette: deep navy, plum, moonlight, carrot orange, sage green.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "prompt": "Pixel art dramatic throne room scene. A carrot princess sitting on a golden throne at the center, illuminated by a single shaft of warm light from above. Dark cavernous room with vegetable guards in shadow on either side. Onion guards with violet glow, pumpkin guards with orange glow. Mysterious, ominous, climactic. 16-bit retro game art aesthetic, deep navy and plum background, warm golden throne highlight. Studio quality.",
+      "aspect_ratio": "16:9"
+    }
+  ]
+}

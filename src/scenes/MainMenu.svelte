@@ -15,6 +15,10 @@
 </script>
 
 <div class="menu">
+    <div class="scene-backdrop">
+        <img src="assets/scene-menu.png" alt="" draggable="false" />
+    </div>
+
     {#each stars as star}
         <div
             class="star"
@@ -46,6 +50,21 @@
         justify-content: center; align-items: center;
         position: relative;
         background: var(--bg-dark);
+    }
+    .scene-backdrop {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 192px;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .scene-backdrop img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
     }
     .star {
         position: absolute;

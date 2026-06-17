@@ -5,6 +5,9 @@
 </script>
 
 <div class="guide">
+    <div class="scene-backdrop">
+        <img src="assets/scene-guide.png" alt="" draggable="false" />
+    </div>
     <h1>{getText('guideTitle')}</h1>
 
     <div class="content">
@@ -34,7 +37,25 @@
         align-items: center;
         background: var(--bg-dark);
         padding: 24px;
+        position: relative;
+        overflow: hidden;
     }
+    .scene-backdrop {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 192px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .scene-backdrop img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+    }
+    h1, .content, .guide :global(button) { position: relative; z-index: 1; }
     h1 {
         font: var(--font-title);
         color: var(--text-title);

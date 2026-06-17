@@ -1,9 +1,14 @@
 // Procedural audio system using Web Audio API
 // Lazy AudioContext creation to comply with browser autoplay policy
 
+import { setSfxMuted as persistSfxMuted, isSfxMuted } from './bgm.js';
+
 let audioCtx = null;
 let masterGain = null;
+// muted mirrors bgm.js's sfxMuted at boot. Source of truth lives in bgm.js
+// so that BGM and SFX mute settings are kept in sync across the app.
 let muted = false;
+try { muted = isSfxMuted(); } catch (_) { /* bgm.js requires localStorage; ignore during SSR */ }
 
 function getContext() {
     if (!audioCtx) {
@@ -203,8 +208,10 @@ export function playSuspicionFire() {
 
 export function setMuted(value) {
     muted = value;
+    try { persistSfxMuted(value); } catch (_) { /* ignore */ }
 }
 
 export function isMuted() {
-    return muted;
+    // Always re-read from bgm.js so that changes elsewhere (Settings, etc.) propagate.
+    try { return isSfxMuted(); } catch (_) { return muted; }
 }

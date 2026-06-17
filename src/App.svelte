@@ -4,6 +4,7 @@
     import { getText } from './lib/localization.js';
     import { initLanguage } from './lib/localization.js';
     import { loadProgress, acknowledgeMigration, isMigrationAcknowledged } from './lib/progress.js';
+    import { playBgm } from './lib/bgm.js';
     import MainMenu from './scenes/MainMenu.svelte';
     import StoryIntro from './scenes/StoryIntro.svelte';
     import LevelIntro from './scenes/LevelIntro.svelte';
@@ -21,6 +22,34 @@
 
     // Migration modal — shown once on first v2 boot if legacy save was detected
     let showMigrationModal = $state(false);
+
+    // Pick the BGM track based on the active scene. L12 gets the climactic chamber
+    // track; everything else in the Game scene uses the generic levels loop.
+    function pickBgmTrack(scene, data) {
+        switch (scene) {
+            case 'MainMenu':
+            case 'LevelSelect':
+            case 'Guide':
+            case 'Settings':
+                return 'menu';
+            case 'StoryIntro':
+            case 'LevelIntro':
+                return 'story';
+            case 'Game':
+                return data?.level === 12 ? 'chamber' : 'levels';
+            case 'GameOver':
+                return 'gameover';
+            default:
+                return 'menu';
+        }
+    }
+
+    let bgmTrack = $derived(pickBgmTrack(currentScene, sceneData));
+
+    $effect(() => {
+        // Track is the reactive dep — fire playBgm whenever it changes
+        playBgm(bgmTrack);
+    });
 
     function navigate(scene, data = {}) {
         sceneData = data;

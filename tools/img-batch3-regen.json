@@ -1,0 +1,12 @@
+{
+  "requests": [
+    {
+      "prompt": "Pixel art royal palace hall scene, 16-bit retro game art, 1280x720. Grand mirrored hall with golden pillars, polished marble floor reflecting light from a single chandelier. Carved vegetable motifs on the walls (carrots, cabbages, pumpkins in bas-relief). Empty and majestic, awaiting the princess. No people. Deep plum and gold palette. Opulent but quiet. Strict pixel art with no anti-aliasing, no gradients, no watermark, no signature, no text overlay. Studio quality, low resolution pixel art aesthetic, 8-bit retro game style.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "prompt": "Strict pixel art 16-bit retro game character portrait, 1024x1024. Front-facing close-up of a small cute ninja rabbit, pixel art sprite style, 8-bit. Large determined red glowing eyes, dark navy ninja hood wrapping the head, red scarf around the neck, soft moonlight rim lighting from the upper left, deep purple and navy background. No anti-aliasing, no gradients, no smooth shading, no watermark, no signature, no text overlay. Low resolution pixel art aesthetic consistent with 16-bit JRPG/SNES-era character portrait. Clean crisp pixels, dithered shading. Studio quality.",
+      "aspect_ratio": "1:1"
+    }
+  ]
+}

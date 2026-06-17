@@ -1,0 +1,24 @@
+{
+  "requests": [
+    {
+      "prompt": "Calm, peaceful night-time menu BGM, chiptune 8-bit retro game style, gentle pizzicato strings, soft marimba melody, mysterious night theme, lunar atmosphere, light bells, slow tempo, loopable, instrumental",
+      "sample_rate": 44100
+    },
+    {
+      "prompt": "Dramatic cinematic story intro BGM, mysterious dark fantasy, deep cello and strings, ethereal choir, suspenseful build, chiptune 8-bit elements, twilight moonlit atmosphere, slow tempo, instrumental, 60 seconds",
+      "sample_rate": 44100
+    },
+    {
+      "prompt": "Stealthy puzzle game BGM, tense but quiet, chiptune 8-bit style, soft synth pad, subtle percussion, sneaking tension, moonlight vibes, mysterious loop, 60 BPM, instrumental, 60 seconds",
+      "sample_rate": 44100
+    },
+    {
+      "prompt": "Climactic dramatic final boss BGM, epic dark fantasy, intense strings, powerful choir, building tension, chiptune 8-bit heroic elements, fast tempo, epic climax, instrumental, 60 seconds",
+      "sample_rate": 44100
+    },
+    {
+      "prompt": "Melancholic game over BGM, sad and contemplative, chiptune 8-bit, slow piano melody, soft strings, bittersweet atmosphere, twilight moonlit, resigned mood, instrumental, 60 seconds",
+      "sample_rate": 44100
+    }
+  ]
+}
