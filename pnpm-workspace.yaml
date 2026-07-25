@@ -4,5 +4,11 @@ allowBuilds:
 # Force patched esbuild (>= 0.28.1) to close GHSA-gv7w-rqvm-qjhr
 # esbuild is a transitive devDependency pulled in by Vite; pinning it here
 # overrides every consumer regardless of the version Vite requested.
+#
+# postcss >= 8.5.18 closes GHSA-r28c-9q8g-f849: parsing CSS that carries a
+# sourceMappingURL comment made PostCSS read that path off disk as a previous
+# source map, so crafted CSS could disclose arbitrary .map files. Also a
+# transitive devDependency of Vite.
 overrides:
   esbuild: ^0.28.1
+  postcss: ^8.5.18
