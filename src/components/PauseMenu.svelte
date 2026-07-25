@@ -1,15 +1,19 @@
 <script>
     import { fade } from 'svelte/transition';
     import { getText } from '../lib/localization.js';
+    import { trapFocus } from '../lib/focus-trap.js';
     import Button from './Button.svelte';
-    let { onresume, onrestart, onmainmenu } = $props();
+    let { onresume, onrestart, onmainmenu, onguide } = $props();
 </script>
 
-<div class="overlay" transition:fade={{ duration: 200 }}>
+<div class="overlay" transition:fade={{ duration: 200 }} use:trapFocus role="dialog" aria-modal="true" aria-labelledby="pause-title">
     <div class="popup">
-        <h2>{getText('paused')}</h2>
-        <Button text={getText('resume')} onclick={onresume} />
+        <h2 id="pause-title">{getText('paused')}</h2>
+        <Button text={getText('resume')} onclick={onresume} autofocus />
         <Button text={getText('restartLevel')} onclick={onrestart} />
+        {#if onguide}
+            <Button text={getText('guide')} onclick={onguide} />
+        {/if}
         <Button text={getText('mainMenu')} onclick={onmainmenu} />
     </div>
 </div>

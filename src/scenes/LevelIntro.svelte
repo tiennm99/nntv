@@ -1,15 +1,19 @@
 <script>
     import { getText } from '../lib/localization.js';
     import { LEVELS } from '../lib/levels/levels.js';
+    import { teachesForLevel } from '../lib/level-teaches.js';
     import Button from '../components/Button.svelte';
     import AffordanceBanner from '../components/AffordanceBanner.svelte';
     import { generatedSceneForLevel } from '../lib/generated-assets.js';
     let { navigate, level = 1 } = $props();
 
     let levelData = $derived(LEVELS[level - 1]);
-    let levelName = $derived(levelData?.name || `Level ${level}`);
+    // Localized name first (VI-default game, level names were English-only);
+    // levelData.name is only a fallback for a level that has none authored.
+    let levelName = $derived(getText(`level${level}Name`) ?? levelData?.name ?? `Level ${level}`);
     let storyText = $derived(levelData?.storyKey ? getText(levelData.storyKey) : '');
     let scene = $derived(generatedSceneForLevel(level));
+    let teaches = $derived(teachesForLevel(level));
 
     // Affordance gates — default both enabled until phase 04 populates levels.js
     let affordances = $derived(levelData?.affordances ?? { undo: true, preview: true });
@@ -24,6 +28,16 @@
         <h1>{levelName}</h1>
         {#if storyText}
             <p class="story">{storyText}</p>
+        {/if}
+        {#if teaches.length > 0}
+            <div class="teaches">
+                <span class="teaches-label">{getText('teaches.label')}</span>
+                <ul>
+                    {#each teaches as id (id)}
+                        <li>{getText(`teaches.${id}`)}</li>
+                    {/each}
+                </ul>
+            </div>
         {/if}
         <AffordanceBanner undo={affordances.undo} preview={affordances.preview} />
         <Button text={getText('continue')} onclick={() => navigate('Game', { level })} />
@@ -81,5 +95,27 @@
         line-height: 1.6;
         white-space: pre-line;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    .teaches {
+        max-width: 70%;
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(187, 134, 252, 0.4);
+        border-radius: 6px;
+        padding: 8px 16px;
+        text-align: left;
+    }
+    .teaches-label {
+        font: var(--font-small);
+        color: var(--text-accent);
+        font-weight: bold;
+    }
+    .teaches ul {
+        margin: 4px 0 0;
+        padding-left: 1.25em;
+    }
+    .teaches li {
+        font: var(--font-small);
+        color: var(--text-primary);
+        line-height: 1.4;
     }
 </style>

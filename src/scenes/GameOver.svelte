@@ -1,7 +1,7 @@
 <script>
     import { getText } from '../lib/localization.js';
     import Button from '../components/Button.svelte';
-    import { GENERATED_CHARACTERS, GENERATED_SCENES } from '../lib/generated-assets.js';
+    import { GENERATED_CHARACTERS, GENERATED_SCENES, KEYART } from '../lib/generated-assets.js';
 
     // flow: 'runComplete' (L11 cleared) | 'bittersweet' (L12 reached goal)
     let { navigate, level = 1, flow = 'runComplete' } = $props();
@@ -13,7 +13,7 @@
 </script>
 
 <div class="gameover">
-    <img class="gameover-bg" src={isRunComplete ? GENERATED_SCENES[10] : GENERATED_SCENES[11]} alt="" draggable="false" />
+    <img class="gameover-bg" src={isRunComplete ? GENERATED_SCENES[10] : KEYART.gameover} alt="" draggable="false" />
     {#if !isRunComplete}
         <img class="princess" src={GENERATED_CHARACTERS.princess} alt="" draggable="false" />
     {/if}

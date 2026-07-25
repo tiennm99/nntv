@@ -12,7 +12,8 @@
     //   cellSize     pixels per cell
 
     let { cursor = null, validTargets = new Set(), playerPos = null,
-          rows = 6, cols = 6, cellSize = 50 } = $props();
+          rows = 6, cols = 6, cellSize = 50,
+          onconfirm, oncancel } = $props();
 
     const MAX_THROW_DIST = 3;
 
@@ -93,8 +94,21 @@
     {#if cursorIsValid}
         <span class="hint-valid">{getText('throw.hintTargeting')}</span>
     {:else}
-        <span class="hint-invalid">Invalid target — move cursor or press Esc to cancel</span>
+        <span class="hint-invalid">{getText('throw.hintInvalid')}</span>
     {/if}
+</div>
+
+<!-- Touch-usable Confirm/Cancel controls — the only way a touch-only player
+     can confirm or back out of targeting mode without a keyboard. Sized well
+     above the 44px minimum touch target regardless of board scale, since the
+     board itself can shrink below that on small screens. -->
+<div class="targeting-controls">
+    <button class="targeting-btn cancel" onclick={oncancel} aria-label={getText('throw.cancel')}>
+        ✕
+    </button>
+    <button class="targeting-btn confirm" onclick={onconfirm} disabled={!cursorIsValid} aria-label={getText('throw.confirm')}>
+        ✓
+    </button>
 </div>
 
 <style>
@@ -168,4 +182,42 @@
     }
     .hint-valid  { color: #aaff88; }
     .hint-invalid { color: #ff9966; }
+
+    /* Pinned near the bottom of the board viewport (not the scrollable
+       content), always reachable regardless of board scroll position. */
+    .targeting-controls {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 16px;
+        z-index: 21;
+    }
+    .targeting-btn {
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 50%;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+    .targeting-btn.cancel {
+        background: rgba(60, 10, 10, 0.85);
+        border: 2px solid rgba(255, 80, 40, 0.8);
+        color: #ff9966;
+    }
+    .targeting-btn.confirm {
+        background: rgba(10, 40, 10, 0.85);
+        border: 2px solid rgba(0, 220, 80, 0.8);
+        color: #aaff88;
+    }
+    .targeting-btn.confirm:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
 </style>

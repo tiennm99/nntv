@@ -1,20 +1,24 @@
 <script>
+    import { onMount } from 'svelte';
     import { getText } from '../lib/localization.js';
+    import { trapFocus } from '../lib/focus-trap.js';
     let { stars = 0, moves = 0, parMoves = 0, onnext } = $props();
+    let nextBtn = $state(null);
+    onMount(() => nextBtn?.focus());
 </script>
 
-<div class="level-complete-overlay">
+<div class="level-complete-overlay" use:trapFocus role="dialog" aria-modal="true" aria-labelledby="level-complete-title">
     <div class="level-complete-card">
-        <h2>{getText('levelComplete') || 'Level Complete!'}</h2>
+        <h2 id="level-complete-title">{getText('levelComplete')}</h2>
         <div class="stars-row">
             {#each [1, 2, 3] as i}
                 <span class="star" class:filled={i <= stars}
                       style="animation-delay: {i * 0.15}s">&#9733;</span>
             {/each}
         </div>
-        <p class="move-count">{getText('moves')}: {moves} / Par: {parMoves}</p>
-        <button class="next-btn" onclick={onnext}>
-            {getText('continue') || 'Continue'}
+        <p class="move-count">{getText('moves')}: {moves} / {getText('parLabel')}: {parMoves}</p>
+        <button bind:this={nextBtn} class="next-btn" onclick={onnext}>
+            {getText('continue')}
         </button>
     </div>
 </div>

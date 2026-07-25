@@ -23,12 +23,14 @@
             {@const num = i + 1}
             {@const unlocked = num <= progress.maxLevel}
             {@const completed = progress.completedLevels.includes(num)}
+            {@const skipped = !completed && progress.skippedLevels.includes(num)}
             {@const stars = progress.levelStars[String(num)] || 0}
             {@const bestMoves = progress.levelBestMoves[String(num)]}
             <button
                 class="level-btn"
                 class:unlocked
                 class:completed
+                class:skipped
                 class:locked={!unlocked}
                 onclick={() => selectLevel(num)}
                 disabled={!unlocked}
@@ -40,6 +42,8 @@
                             <span class="star-sm" class:filled={i <= stars}>&#9733;</span>
                         {/each}
                     </span>
+                {:else if skipped}
+                    <span class="skipped-badge" title={getText('mercy.available')}>{getText('mercy.badge')}</span>
                 {/if}
                 {#if bestMoves != null}
                     <span class="best-moves">{bestMoves}m</span>
@@ -83,6 +87,15 @@
     }
     .level-btn.unlocked:hover { background: var(--btn-hover); }
     .level-btn.completed { border-color: var(--grid-goal); }
+    .level-btn.skipped { border-color: #776633; }
+    .skipped-badge {
+        font-size: 8px;
+        letter-spacing: 0.5px;
+        color: #bbaa77;
+        border: 1px solid #776633;
+        border-radius: 2px;
+        padding: 1px 4px;
+    }
     .level-btn.locked {
         background: #111122;
         color: #555566;

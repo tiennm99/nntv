@@ -127,7 +127,7 @@
             </div>
         {/if}
         <!-- SuspicionRing overlay positioned over this sprite -->
-        <SuspicionRing tier={guard.tier ?? 0} {size} />
+        <SuspicionRing tier={guard.tier ?? 0} {size} range={guard.range ?? 0} {cellSize} />
 
     <!-- ── Standard guard types (existing behavior unchanged) ── -->
     {:else}

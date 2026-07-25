@@ -6,7 +6,11 @@
     import { GameHistory } from '../lib/game/game-history.js';
     import { PrincessMechanic } from '../lib/game/princess-mechanic.js';
     import { TouchControls } from '../lib/game/touch-controls.js';
-    import { completeLevel, calculateStars } from '../lib/progress.js';
+    import {
+        completeLevel, calculateStars, recordDetection, getUnlockedHintTiers,
+        isMercyEligible, mercySkipLevel,
+    } from '../lib/progress.js';
+    import { hintKeysForLevel, levelHasHints } from '../lib/level-hints.js';
     import { LEVELS } from '../lib/levels/levels.js';
     import {
         playMove, playWait, playDetection, playLevelComplete, playUndo,
@@ -22,6 +26,7 @@
     import LevelCompletePopup from '../components/LevelCompletePopup.svelte';
     import PauseMenu from '../components/PauseMenu.svelte';
     import ControlsOverlay from '../components/ControlsOverlay.svelte';
+    import HintPanel from '../components/HintPanel.svelte';
     import { generatedSceneForLevel } from '../lib/generated-assets.js';
 
     let { navigate, level = 1 } = $props();
@@ -47,6 +52,10 @@
     // UI state
     let isPaused = $state(false);
     let detected = $state(false);
+    // showDetectionPopup lags `detected` by a short delay (see triggerDetection)
+    // so the 400ms death flash is visible before the dark popup overlay covers
+    // it — otherwise the player never sees the lit cell that caught them.
+    let showDetectionPopup = $state(false);
     let playerShake = $state(false);
     let detectedCell = $state(null);
     let showFlash = $state(false);
@@ -54,8 +63,21 @@
     let showLevelComplete = $state(false);
     let completionStars = $state(0);
     let completionMoves = $state(0);
+    // Not reset on level load/restart — a player's preview preference should
+    // persist across levels rather than snapping back to off every time.
     let showPreview = $state(false);
     let showControls = $state(false);
+    let showHintPanel = $state(false);
+
+    // Stuck-player support: how many times the player has been detected on
+    // the *current* level. The count itself lives in progress.js (persisted,
+    // survives restarts); `attempts` here just forces these $derived values to
+    // recompute after each recordDetection() call (progress.js reads are not
+    // themselves reactive — same pattern as `renderVersion` above).
+    let attempts = $state(0);
+    let hintTiersAvailable = $derived((attempts, levelHasHints(currentLevel) ? getUnlockedHintTiers(currentLevel) : 0));
+    let mercyEligible = $derived((attempts, !isFinalLevel && currentLevel < getTotalLevels() && isMercyEligible(currentLevel)));
+    let hintKeys = $derived(hintKeysForLevel(currentLevel));
 
     // Throw-targeting state machine: 'idle' | 'targeting'
     // When in targeting mode, arrow keys move cursor instead of player.
@@ -79,7 +101,7 @@
     let playerRow = $derived((renderVersion, player ? player.row : 0));
     let playerCol = $derived((renderVersion, player ? player.col : 0));
     let guardSnapshots = $derived((renderVersion, guards.map(g => ({
-        row: g.row, col: g.col, type: g.type, direction: g.direction, isOn: g.isOn, isChasing: g.isChasing, tier: g.tier
+        row: g.row, col: g.col, type: g.type, direction: g.direction, isOn: g.isOn, isChasing: g.isChasing, tier: g.tier, range: g.range
     }))));
     let previewCells = $derived((renderVersion, showPreview && affordances.preview && grid && player && guards.length
         ? turnManager.previewNextTurn(grid, player, guards, throwSystem)
@@ -89,6 +111,7 @@
 
     // HUD reactive values
     let stonesLeft = $derived((renderVersion, throwSystem ? throwSystem.stonesLeft : 0));
+    let canThrow = $derived(levelHasStones && stonesLeft > 0 && throwMode === 'idle');
     let keysHeld = $derived((renderVersion, player ? player.getKeysHeld() : 0));
     let lockedDoorCount = $derived((renderVersion, grid ? grid.getDoorSnapshot().length : 0));
 
@@ -176,6 +199,12 @@
     let detectionTimeout = null;
     // Restart-after-detection timer
     let restartTimeout = null;
+    // Delay before the DetectionPopup actually mounts (see triggerDetection)
+    let popupTimeout = null;
+    // The 400ms cell-flash/player-shake needs to finish being visible before
+    // the popup's dark overlay covers the board.
+    const DETECTION_FLASH_MS = 400;
+    const DETECTION_POPUP_DELAY_MS = 500;
 
     // Viewport scroll-follow — scrolls the board container so the player stays in view
     // on grids larger than the viewport. Binds to .board-container element.
@@ -194,6 +223,8 @@
 
     // Initialize (or restart) the current level
     function initLevel() {
+        if (detectionTimeout) { clearTimeout(detectionTimeout); detectionTimeout = null; }
+        if (popupTimeout) { clearTimeout(popupTimeout); popupTimeout = null; }
         const state = loadLevel(currentLevel);
         if (!state) {
             // Invalid level id — bail to main menu instead of leaving stale state
@@ -217,19 +248,22 @@
         history = new GameHistory();
         princess = new PrincessMechanic();
         detected = false;
+        showDetectionPopup = false;
         isPaused = false;
         finalMessage = false;
         showFlash = false;
         showControls = false;
+        showHintPanel = false;
         playerShake = false;
         detectedCell = null;
         showLevelComplete = false;
         completionStars = 0;
         completionMoves = 0;
-        showPreview = false;
+        // showPreview intentionally NOT reset — persists across levels/restarts.
         // Reset targeting state on level load
         throwMode = 'idle';
         throwCursor = null;
+        attempts++; // force hint/mercy $derived values to re-read progress.js for the (new) current level
         renderVersion++;
     }
 
@@ -237,6 +271,7 @@
     function restartLevel() {
         if (detectionTimeout) { clearTimeout(detectionTimeout); detectionTimeout = null; }
         if (restartTimeout) { clearTimeout(restartTimeout); restartTimeout = null; }
+        if (popupTimeout) { clearTimeout(popupTimeout); popupTimeout = null; }
         // Reset throwSystem stone count from level data
         if (throwSystem) {
             const levelData = LEVELS[currentLevel - 1];
@@ -273,6 +308,7 @@
     onDestroy(() => {
         if (detectionTimeout) clearTimeout(detectionTimeout);
         if (restartTimeout) clearTimeout(restartTimeout);
+        if (popupTimeout) clearTimeout(popupTimeout);
         if (typeof window !== 'undefined') delete window.__nntvDev;
     });
 
@@ -289,8 +325,31 @@
 
     // Input handling
     function onKeyDown(e) {
-        if (showControls) { if (e.key === 'Escape') showControls = false; return; }
-        if (isPaused || detected || showLevelComplete) return;
+        // Normalize single-character keys so both cases of e.g. 'e'/'E' match one
+        // check; multi-char keys ('Escape', 'ArrowUp', 'Enter', ' ') pass through.
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+
+        if (showControls) { if (key === 'Escape') showControls = false; return; }
+        if (showHintPanel) { if (key === 'Escape') showHintPanel = false; return; }
+
+        // ── Detection popup: once it's actually visible, Enter/Space/R dismiss
+        // it instantly (the primary button is also autofocused, so Enter/Space
+        // already work natively — this covers Space, which some browsers don't
+        // treat as a native button activator via keydown, plus the R shortcut). ──
+        if (showDetectionPopup) {
+            if (key === 'Enter' || key === ' ' || key === 'r') {
+                e.preventDefault();
+                handleDetectionDismiss();
+            }
+            return;
+        }
+        if (detected) return; // detected but popup not shown yet — input stays frozen
+
+        if (isPaused) {
+            if (key === 'Escape') { isPaused = false; }
+            return;
+        }
+        if (showLevelComplete) return;
 
         const dirMap = {
             ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
@@ -300,31 +359,26 @@
         // ── Targeting mode intercepts all navigation keys ──
         if (throwMode === 'targeting') {
             e.preventDefault();
-            if (e.key === 'Escape') {
-                throwMode = 'idle';
-                throwCursor = null;
-                return;
-            }
-            if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') {
-                confirmThrow();
-                return;
-            }
+            if (key === 'Escape') { cancelThrow(); return; }
+            if (key === 'e' || key === 'Enter') { confirmThrow(); return; }
             // Arrow / WASD moves cursor
-            const cursorDir = dirMap[e.key];
+            const cursorDir = dirMap[key];
             if (cursorDir) { moveCursor(cursorDir); return; }
             return; // swallow any other key in targeting mode
         }
 
         // ── Normal (idle) mode ──
-        if (e.key === 'v') {
+        if (key === 'Escape') { isPaused = true; return; }
+        if (key === 'r') { restartLevel(); return; }
+        if (key === 'v') {
             if (affordances.preview) showPreview = !showPreview;
             return;
         }
-        if (e.key === ' ') { e.preventDefault(); handleWait(); return; }
-        if (e.key === 'z') { if (affordances.undo) handleUndo(); return; }
-        if (e.key === 'y') { if (affordances.undo) handleRedo(); return; }
-        if (e.key === 'e' || e.key === 'E') { enterTargeting(); return; }
-        const dir = dirMap[e.key];
+        if (key === ' ') { e.preventDefault(); handleWait(); return; }
+        if (key === 'z') { if (affordances.undo) handleUndo(); return; }
+        if (key === 'y') { if (affordances.undo) handleRedo(); return; }
+        if (key === 'e') { enterTargeting(); return; }
+        const dir = dirMap[key];
         if (dir) { e.preventDefault(); handleMove(dir); }
     }
 
@@ -333,6 +387,8 @@
         snapshotBeforeAction();
         playWait();
         const result = turnManager.nextTurn(grid, player, guards, throwSystem);
+        // INTENTIONAL — same L12 ordering as handleMove(); see the comment
+        // there. Do not reorder.
         if (isFinalLevel && checkFinalLevel()) { renderVersion++; return; }
         renderVersion++;
         if (result.levelComplete) handleLevelComplete();
@@ -340,7 +396,7 @@
     }
 
     function onCellClick(row, col) {
-        if (isPaused || detected || showLevelComplete || showControls || !player) return;
+        if (isPaused || detected || showLevelComplete || showControls || showHintPanel || !player) return;
 
         // In targeting mode: move cursor to clicked cell, auto-confirm if valid
         if (throwMode === 'targeting') {
@@ -375,6 +431,12 @@
 
         const result = turnManager.nextTurn(grid, player, guards, throwSystem);
 
+        // INTENTIONAL ordering — do not "fix": checkFinalLevel() runs before
+        // result.levelComplete is handled, and returns early on a hit. On L12
+        // this makes reaching the goal cell unreachable in practice: the
+        // princess's expanding light always catches the player first. L12 is
+        // a deliberate unsolvable easter egg (owner decision) — swapping this
+        // order would accidentally make it winnable by normal play.
         if (isFinalLevel && checkFinalLevel()) {
             renderVersion++;
             return;
@@ -397,6 +459,13 @@
         if (!player) return;
         throwMode = 'targeting';
         throwCursor = { row: player.row, col: player.col };
+    }
+
+    // Cancel targeting mode without throwing — shared by Escape and the
+    // on-screen Cancel button (the only way a touch-only player can back out).
+    function cancelThrow() {
+        throwMode = 'idle';
+        throwCursor = null;
     }
 
     // Move cursor one step in a direction (clamped to grid bounds)
@@ -432,25 +501,47 @@
         throwCursor = null;
     }
 
-    // Detection feedback — flash cell, shake player, play sound, then restart level.
-    // DetectionPopup is shown briefly; on dismiss (or after timeout) level reloads.
+    // Detection feedback — flash cell, shake player, play sound, then (after a
+    // short delay so the flash is actually visible) show the restart popup.
+    // `detected` freezes input immediately; `showDetectionPopup` lags behind it
+    // so the dark popup overlay never hides the very cell that caught the
+    // player — the core "why did I die" feedback loop of a stealth puzzle.
     function triggerDetection() {
         detectedCell = { row: player.row, col: player.col };
         playerShake = true;
         playDetection();
         detected = true;
+        attempts = recordDetection(currentLevel);
         if (detectionTimeout) clearTimeout(detectionTimeout);
         detectionTimeout = setTimeout(() => {
             playerShake = false;
             detectedCell = null;
             detectionTimeout = null;
-        }, 400);
+        }, DETECTION_FLASH_MS);
+        if (popupTimeout) clearTimeout(popupTimeout);
+        popupTimeout = setTimeout(() => {
+            showDetectionPopup = true;
+            popupTimeout = null;
+        }, DETECTION_POPUP_DELAY_MS);
     }
 
     // Called when the player dismisses the DetectionPopup — restart current level
     function handleDetectionDismiss() {
         detected = false;
+        showDetectionPopup = false;
         restartLevel();
+    }
+
+    // Mercy unlock — offered after repeated failures (see progress.js
+    // MERCY_THRESHOLD). Explicit, player-initiated action: unlocks the next
+    // level without requiring a real clear of this one, then moves on.
+    function handleMercySkip() {
+        detected = false;
+        showDetectionPopup = false;
+        const total = getTotalLevels();
+        mercySkipLevel(currentLevel, total);
+        const next = Math.min(currentLevel + 1, total);
+        navigate('LevelIntro', { level: next });
     }
 
     // Undo/redo handlers
@@ -483,7 +574,7 @@
     function onTouchStart(e) { touch.onTouchStart(e); }
 
     function onTouchEnd(e) {
-        if (isPaused || detected || showLevelComplete || showControls) return;
+        if (isPaused || detected || showLevelComplete || showControls || showHintPanel) return;
         const dir = touch.onTouchEnd(e);
         if (dir) handleMove(dir);
     }
@@ -544,13 +635,18 @@
         allowPreview={affordances.preview}
         showStones={levelHasStones}
         {stonesLeft}
+        {canThrow}
         showKeys={levelHasKeys}
         {keysHeld}
+        {hintTiersAvailable}
+        hintsShown={showHintPanel}
         ontogglepreview={() => { if (affordances.preview) showPreview = !showPreview; }}
         onpause={() => isPaused = true}
         onmenu={() => navigate('MainMenu')}
         onundo={handleUndo}
         onshowcontrols={() => showControls = true}
+        onenterthrow={enterTargeting}
+        onshowhint={() => showHintPanel = true}
     />
 
     {#if grid && player}
@@ -574,6 +670,8 @@
                         rows={grid.rows}
                         cols={grid.cols}
                         {cellSize}
+                        onconfirm={confirmThrow}
+                        oncancel={cancelThrow}
                     />
                 {/if}
                 <PlayerSprite row={playerRow} col={playerCol} {cellSize} shake={playerShake} />
@@ -606,8 +704,8 @@
         />
     {/if}
 
-    {#if detected}
-        <DetectionPopup onplayagain={handleDetectionDismiss} />
+    {#if showDetectionPopup}
+        <DetectionPopup onplayagain={handleDetectionDismiss} {mercyEligible} onmercyskip={handleMercySkip} />
     {/if}
 
     {#if isPaused}
@@ -615,11 +713,16 @@
             onresume={() => isPaused = false}
             onrestart={initLevel}
             onmainmenu={() => navigate('MainMenu')}
+            onguide={() => navigate('Guide')}
         />
     {/if}
 
     {#if showControls}
         <ControlsOverlay onclose={() => showControls = false} />
+    {/if}
+
+    {#if showHintPanel}
+        <HintPanel {hintKeys} unlockedTiers={hintTiersAvailable} onclose={() => showHintPanel = false} />
     {/if}
 </div>
 
@@ -669,11 +772,18 @@
         padding: 8px;
         border-radius: 6px;
         box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
-        /* Cap viewport; grids larger than this scroll with camera-follow */
-        max-width: min(720px, 85vw, 85vh);
-        max-height: min(720px, 85vw, 85vh);
+        /* Cap size within the fixed 1024x768 design box; grids larger than this
+           scroll with camera-follow. Uses px, not vw/vh — the whole #app stage
+           is scaled as one unit (see theme.css), so viewport units here would
+           be measured against the real (unscaled) window and shrink twice. */
+        max-width: 720px;
+        max-height: 620px;
         overflow: auto;
         scroll-behavior: smooth;
+        /* Without this, a touch swipe intended as a move gesture can also
+           trigger the browser's native scroll/pan on this scrollable
+           container, fighting the custom swipe handling in touch-controls.js. */
+        touch-action: none;
     }
     .final-message {
         position: absolute;

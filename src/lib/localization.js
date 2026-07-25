@@ -16,15 +16,24 @@ const localizationData = {
 
 // Function to get text in the current language
 function getText(key) {
-    if (localizationData[currentLanguage] && localizationData[currentLanguage][key]) {
+    // `!== undefined` (not truthiness) matters: an empty-string translation is
+    // a valid, intentional value and must not fall through to English/missing.
+    if (localizationData[currentLanguage] && localizationData[currentLanguage][key] !== undefined) {
         return localizationData[currentLanguage][key];
     }
     // Fallback to English if the key is not found in current language
-    if (localizationData['en'] && localizationData['en'][key]) {
+    if (localizationData['en'] && localizationData['en'][key] !== undefined) {
         return localizationData['en'][key];
     }
-    // Return the key itself if no translation is found
-    return key;
+    // Missing key in both languages — fail loud instead of silently rendering
+    // the raw key (a raw key like "levelComplete" reads as plausible text and
+    // hides the bug rather than surfacing it). Never returns a falsy value, so
+    // callers relying on `getText(x) || fallback` still behave, they just never
+    // need the fallback branch anymore.
+    if (typeof console !== 'undefined') {
+        console.warn(`[i18n] missing translation key: "${key}"`);
+    }
+    return `⚠ missing:${key}`;
 }
 
 // Function to change the language

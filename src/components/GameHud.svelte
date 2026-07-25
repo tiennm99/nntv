@@ -10,9 +10,11 @@
 
     let { level = 1, turns = 0, showPreview = false, canUndo = false,
           allowUndo = true, allowPreview = true,
-          stonesLeft = 0, showStones = false,
+          stonesLeft = 0, showStones = false, canThrow = false,
           keysHeld = 0, showKeys = false,
-          ontogglepreview, onpause, onmenu, onundo, onshowcontrols } = $props();
+          hintTiersAvailable = 0, hintsShown = false,
+          ontogglepreview, onpause, onmenu, onundo, onshowcontrols,
+          onenterthrow, onshowhint } = $props();
     let muted = $state(isMuted());
 
     function toggleMute() {
@@ -27,9 +29,24 @@
 
 <div class="hud">
     <div class="hud-left">
-        <span class="turns">Turns: {turns}</span>
+        <span class="turns">{getText('turnsLabel')}: {turns}</span>
+        {#if !allowUndo}
+            <span class="affordance-chip" title={getText('banner.noUndo')}>{getText('chip.noUndo')}</span>
+        {/if}
+        {#if !allowPreview}
+            <span class="affordance-chip" title={getText('banner.noPreview')}>{getText('chip.noPreview')}</span>
+        {/if}
         {#if showStones}
-            <StonesCounter {stonesLeft} />
+            {#if canThrow}
+                <!-- On-screen entry point for throw-targeting — the only way a
+                     touch-only player can reach it (E key has no on-screen
+                     equivalent otherwise). -->
+                <button class="stones-btn" onclick={onenterthrow} aria-label={getText('throw.enter')}>
+                    <StonesCounter {stonesLeft} />
+                </button>
+            {:else}
+                <StonesCounter {stonesLeft} />
+            {/if}
         {/if}
         {#if showKeys}
             <KeyInventory {keysHeld} />
@@ -37,14 +54,19 @@
     </div>
     <div class="hud-right">
         <span class="level-label">{getText('level')}{level}</span>
+        {#if hintTiersAvailable > 0}
+            <button class="icon-btn hint-btn" class:active={hintsShown} onclick={onshowhint} aria-label={getText('hint.button')}>
+                {getText('hint.button')}
+            </button>
+        {/if}
         {#if allowUndo}
-            <button class="icon-btn" onclick={onundo} disabled={!canUndo} aria-label="Undo">
+            <button class="icon-btn" onclick={onundo} disabled={!canUndo} aria-label={getText('controlUndo')}>
                 <Pixel art={ICON_UNDO} palette={ICON_PAL} width={20} height={20} />
             </button>
         {/if}
         <Button text={muted ? getText('muted') : getText('sound')} onclick={toggleMute} small />
         {#if allowPreview}
-            <button class="icon-btn" class:active={showPreview} onclick={ontogglepreview} aria-label="Toggle preview">
+            <button class="icon-btn" class:active={showPreview} onclick={ontogglepreview} aria-label={getText('controlPreview')}>
                 <Pixel art={ICON_EYE} palette={ICON_PAL} width={20} height={20} />
             </button>
         {/if}
@@ -82,8 +104,36 @@
         align-items: center;
         justify-content: center;
         transition: background 0.15s;
+        /* Minimum comfortable touch target (WCAG 2.5.5 / Apple HIG) */
+        min-width: 44px;
+        min-height: 44px;
     }
     .icon-btn:hover:not(:disabled) { background: var(--btn-hover); }
     .icon-btn:disabled { opacity: 0.4; cursor: default; }
     .icon-btn.active { background: var(--btn-hover); border-color: var(--text-accent); }
+    .hint-btn {
+        font: var(--font-small);
+        color: #ffdd44;
+        border-color: #ffdd44;
+        padding: 4px 10px;
+        width: auto;
+    }
+    .stones-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+    .affordance-chip {
+        font: var(--font-small);
+        color: #ffaa44;
+        background: rgba(200, 120, 0, 0.2);
+        border: 1px solid rgba(200, 120, 0, 0.5);
+        border-radius: 3px;
+        padding: 2px 6px;
+        white-space: nowrap;
+    }
 </style>

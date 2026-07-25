@@ -1,26 +1,26 @@
 <script>
+    import { getText } from '../lib/localization.js';
     import { GENERATED_TILES } from '../lib/generated-assets.js';
 
-    // Key color palette by keyId: 1=gold, 2=silver, 3=copper
-    const KEY_COLORS = { 1: '#d4af37', 2: '#c0c0c0', 3: '#b87333' };
-    // Human-readable direction names for ARIA
-    const DIR_NAMES = { 0: 'up', 1: 'right', 2: 'down', 3: 'left' };
+    // Locale keys for direction names, keyed by the engine's numeric direction
+    const DIR_KEYS = { 0: 'board.dirUp', 1: 'board.dirRight', 2: 'board.dirDown', 3: 'board.dirLeft' };
 
     let { cells = [], rows = 6, cols = 6, cellSize = 50, previewCells = new Set(),
-          detectedCell = null, throwTargetCells = new Set(), throwCursor = null,
-          oncellclick } = $props();
+          detectedCell = null, oncellclick } = $props();
 
     function cellLabel(cell) {
-        let label = `Row ${cell.row + 1}, Column ${cell.col + 1}`;
-        if (cell.isWall) label += ', wall';
+        let label = getText('board.rowCol').replace('{row}', cell.row + 1).replace('{col}', cell.col + 1);
+        if (cell.isWall) label += `, ${getText('board.wall')}`;
         else if (cell.isDoor) {
-            const color = KEY_COLORS[cell.doorKeyId] ? ` key ${cell.doorKeyId}` : '';
-            label += `, door, locked${color}`;
-        } else if (cell.isGoal) label += ', goal';
-        else if (cell.isKey) label += `, key ${cell.keyId}`;
-        else if (cell.isOneWay) label += `, one-way arrow ${DIR_NAMES[cell.oneWayDir] ?? cell.oneWayDir}`;
-        else if (cell.isWarm) label += ', warm cell';
-        if (cell.isLight) label += ', lit';
+            label += `, ${getText('board.doorLocked').replace('{keyId}', cell.doorKeyId)}`;
+        } else if (cell.isGoal) label += `, ${getText('board.goal')}`;
+        else if (cell.isKey) label += `, ${getText('board.key').replace('{keyId}', cell.keyId)}`;
+        else if (cell.isOneWay) {
+            const dirText = getText(DIR_KEYS[cell.oneWayDir] ?? 'board.dirUp');
+            label += `, ${getText('board.oneWay').replace('{dir}', dirText)}`;
+        }
+        else if (cell.isWarm) label += `, ${getText('board.warm')}`;
+        if (cell.isLight) label += `, ${getText('board.lit')}`;
         return label;
     }
 
@@ -28,15 +28,9 @@
         return detectedCell && detectedCell.row === cell.row && detectedCell.col === cell.col;
     }
 
-    // Is this cell a valid throw target (green halo)?
-    function isThrowTarget(cell) {
-        return throwTargetCells.has(`${cell.row},${cell.col}`);
-    }
-
-    // Is this cell the throw cursor (bright ring)?
-    function isThrowCursor(cell) {
-        return throwCursor && throwCursor.row === cell.row && throwCursor.col === cell.col;
-    }
+    // Note: throw-targeting visuals are rendered by ThrowTargetingOverlay
+    // (a dedicated overlay component), not here — this board has no
+    // throw-related props.
 
     // Resolve the base tile art/palette. Priority: lit > door > goal > wall > empty.
     // Key, one-way, warm overlays are rendered on top of the base tile separately.
@@ -55,7 +49,7 @@
 <div
     class="board"
     role="grid"
-    aria-label="Game board, {rows} rows by {cols} columns"
+    aria-label={getText('board.gridLabel').replace('{rows}', rows).replace('{cols}', cols)}
     style="grid-template-columns: repeat({cols}, {cellSize}px); grid-template-rows: repeat({rows}, {cellSize}px);"
 >
     {#each cells as cell (cell.row * cols + cell.col)}
@@ -67,8 +61,6 @@
             class:wall={cell.isWall}
             class:preview={previewCells.has(`${cell.row},${cell.col}`) && !cell.isLight}
             class:detected-flash={isDetected(cell)}
-            class:throw-target={isThrowTarget(cell)}
-            class:throw-cursor={isThrowCursor(cell)}
             class:lit={cell.isLight}
             class:warm={cell.isWarm && !cell.isLight}
             class:key-cell={cell.isKey}
@@ -117,13 +109,6 @@
                 <div class="tile-overlay key-overlay" aria-hidden="true">
                     <img class="key-image" src={GENERATED_TILES.keys[cell.keyId] ?? GENERATED_TILES.keys[1]} alt="" draggable="false" />
                 </div>
-            {/if}
-
-            <!-- Throw targeting overlays -->
-            {#if isThrowCursor(cell)}
-                <div class="throw-cursor-ring" aria-hidden="true"></div>
-            {:else if isThrowTarget(cell)}
-                <div class="throw-target-ring" aria-hidden="true"></div>
             {/if}
         </div>
     {/each}
@@ -247,33 +232,10 @@
         image-rendering: pixelated;
     }
 
-    /* ── Throw targeting rings ── */
-    .throw-target-ring {
-        position: absolute;
-        inset: 4px;
-        border: 2px solid rgba(0, 220, 80, 0.7);
-        border-radius: 3px;
-        pointer-events: none;
-        box-shadow: 0 0 6px rgba(0, 220, 80, 0.4);
-    }
-    .throw-cursor-ring {
-        position: absolute;
-        inset: 2px;
-        border: 3px solid rgba(255, 255, 0, 0.9);
-        border-radius: 3px;
-        pointer-events: none;
-        box-shadow: 0 0 10px rgba(255, 255, 0, 0.6);
-        animation: cursor-pulse 0.8s ease-in-out infinite alternate;
-    }
-    @keyframes cursor-pulse {
-        from { opacity: 0.7; }
-        to   { opacity: 1.0; }
-    }
     @media (prefers-reduced-motion: reduce) {
         .cell .tile-image,
         .tile-overlay,
-        .key-overlay,
-        .throw-cursor-ring {
+        .key-overlay {
             animation: none !important;
         }
     }

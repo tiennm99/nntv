@@ -1,15 +1,16 @@
 <script>
     import { fade } from 'svelte/transition';
     import { getText } from '../lib/localization.js';
+    import { trapFocus } from '../lib/focus-trap.js';
     import Button from './Button.svelte';
     import Pixel from '../lib/pixel/Pixel.svelte';
     import { ICON_UNDO, ICON_REDO, ICON_EYE, ICON_ARROW, ICON_PAL } from '../lib/pixel/art-ui.js';
     let { onclose } = $props();
 </script>
 
-<div class="overlay" transition:fade={{ duration: 200 }}>
+<div class="overlay" transition:fade={{ duration: 200 }} use:trapFocus role="dialog" aria-modal="true" aria-labelledby="controls-title">
     <div class="popup">
-        <h2>{getText('controlsTitle')}</h2>
+        <h2 id="controls-title">{getText('controlsTitle')}</h2>
         <div class="controls-list">
             <div class="control-row">
                 <span class="icon"><Pixel art={ICON_ARROW} palette={ICON_PAL} width={20} height={20} /></span>
@@ -30,10 +31,13 @@
                 <span class="icon"><Pixel art={ICON_REDO} palette={ICON_PAL} width={20} height={20} /></span>
                 <kbd>Y</kbd><span>— {getText('controlRedo')}</span>
             </div>
+            <div class="control-row"><kbd>E</kbd><span>— {getText('controlThrow')}</span></div>
+            <div class="control-row"><kbd>Esc</kbd><span>— {getText('controlPause')}</span></div>
             <div class="control-row"><kbd>Click</kbd><span>/ Tap — {getText('controlTap')}</span></div>
+            <div class="control-row"><kbd>Tap self</kbd><span>— {getText('controlTapSelf')}</span></div>
             <div class="control-row"><kbd>Swipe</kbd><span>— {getText('controlSwipe')}</span></div>
         </div>
-        <Button text={getText('back')} onclick={onclose} />
+        <Button text={getText('back')} onclick={onclose} autofocus />
     </div>
 </div>
 

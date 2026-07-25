@@ -62,12 +62,30 @@ body {
     overflow: hidden;
 }
 
+/*
+ * Responsive stage: #app keeps its fixed 1024x768 design box (every child
+ * component below still lays out in that coordinate space — no per-component
+ * media queries needed) and is uniformly scaled to fit the real viewport.
+ * min(1, ...) means desktops at/above 1024x768 render at native 1x exactly
+ * like before; anything smaller (phones down to ~360px wide) scales down
+ * proportionally instead of being clipped by the old max-width/max-height.
+ * transform-origin: center + body's flex centering keeps it centered at
+ * every scale factor.
+ */
 #app {
     width: 1024px;
     height: 768px;
-    max-width: 100vw;
-    max-height: 100vh;
-    aspect-ratio: 1024 / 768;
     position: relative;
     overflow: hidden;
+    transform: scale(min(1, calc(100vw / 1024), calc(100vh / 768)));
+    transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

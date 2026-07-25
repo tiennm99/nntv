@@ -20,6 +20,29 @@
     let currentScene = $state('MainMenu');
     let sceneData = $state({});
 
+    // Focus management across scene transitions (F18): {#key currentScene}
+    // fully replaces the DOM on every navigate(), so without this, focus
+    // silently drops to <body> and a keyboard/screen-reader user has no
+    // indication anything changed. Focusing the scene wrapper + announcing
+    // its name via aria-live covers both cases with one small mechanism
+    // rather than threading autofocus into every individual scene.
+    let sceneEl = $state(null);
+    const SCENE_LABEL_KEYS = {
+        MainMenu: 'gameTitle', LevelSelect: 'levelSelectTitle', Guide: 'guideTitle',
+        Settings: 'settings', GameOver: 'gameOver', StoryIntro: 'storyTitle',
+    };
+    function sceneAnnouncement(scene) {
+        const key = SCENE_LABEL_KEYS[scene];
+        return key ? getText(key) : scene;
+    }
+    $effect(() => {
+        // Re-run whenever currentScene changes; wait a tick for the new DOM.
+        currentScene;
+        if (typeof queueMicrotask === 'function') {
+            queueMicrotask(() => sceneEl?.focus());
+        }
+    });
+
     // Migration modal — shown once on first v2 boot if legacy save was detected
     let showMigrationModal = $state(false);
 
@@ -70,8 +93,9 @@
 </script>
 
 <div class="game-container">
+    <div class="visually-hidden" aria-live="polite">{sceneAnnouncement(currentScene)}</div>
     {#key currentScene}
-        <div class="scene" transition:fade={{ duration: 250 }}>
+        <div class="scene" bind:this={sceneEl} tabindex="-1" transition:fade={{ duration: 250 }}>
             {#if currentScene === 'MainMenu'}
                 <MainMenu {navigate} />
             {:else if currentScene === 'StoryIntro'}
@@ -115,6 +139,16 @@
     .scene {
         position: absolute;
         inset: 0;
+    }
+    .scene:focus {
+        outline: none;
+    }
+    .visually-hidden {
+        position: absolute;
+        width: 1px; height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
     }
     .modal-backdrop {
         position: absolute;

@@ -3,7 +3,7 @@
     import Button from '../components/Button.svelte';
     import Pixel from '../lib/pixel/Pixel.svelte';
     import { MOON_ART, MOON_PAL } from '../lib/pixel/art-ui.js';
-    import { GENERATED_CHARACTERS } from '../lib/generated-assets.js';
+    import { GENERATED_CHARACTERS, KEYART } from '../lib/generated-assets.js';
     let { navigate } = $props();
 
     const stars = Array.from({ length: 40 }, () => ({
@@ -16,7 +16,7 @@
 
 <div class="menu">
     <div class="scene-backdrop">
-        <img src="assets/scene-menu.png" alt="" draggable="false" />
+        <img src={KEYART.garden} alt="" draggable="false" />
     </div>
 
     {#each stars as star}
