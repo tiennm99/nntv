@@ -72,7 +72,6 @@ function makeAudio(url) {
     const a = new Audio(url);
     a.loop = true;
     a.preload = 'auto';
-    a.crossOrigin = 'anonymous';
     a.volume = 0; // start silent, fade in
     return a;
 }
@@ -122,7 +121,6 @@ function fadeOut(audio, durationMs = 600) {
 export async function playBgm(trackName, { fadeMs = 600 } = {}) {
     const url = trackName ? BGM_TRACKS[trackName] : null;
     if (url === activeTrack) return; // already playing
-    activeTrack = url;
 
     if (fading) {
         cancelFade(fading);
@@ -130,6 +128,7 @@ export async function playBgm(trackName, { fadeMs = 600 } = {}) {
     }
 
     if (!url) {
+        activeTrack = null;
         // Fade out current, then drop
         if (current) {
             const c = current;
@@ -144,11 +143,13 @@ export async function playBgm(trackName, { fadeMs = 600 } = {}) {
     try {
         await next.play();
     } catch (e) {
-        // Autoplay blocked — wait for first user interaction.
-        // We'll retry on the next user gesture; track the intent.
+        // Autoplay blocked — wait for first user interaction. Do NOT mark
+        // this track as active: if we did, the gesture-triggered retry below
+        // would hit the early-return above and silently never call play().
         pendingPlay = trackName;
         return;
     }
+    activeTrack = url;
     fadeIn(next, effectiveVolume(), fadeMs);
 
     if (current) {
