@@ -2,24 +2,9 @@
 // Stones distract rotating/patrolling/chaser guards within radius 2 of target.
 // No imports from guards.js to avoid cyclic dependency — uses duck-typed type check.
 
-// Guard types eligible to be distracted by a thrown stone
-const DISTRACTIBLE_TYPES = new Set(['rotating', 'patrolling', 'chaser']);
-
-// Simple line trace: returns true if there is no wall cell strictly between
-// (r0,c0) and (r1,c1) on the grid. Uses Bresenham-style integer stepping.
-function hasLineOfSight(grid, r0, c0, r1, c1) {
-    const dr = r1 - r0;
-    const dc = c1 - c0;
-    const steps = Math.max(Math.abs(dr), Math.abs(dc));
-    if (steps === 0) return true;
-    for (let i = 1; i < steps; i++) {
-        // Round to nearest integer cell along the line
-        const r = Math.round(r0 + (dr * i) / steps);
-        const c = Math.round(c0 + (dc * i) / steps);
-        if (grid.isWall(r, c)) return false;
-    }
-    return true;
-}
+// hasLineOfSight/DISTRACTIBLE_TYPES live in line-of-sight.js — the single
+// shared copy also used by level-solver.js, so engine and solver can't drift.
+import { hasLineOfSight, DISTRACTIBLE_TYPES } from './line-of-sight.js';
 
 export class ThrowableSystem {
     constructor(stonesLeft = 0) {

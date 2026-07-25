@@ -93,7 +93,7 @@ export class GridSystem {
 
     // Clear all light from the grid.
     // For decay-eligible cells that are currently lit, schedule them to become warm
-    // (they were about to go dark — the decay window lets player cross safely).
+    // (they were about to go dark — the afterglow window is lethal, see tickWarmTimers).
     clearAllLight() {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
@@ -104,6 +104,19 @@ export class GridSystem {
                     cell.warmTurnsLeft = 1;
                 }
                 cell.isLight = false;
+            }
+        }
+    }
+
+    // Clear light WITHOUT the decay side effect. Use this when repainting light
+    // for a state the simulation is already in (BFS branch re-entry, turn-preview
+    // candidate branches) rather than genuinely transitioning to a new turn —
+    // calling clearAllLight() here would fabricate warm cells that were never
+    // part of the real turn sequence, corrupting state hashing and preview output.
+    clearLight() {
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                this.grid[row][col].isLight = false;
             }
         }
     }

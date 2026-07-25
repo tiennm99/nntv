@@ -194,6 +194,26 @@ describe('GameHistory — keys/doors/throwSystem snapshots', () => {
         expect(player.getKeysHeld()).toBe(1); // still holds key from snap1
     });
 
+    it('snapshot includes warmSnapshot (sparse array of warm cells)', () => {
+        grid.setWarm(2, 3, 2);
+        const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        expect(snap.warmSnapshot).toEqual([[2, 3, 2]]);
+    });
+
+    it('undo restores warm-tile state — a cell warm before the snapshot is warm again after undo', () => {
+        grid.setWarm(2, 3, 1);
+        const before = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, null);
+        history.pushSnapshot(before);
+        // Warm expires (simulating a later turn's tickWarmTimers)
+        grid.applyWarmSnapshot([]);
+        expect(grid.isWarm(2, 3)).toBe(false);
+        // Undo must bring the warm cell back — otherwise a cell that should
+        // still be a lethal hazard reads as safe post-undo.
+        history.undo(player, [], tm, princess.capture(), grid, null);
+        expect(grid.isWarm(2, 3)).toBe(true);
+        expect(grid.getWarmTurnsLeft(2, 3)).toBe(1);
+    });
+
     it('snapshot captures throwSystem state', () => {
         const ts = new ThrowableSystem(3);
         const snap = history.createSnapshot(player, [], tm.turnCount, princess.capture(), grid, ts);

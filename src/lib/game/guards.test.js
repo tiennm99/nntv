@@ -3,7 +3,7 @@ import { GridSystem } from './grid-system.js';
 import {
     StaticGuard, RotatingGuard, BlinkingGuard,
     MirrorGuard, PatrollingGuard, ChaserGuard,
-    SniperGuard, SuspicionGuard,
+    SniperGuard, SuspicionGuard, MOBILE_GUARD_TYPES,
 } from './guards.js';
 
 describe('Guard.capture()/apply()', () => {
@@ -39,6 +39,18 @@ describe('Guard.capture()/apply()', () => {
         grid.clearAllLight();
         g.updateLight();
         expect(grid.isLight(2, 2)).toBe(false);
+    });
+
+    it('StaticGuard regrows after fully wilting instead of staying dead forever', () => {
+        const g = new StaticGuard(grid, 2, 2, 1);
+        g.onTurnChange(); // 1 -> 0
+        expect(g.currentRadius).toBe(0);
+        g.onTurnChange(); // 0 -> -1 (fully wilted)
+        expect(g.currentRadius).toBe(-1);
+        g.onTurnChange(); // pulses back to initialRadius
+        expect(g.currentRadius).toBe(1);
+        g.onTurnChange();
+        expect(g.currentRadius).toBe(0);
     });
 
     it('StaticGuard currentRadius round-trips via capture/apply', () => {
@@ -112,6 +124,37 @@ describe('RotatingGuard beam + mirror', () => {
         expect(grid.isLight(2, 2)).toBe(true); // mirror cell
         expect(grid.isLight(3, 2)).toBe(true); // reflected beam
     });
+
+    it('reaches and reflects off a mirror 5 cells away in a straight line', () => {
+        // Matches the shipped L7/L10 geometry: rotator and mirror 5 cells apart.
+        const grid = new GridSystem(9, 9, 50);
+        const rot = new RotatingGuard(grid, 2, 2, 1); // facing right
+        const mir = new MirrorGuard(grid, 2, 7, 'cw');
+        rot.updateLight([rot, mir]);
+        expect(grid.isLight(2, 7)).toBe(true); // beam reaches the mirror cell
+        expect(grid.isLight(3, 7)).toBe(true); // reflected beam (cw of right = down)
+    });
+
+    it('reflects off a mirror mounted on a wall cell instead of stopping short', () => {
+        // A mirror occupying a wall cell (authoring error seen in L11) must
+        // still redirect the beam — the wall only blocks player movement.
+        const grid = new GridSystem(7, 7, 50);
+        grid.setWall(2, 5, true);
+        const rot = new RotatingGuard(grid, 2, 2, 1); // facing right
+        const mir = new MirrorGuard(grid, 2, 5, 'cw');
+        rot.updateLight([rot, mir]);
+        expect(grid.isLight(2, 5)).toBe(true); // mirror cell (also a wall) lights up
+        expect(grid.isLight(3, 5)).toBe(true); // reflected beam continues
+    });
+
+    it('does not reflect past a real wall when no mirror is present', () => {
+        const grid = new GridSystem(7, 7, 50);
+        grid.setWall(2, 5, true);
+        const rot = new RotatingGuard(grid, 2, 2, 1); // facing right
+        rot.updateLight([rot]);
+        expect(grid.isLight(2, 4)).toBe(true);
+        expect(grid.isLight(2, 5)).toBe(false); // plain wall still blocks
+    });
 });
 
 describe('BlinkingGuard', () => {
@@ -162,9 +205,66 @@ describe('ChaserGuard BFS', () => {
         const step = g.bfsNextStep(2, 2);
         expect(step).toBeNull();
     });
+
+    it('gives up returning home instead of freezing forever when home is unreachable', () => {
+        // Authoring error: chaser's start cell is itself a wall (seen in L11),
+        // so bfsNextStep(home) can never succeed once the guard has moved off it.
+        const grid = new GridSystem(5, 5, 50);
+        const g = new ChaserGuard(grid, 2, 2, 3);
+        grid.setWall(2, 2, true); // home cell is a wall
+        const nearPlayer = { row: 2, col: 3 };
+        g.onTurnChange([], nearPlayer); // dist 1 <= radius 3 -> starts chasing, guard steps to (2,3)
+        expect(g.isChasing).toBe(true);
+        const farPlayer = { row: 0, col: 0 }; // dist from (2,3) = 5 > radius 3
+        // Player leaves range -> guard tries to return home, fails every time
+        // since (2,2) is a wall; must give up rather than loop isReturning forever.
+        for (let i = 0; i < 5; i++) g.onTurnChange([], farPlayer);
+        expect(g.isChasing).toBe(false);
+        expect(g.isReturning).toBe(false);
+    });
+});
+
+describe('MOBILE_GUARD_TYPES', () => {
+    it('contains exactly the guard types whose row/col change during onTurnChange', () => {
+        expect(MOBILE_GUARD_TYPES.has('patrolling')).toBe(true);
+        expect(MOBILE_GUARD_TYPES.has('chaser')).toBe(true);
+        expect(MOBILE_GUARD_TYPES.has('static')).toBe(false);
+        expect(MOBILE_GUARD_TYPES.has('rotating')).toBe(false);
+        expect(MOBILE_GUARD_TYPES.has('sniper')).toBe(false);
+    });
 });
 
 describe('PatrollingGuard', () => {
+    it('lights its own cell so standing on it cannot go undetected', () => {
+        const grid = new GridSystem(3, 3, 50);
+        const path = [{ row: 0, col: 0 }, { row: 0, col: 1 }, { row: 0, col: 2 }];
+        const g = new PatrollingGuard(grid, 0, 0, path);
+        g.updateLight();
+        expect(grid.isLight(0, 0)).toBe(true);
+    });
+
+    it('stays lit even with a trivial (length-1) path', () => {
+        const grid = new GridSystem(3, 3, 50);
+        const g = new PatrollingGuard(grid, 1, 1, [{ row: 1, col: 1 }]);
+        grid.clearAllLight();
+        g.onTurnChange();
+        expect(grid.isLight(1, 1)).toBe(true);
+    });
+
+    it('never enters a path node authored on a wall cell', () => {
+        // Authoring error seen in shipped levels (e.g. L8/L11): a patrol path
+        // node sits on a wall. The guard must hold its position rather than
+        // walk through the wall.
+        const grid = new GridSystem(3, 3, 50);
+        const path = [{ row: 0, col: 0 }, { row: 0, col: 1 }];
+        grid.setWall(0, 1, true);
+        const g = new PatrollingGuard(grid, 0, 0, path);
+        g.onTurnChange();
+        expect(g.row).toBe(0);
+        expect(g.col).toBe(0);
+        expect(grid.isWall(g.row, g.col)).toBe(false);
+    });
+
     it('reverses at end of non-circular path', () => {
         const grid = new GridSystem(3, 3, 50);
         const path = [{ row: 0, col: 0 }, { row: 0, col: 1 }, { row: 0, col: 2 }];
@@ -279,7 +379,7 @@ describe('SniperGuard', () => {
 });
 
 describe('SuspicionGuard', () => {
-    it('tier increments when player is in range', () => {
+    it('tier increments when player is in range and holds at 2 (no self-reset)', () => {
         const grid = new GridSystem(7, 7, 50);
         const guard = new SuspicionGuard(grid, 3, 3, 3);
         const player = { row: 3, col: 5 }; // Manhattan dist 2
@@ -288,17 +388,27 @@ describe('SuspicionGuard', () => {
         expect(guard.tier).toBe(1);
         guard.onTurnChange([], player);
         expect(guard.tier).toBe(2);
-        guard.onTurnChange([], player); // was firing → force decay
-        expect(guard.tier).toBe(0);
+        guard.onTurnChange([], player); // still in range — stays firing, does not reset
+        expect(guard.tier).toBe(2);
     });
 
-    it('tier drops to 0 when starting turn at tier 2 (firing), regardless of player distance', () => {
+    it('tier persists at 2 while the player remains in range', () => {
         const grid = new GridSystem(7, 7, 50);
         const guard = new SuspicionGuard(grid, 0, 0, 2);
         guard.tier = 2;
-        // Even with player nearby, firing turn always resets to 0
         const nearPlayer = { row: 0, col: 1 };
         guard.onTurnChange([], nearPlayer);
+        expect(guard.tier).toBe(2);
+    });
+
+    it('tier decays one step per turn from 2 once the player leaves range', () => {
+        const grid = new GridSystem(7, 7, 50);
+        const guard = new SuspicionGuard(grid, 0, 0, 2);
+        guard.tier = 2;
+        const farPlayer = { row: 6, col: 6 };
+        guard.onTurnChange([], farPlayer);
+        expect(guard.tier).toBe(1);
+        guard.onTurnChange([], farPlayer);
         expect(guard.tier).toBe(0);
     });
 
@@ -349,6 +459,19 @@ describe('SuspicionGuard', () => {
         expect(grid.isLight(0, 0)).toBe(true);
         expect(grid.isLight(0, 1)).toBe(true);
         expect(grid.isLight(1, 0)).toBe(true);
+    });
+
+    it('at tier 2, denies the FULL Manhattan range, not just the immediate 3x3', () => {
+        // range=3: cell (2,5) is Manhattan distance 3 from guard at (2,2) —
+        // well outside a 3x3, but must still be lit so `range` actually gates
+        // territory instead of only the guard's immediate neighbours.
+        const grid = new GridSystem(7, 7, 50);
+        const guard = new SuspicionGuard(grid, 2, 2, 3);
+        guard.tier = 2;
+        guard.updateLight();
+        expect(grid.isLight(2, 5)).toBe(true);
+        // Distance 4 — just outside range — must stay dark.
+        expect(grid.isLight(2, 6)).toBe(false);
     });
 
     it('capture/apply round-trips tier and range', () => {

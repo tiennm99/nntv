@@ -12,6 +12,8 @@
 
 import { loadLevel } from './level-manager.js';
 import { PrincessMechanic } from './princess-mechanic.js';
+import { MOBILE_GUARD_TYPES } from './guards.js';
+import { isValidThrowTarget } from './line-of-sight.js';
 
 const BASE_ACTIONS = ['up', 'down', 'left', 'right', 'wait'];
 const DEFAULT_MAX_STATES = 2_000_000;
@@ -121,26 +123,10 @@ function applyState(state, player, guards, princess, throwSystem, grid) {
 
 // ─── Throw target enumeration ────────────────────────────────────────────────
 // Returns ['throw_to_<r>_<c>', ...] for valid throw targets from current player pos.
-// Pruning: target must have at least one distractible guard (rotating/patrolling/chaser)
-// within Manhattan ≤ 2 of the target. Otherwise the throw is wasted.
-
-const DISTRACTIBLE_TYPES = new Set(['rotating', 'patrolling', 'chaser']);
-
-// Line-of-sight check: no wall strictly between (r0,c0) and (r1,c1).
-// Mirrors the same logic in throwable.js to stay consistent.
-function hasLOS(grid, r0, c0, r1, c1) {
-    const dr = r1 - r0;
-    const dc = c1 - c0;
-    const steps = Math.max(Math.abs(dr), Math.abs(dc));
-    if (steps === 0) return true;
-    for (let i = 1; i < steps; i++) {
-        const r = Math.round(r0 + (dr * i) / steps);
-        const c = Math.round(c0 + (dc * i) / steps);
-        if (grid.isWall(r, c)) return false;
-    }
-    return true;
-}
-
+// Validity (LOS, Manhattan ≤3, ≥1 distractible guard within 2) is the shared
+// isValidThrowTarget contract from line-of-sight.js — the same one throwable.js
+// enforces at the engine level, so the solver can't certify a throw the live
+// game would reject (or vice versa).
 export function enumerateThrowTargets(player, grid, guards, stonesLeft) {
     if (stonesLeft <= 0) return [];
 
@@ -150,26 +136,10 @@ export function enumerateThrowTargets(player, grid, guards, stonesLeft) {
 
     for (let r = 0; r < grid.rows; r++) {
         for (let c = 0; c < grid.cols; c++) {
-            // Skip walls and player's own cell
-            if (grid.isWall(r, c)) continue;
-            if (r === pr && c === pc) continue;
-
-            // Manhattan ≤ 3 from player
-            const dist = Math.abs(r - pr) + Math.abs(c - pc);
-            if (dist > 3) continue;
-
-            // Line-of-sight: no wall between player and target
-            if (!hasLOS(grid, pr, pc, r, c)) continue;
-
-            // Pruning: at least one distractible guard within Manhattan ≤ 2 of target
-            const hasEligibleGuard = guards.some(g => {
-                if (!DISTRACTIBLE_TYPES.has(g.type)) return false;
-                const gDist = Math.abs(g.row - r) + Math.abs(g.col - c);
-                return gDist <= 2;
-            });
-            if (!hasEligibleGuard) continue;
-
-            targets.push(`throw_to_${r}_${c}`);
+            if (r === pr && c === pc) continue; // skip player's own cell
+            if (isValidThrowTarget(grid, guards, pr, pc, r, c)) {
+                targets.push(`throw_to_${r}_${c}`);
+            }
         }
     }
 
@@ -180,32 +150,45 @@ export function enumerateThrowTargets(player, grid, guards, stonesLeft) {
 // Matches TurnManager.nextTurn pipeline:
 //   1. Goal check (early-out)
 //   2. throwSystem?.resolve(guards)
-//   3. clearAllLight
+//   3. clearAllLight — cells lit last turn become warm (afterglow)
 //   4. guards.forEach onTurnChange
-//   5. tickWarmTimers
-//   6. Detection check
+//   5. Detection check — lit OR warm cell, princess, or a same-turn guard/player swap
+//   6. tickWarmTimers — warm cells created this turn expire next turn
 // Returns { detected, levelComplete }
 
-function simulateTurn(grid, player, guards, princess, goalRow, goalCol, throwSystem) {
+// Exported (alongside enumerateThrowTargets) so tests can pin its parity with
+// TurnManager.nextTurn directly, rather than only indirectly through solveLevel.
+export function simulateTurn(grid, player, guards, princess, goalRow, goalCol, throwSystem) {
     if (grid.isGoal(player.row, player.col)) {
         return { detected: false, levelComplete: true };
     }
+
+    // Snapshot mobile guard cells BEFORE they move this turn — same
+    // swap/co-location rule as TurnManager.nextTurn (see guards.js).
+    const mobileGuardCellsBefore = guards
+        .filter(g => MOBILE_GUARD_TYPES.has(g.type))
+        .map(g => `${g.row},${g.col}`);
 
     if (throwSystem) throwSystem.resolve(guards);
 
     grid.clearAllLight();
     guards.forEach(g => g.onTurnChange(guards, player));
 
+    let detected = mobileGuardCellsBefore.includes(`${player.row},${player.col}`);
+
+    if (!detected && princess) {
+        const r = princess.update(grid, player, goalRow, goalCol);
+        if (r.detected) detected = true;
+    }
+    if (!detected && (grid.isLight(player.row, player.col) || grid.isWarm(player.row, player.col))) {
+        detected = true;
+    }
+
+    // Tick AFTER detection so a cell that just went dark this turn is still
+    // checked while warm (see turn-manager.js nextTurn for the full rationale).
     grid.tickWarmTimers();
 
-    if (princess) {
-        const r = princess.update(grid, player, goalRow, goalCol);
-        if (r.detected) return { detected: true, levelComplete: false };
-    }
-    if (grid.isLight(player.row, player.col)) {
-        return { detected: true, levelComplete: false };
-    }
-    return { detected: false, levelComplete: false };
+    return { detected, levelComplete: false };
 }
 
 // ─── Main solver ─────────────────────────────────────────────────────────────
@@ -216,6 +199,13 @@ export function solveLevel(levelId, options = {}) {
     if (!init) return { solvable: false, reason: 'invalid_level', states_explored: 0 };
 
     const { grid, player, guards, throwSystem, isFinalLevel, goalRow, goalCol, parMoves } = init;
+    // The final level (isFinalLevel, id 12) is INTENTIONALLY unsolvable — an
+    // owner-confirmed easter egg, not a bug. The live game additionally
+    // resolves the princess check before the goal-complete check on that one
+    // level, which this solver deliberately does NOT reproduce (see
+    // simulateTurn's goal early-out above); do not "fix" this solver to match
+    // that ordering, and do not treat a future L12 solvability regression here
+    // as something to repair — confirm with the level-design owner first.
     const princess = isFinalLevel ? new PrincessMechanic() : null;
 
     // parMoves pruning: prune paths longer than ceil(parMoves * 1.5)
@@ -245,8 +235,12 @@ export function solveLevel(levelId, options = {}) {
 
         // Restore parent state before enumerating throws so eligibility is computed
         // against the actual parent guards/grid, not stale state from a prior inner loop.
+        // Use clearLight() (no decay side effect) — the parent's warm state was
+        // already restored verbatim by applyState via the warm snapshot, so
+        // re-deriving it from clearAllLight()'s decay logic here would fabricate
+        // warm cells that were never part of the parent state.
         applyState(state, player, guards, princess, throwSystem, grid);
-        grid.clearAllLight();
+        grid.clearLight();
         guards.forEach(g => g.updateLight(guards));
 
         // Build action list: base actions + throw targets
@@ -259,9 +253,10 @@ export function solveLevel(levelId, options = {}) {
         const actions = BASE_ACTIONS.concat(throwActions);
 
         for (const action of actions) {
-            // Restore parent state into shared mutable engine objects (for each action attempt)
+            // Restore parent state into shared mutable engine objects (for each action attempt).
+            // clearLight() only — see the identical rationale above this loop.
             applyState(state, player, guards, princess, throwSystem, grid);
-            grid.clearAllLight();
+            grid.clearLight();
             guards.forEach(g => g.updateLight(guards));
 
             // Apply player action

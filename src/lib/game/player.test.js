@@ -82,6 +82,20 @@ describe('Player — door mechanics', () => {
         p.addKey(1); // holds keyId=1
         expect(p.move('right')).toBe(false);
     });
+
+    it('rejected move on a door+one-way cell does not open the door', () => {
+        // Door at (0,1) needs keyId=1 (held), but the cell is ALSO one-way,
+        // allowing entry only when moving down (dir=2). Approaching from the
+        // left (moving right, dir=1) must be rejected — and rejection must
+        // leave the door closed, not pop it open before the one-way check fails.
+        grid.setDoor(0, 1, 1);
+        grid.setOneWay(0, 1, 2);
+        const p = new Player(grid, 0, 0);
+        p.addKey(1);
+        expect(p.move('right')).toBe(false);
+        expect(p.col).toBe(0);
+        expect(grid.isDoor(0, 1)).toBe(true); // door must still be closed
+    });
 });
 
 // ─── One-way mechanics ─────────────────────────────────────────────────────────
@@ -139,6 +153,44 @@ describe('Player — one-way mechanics', () => {
         const p = new Player(grid, 0, 0);
         // moveTo with moveDir=-1 bypasses one-way check
         expect(p.moveTo(0, 1, -1)).toBe(true);
+    });
+});
+
+// ─── canEnter (read-only precondition check) ──────────────────────────────────
+
+describe('Player.canEnter — read-only, no mutation', () => {
+    let grid;
+    beforeEach(() => { grid = new GridSystem(4, 4, 50); });
+
+    it('mirrors moveTo legality without moving the player', () => {
+        grid.setWall(0, 1, true);
+        const p = new Player(grid, 0, 0);
+        expect(p.canEnter(0, 1)).toBe(false);
+        expect(p.canEnter(1, 0)).toBe(true);
+        expect(p.row).toBe(0);
+        expect(p.col).toBe(0);
+    });
+
+    it('returns false for a door without the matching key, without opening it', () => {
+        grid.setDoor(0, 1, 1);
+        const p = new Player(grid, 0, 0);
+        expect(p.canEnter(0, 1, 1)).toBe(false);
+        expect(grid.isDoor(0, 1)).toBe(true);
+    });
+
+    it('returns true for a door once the matching key is held', () => {
+        grid.setDoor(0, 1, 1);
+        const p = new Player(grid, 0, 0);
+        p.addKey(1);
+        expect(p.canEnter(0, 1, 1)).toBe(true);
+        expect(grid.isDoor(0, 1)).toBe(true); // still not opened — canEnter never mutates
+    });
+
+    it('respects one-way direction without a moveDir mismatch', () => {
+        grid.setOneWay(0, 1, 1); // dir=1=right
+        const p = new Player(grid, 0, 0);
+        expect(p.canEnter(0, 1, 1)).toBe(true);
+        expect(p.canEnter(0, 1, 3)).toBe(false);
     });
 });
 

@@ -1,9 +1,12 @@
 // Undo/redo state history for game turns.
 // Snapshots player (including keysHeld), guards (via guard.capture()), turn count,
-// princess state, throwSystem state, and grid key/door cell state.
+// princess state, throwSystem state, and grid key/door/warm cell state.
 //
-// Phase 04.5 gap fix: keysHeld + key/door cell snapshots added here so that undo
-// correctly restores inventory and grid state after key collection or door opening.
+// Warm-tile snapshot: warm cells are a lethal, timed hazard (see grid-system.js
+// clearAllLight/tickWarmTimers), so undo must restore them exactly — otherwise
+// undo could resurrect a state where a cell that should still be dangerous
+// reads as safe (or vice versa), which is a real illegal-state bug on any
+// decay-eligible level with undo enabled.
 
 const MAX_HISTORY = 50;
 
@@ -28,6 +31,7 @@ export class GameHistory {
             // Grid snapshots: sparse arrays; null when grid not provided (e.g. levels without keys/doors)
             keySnapshot: grid ? grid.getKeySnapshot() : null,
             doorSnapshot: grid ? grid.getDoorSnapshot() : null,
+            warmSnapshot: grid ? grid.getWarmSnapshot() : null,
             // ThrowSystem state: null when system not present
             throwSystem: throwSystem ? throwSystem.capture() : null,
         };
@@ -49,6 +53,9 @@ export class GameHistory {
         guards.forEach((g, i) => g.apply(state.guards[i]));
         if (grid && state.keySnapshot !== null) grid.applyKeySnapshot(state.keySnapshot);
         if (grid && state.doorSnapshot !== null) grid.applyDoorSnapshot(state.doorSnapshot);
+        if (grid && state.warmSnapshot !== null && state.warmSnapshot !== undefined) {
+            grid.applyWarmSnapshot(state.warmSnapshot);
+        }
         if (throwSystem && state.throwSystem !== null) throwSystem.apply(state.throwSystem);
     }
 

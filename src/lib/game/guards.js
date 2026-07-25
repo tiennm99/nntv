@@ -1,6 +1,53 @@
 // Guard logic — pure JS, no framework dependency
 // Each guard exposes { row, col, type, direction, isOn } for rendering
 
+// Guard types whose row/col actually change during onTurnChange. Static,
+// rotating, blinking, mirror, and sniper guards never move — only these two
+// can occupy (or vacate into) the player's cell as part of a turn, so only
+// these need the swap/co-location check in TurnManager.nextTurn.
+export const MOBILE_GUARD_TYPES = new Set(['patrolling', 'chaser']);
+
+// How far a rotating/sniper beam reaches before bouncing off a mirror (or
+// stopping at a wall/edge). Shipped levels place mirrors up to 5 cells from
+// their feeding rotator in a straight line (see levels.js L7/L10) — keep this
+// at least that large or reflection goes dead again.
+const ROTATING_BEAM_RANGE = 5;
+
+// Shared beam-casting helper used by RotatingGuard and SniperGuard: casts
+// light from (fromRow, fromCol) in `dir` up to `range` cells, reflecting off
+// mirror guards (capped at 3 bounces to prevent an infinite loop on a mirror
+// cycle). A mirror is checked BEFORE the wall check: a mirror may be mounted
+// on a wall cell (the beam still reaches and reflects off it) even though the
+// player can never stand there — Player.moveTo blocks that independently.
+function castBeamWithMirrors(grid, dir, fromRow, fromCol, range, allGuards, depth = 0) {
+    if (depth > 3) return;
+    for (let i = 1; i <= range; i++) {
+        const r = fromRow + dir.row * i;
+        const c = fromCol + dir.col * i;
+        if (!grid.isValidPosition(r, c)) break;
+
+        const mirror = allGuards && allGuards.find(g =>
+            g.type === 'mirror' && g.row === r && g.col === c
+        );
+        if (mirror) {
+            grid.setLight(r, c, true);
+            castBeamWithMirrors(grid, reflectBeam(dir, mirror.reflectDirection), r, c, range, allGuards, depth + 1);
+            return;
+        }
+
+        if (grid.isWall(r, c)) break;
+        grid.setLight(r, c, true);
+    }
+}
+
+// cw: rotate beam 90° clockwise, ccw: counter-clockwise
+function reflectBeam(dir, reflectType) {
+    if (reflectType === 'cw') {
+        return { row: dir.col, col: -dir.row };
+    }
+    return { row: -dir.col, col: dir.row };
+}
+
 class Guard {
     constructor(grid, row, col, type) {
         this.grid = grid;
@@ -29,10 +76,13 @@ class Guard {
     }
 }
 
-// Wilting tomato — emits a Manhattan aura that shrinks by 1 each turn.
-// initialRadius 2 lights 13 cells at turn 0, 5 cells at turn 1, 1 cell at
-// turn 2, harmless thereafter. Pairs naturally with the `wait` action:
-// patient players can outlast an aura; impatient players must detour.
+// Wilting tomato — emits a Manhattan aura that shrinks by 1 each turn, then
+// regrows back to full strength once fully wilted. initialRadius 2 lights 13
+// cells at turn 0, 5 cells at turn 1, 1 cell at turn 2, 0 cells at turn 3,
+// then pulses back to 13 cells at turn 4 and repeats. Pairs naturally with the
+// `wait` action: patient players can time a crossing to the harmless phase of
+// the pulse; a guard that only ever wilts once is a one-time timer, not a
+// hazard that denies territory for the rest of the level.
 export class StaticGuard extends Guard {
     constructor(grid, row, col, initialRadius) {
         super(grid, row, col, 'static');
@@ -56,9 +106,16 @@ export class StaticGuard extends Guard {
     }
 
     onTurnChange() {
-        // Clamp at -1 (fully wilted, harmless). Prevents unbounded state growth
-        // for BFS solver — beyond -1, behavior is identical so keys stay finite.
-        if (this.currentRadius >= 0) this.currentRadius--;
+        // Pulse cycle: shrink one step per turn; once fully wilted (-1),
+        // regrow back to initialRadius and repeat. Finite, deterministic
+        // cycle (initialRadius + 2 states) — no unbounded growth for the
+        // BFS solver, but the guard stays a hazard for the whole level
+        // instead of dying permanently after its first 2-3 turns.
+        if (this.currentRadius > -1) {
+            this.currentRadius--;
+        } else {
+            this.currentRadius = this.initialRadius;
+        }
         this.updateLight();
     }
 
@@ -76,7 +133,7 @@ export class RotatingGuard extends Guard {
     constructor(grid, row, col, startDirection) {
         super(grid, row, col, 'rotating');
         this.direction = startDirection || 0;
-        this.lightRange = 2;
+        this.lightRange = ROTATING_BEAM_RANGE;
         this.directions = [
             { row: -1, col: 0 }, // up
             { row: 0, col: 1 },  // right
@@ -96,35 +153,15 @@ export class RotatingGuard extends Guard {
         this.castBeam(dir, this.row, this.col, this.lightRange, allGuards, 0);
     }
 
-    // Cast light beam in a direction, bouncing off mirror guards
+    // Cast light beam in a direction, bouncing off mirror guards.
+    // Delegates to the shared castBeamWithMirrors helper (also used by
+    // SniperGuard) so the mirror-reflection rule can't drift between the two.
     castBeam(dir, fromRow, fromCol, range, allGuards, depth) {
-        if (depth > 3) return; // prevent infinite bounces
-        for (let i = 1; i <= range; i++) {
-            const r = fromRow + dir.row * i;
-            const c = fromCol + dir.col * i;
-            if (!this.grid.isValidPosition(r, c) || this.grid.isWall(r, c)) break;
-            this.grid.setLight(r, c, true);
-
-            // Check if beam hits a mirror guard
-            if (allGuards) {
-                const mirror = allGuards.find(g =>
-                    g.type === 'mirror' && g.row === r && g.col === c
-                );
-                if (mirror) {
-                    const reflected = this.reflectDir(dir, mirror.reflectDirection);
-                    this.castBeam(reflected, r, c, range, allGuards, depth + 1);
-                    break;
-                }
-            }
-        }
+        castBeamWithMirrors(this.grid, dir, fromRow, fromCol, range, allGuards, depth);
     }
 
     reflectDir(dir, reflectType) {
-        // cw: rotate beam 90° clockwise, ccw: counter-clockwise
-        if (reflectType === 'cw') {
-            return { row: dir.col, col: -dir.row };
-        }
-        return { row: -dir.col, col: dir.row };
+        return reflectBeam(dir, reflectType);
     }
 
     onTurnChange(allGuards) {
@@ -346,6 +383,14 @@ export class ChaserGuard extends Guard {
 
                 this.row = nextStep.row;
                 this.col = nextStep.col;
+            } else if (this.isReturning) {
+                // Home cell is unreachable (e.g. it sits on a wall — an
+                // authoring error, not something this guard should get stuck
+                // over). Give up the return instead of freezing in
+                // isReturning forever, lighting two cells for the rest of
+                // the level.
+                this.isChasing = false;
+                this.isReturning = false;
             }
 
             // If returning and reached home, stop chasing entirely
@@ -401,6 +446,13 @@ export class PatrollingGuard extends Guard {
     }
 
     updateLight() {
+        // Light the guard's own cell so a player standing on it — or one who
+        // swaps cells with it in the same turn — cannot go undetected. Every
+        // other guard type already lights its own cell; this one didn't.
+        if (this.grid.isValidPosition(this.row, this.col)) {
+            this.grid.setLight(this.row, this.col, true);
+        }
+
         const frontDir = this.getDirectionOffset(this.direction);
         const frontRow = this.row + frontDir.row;
         const frontCol = this.col + frontDir.col;
@@ -457,7 +509,12 @@ export class PatrollingGuard extends Guard {
             return;
         }
 
-        if (this.path.length <= 1) return;
+        if (this.path.length <= 1) {
+            // No patrol to run, but still emit light — a single-cell "patrol"
+            // must not go permanently dark just because it never advances.
+            this.updateLight();
+            return;
+        }
 
         let nextIndex;
         if (this.isCircularPath) {
@@ -480,9 +537,16 @@ export class PatrollingGuard extends Guard {
 
         this.currentPathIndex = nextIndex;
         const nextPos = this.path[this.currentPathIndex];
-        this.updateDirection(this.row, this.col, nextPos.row, nextPos.col);
-        this.row = nextPos.row;
-        this.col = nextPos.col;
+        // Authored path nodes are occasionally on a wall cell (authoring
+        // error — see solvability report). Never let the guard actually enter
+        // a wall: hold at its current cell instead of teleporting through
+        // geometry. Path index bookkeeping still advances so later, valid,
+        // nodes keep working.
+        if (!this.grid.isWall(nextPos.row, nextPos.col)) {
+            this.updateDirection(this.row, this.col, nextPos.row, nextPos.col);
+            this.row = nextPos.row;
+            this.col = nextPos.col;
+        }
         this.updateLight();
     }
 }
@@ -518,33 +582,14 @@ export class SniperGuard extends Guard {
     }
 
     // Beam travels until wall/edge; reflects off mirrors (up to 3 bounces).
-    // Uses same unlimited-step approach but respects grid bounds.
+    // Delegates to the shared castBeamWithMirrors helper (also used by
+    // RotatingGuard) so the mirror-reflection rule can't drift between the two.
     _castBeam(dir, fromRow, fromCol, allGuards, depth) {
-        if (depth > 3) return;
-        for (let i = 1; i <= this.lightRange; i++) {
-            const r = fromRow + dir.row * i;
-            const c = fromCol + dir.col * i;
-            if (!this.grid.isValidPosition(r, c) || this.grid.isWall(r, c)) break;
-            this.grid.setLight(r, c, true);
-
-            if (allGuards) {
-                const mirror = allGuards.find(g =>
-                    g.type === 'mirror' && g.row === r && g.col === c
-                );
-                if (mirror) {
-                    const reflected = this._reflectDir(dir, mirror.reflectDirection);
-                    this._castBeam(reflected, r, c, allGuards, depth + 1);
-                    break;
-                }
-            }
-        }
+        castBeamWithMirrors(this.grid, dir, fromRow, fromCol, this.lightRange, allGuards, depth);
     }
 
     _reflectDir(dir, reflectType) {
-        if (reflectType === 'cw') {
-            return { row: dir.col, col: -dir.row };
-        }
-        return { row: -dir.col, col: dir.row };
+        return reflectBeam(dir, reflectType);
     }
 
     onTurnChange(allGuards) {
@@ -576,8 +621,11 @@ export class SniperGuard extends Guard {
 // --- SuspicionGuard ---
 // 3-tier suspicion meter (0=idle, 1=alerted, 2=firing).
 // Increments tier when player is within Manhattan `range`; decrements when out.
-// At tier 2, lights all 8 surrounding cells (Manhattan ≤1 + diagonals).
-// After a firing turn (tier starts at 2), always decays to 0 that same call.
+// At tier 2, lights every cell within Manhattan `range` — the guard's full
+// alert zone, not just its immediate neighbours — so `range` actually denies
+// territory instead of only mattering for one orthogonally-adjacent step.
+// Tier persists while the player stays in range (no self-reset after firing)
+// and decays one step per turn once they retreat, same as tiers 0→1.
 export class SuspicionGuard extends Guard {
     constructor(grid, row, col, range) {
         super(grid, row, col, 'suspicion');
@@ -587,9 +635,10 @@ export class SuspicionGuard extends Guard {
 
     updateLight() {
         if (this.tier < 2) return;
-        // Tier 2: light own cell + all 8 neighbours
-        for (let dr = -1; dr <= 1; dr++) {
-            for (let dc = -1; dc <= 1; dc++) {
+        // Tier 2: light every cell within Manhattan `range` of the guard.
+        for (let dr = -this.range; dr <= this.range; dr++) {
+            for (let dc = -this.range; dc <= this.range; dc++) {
+                if (Math.abs(dr) + Math.abs(dc) > this.range) continue;
                 const r = this.row + dr;
                 const c = this.col + dc;
                 if (this.grid.isValidPosition(r, c)) {
@@ -600,15 +649,6 @@ export class SuspicionGuard extends Guard {
     }
 
     onTurnChange(allGuards, player) {
-        const startedAtFiring = this.tier === 2;
-
-        if (startedAtFiring) {
-            // After a firing turn: always drop to 0 regardless of player distance
-            this.tier = 0;
-            this.updateLight();
-            return;
-        }
-
         if (player) {
             const dist = Math.abs(this.row - player.row) + Math.abs(this.col - player.col);
             if (dist <= this.range) {

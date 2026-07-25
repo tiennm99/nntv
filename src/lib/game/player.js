@@ -49,17 +49,19 @@ export class Player {
     // ─── Movement ──────────────────────────────────────────────────────────────
 
     /**
-     * Attempt to move player to (row, col).
-     * Enforces: bounds, walls, doors (require matching key), one-ways (require
-     * matching movement direction).
+     * Read-only precondition check for entering (row, col) — bounds, walls,
+     * doors (require matching key), one-ways (require matching movement
+     * direction). Performs no mutation, so callers (moveTo, and anything that
+     * needs to test a hypothetical destination, e.g. the turn preview) can
+     * check legality without side effects.
      *
      * @param {number} row   Target row
      * @param {number} col   Target col
      * @param {number} moveDir  Direction player is moving: 0=up,1=right,2=down,3=left.
      *                          Pass -1 when direction doesn't apply (direct placement).
-     * @returns {boolean} true if move succeeded
+     * @returns {boolean} true if the cell can be entered
      */
-    moveTo(row, col, moveDir = -1) {
+    canEnter(row, col, moveDir = -1) {
         const g = this.grid;
 
         if (!g.isValidPosition(row, col)) return false;
@@ -70,14 +72,38 @@ export class Player {
             const keyId = g.getDoorKeyId(row, col);
             // keyId=null means unconditional door (no key needed — unusual but handle gracefully)
             if (keyId !== null && !this.hasKey(keyId)) return false;
-            // Door opens (cleared) on entry — door is single-use once key used
-            g.clearDoor(row, col);
         }
 
         // One-way: blocked unless player is moving in the tile's allowed direction
         if (g.isOneWay(row, col)) {
             // moveDir=-1 means no direction context (e.g. teleport); skip check
             if (moveDir !== -1 && g.getOneWayDir(row, col) !== moveDir) return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Attempt to move player to (row, col).
+     * Validates every precondition via canEnter() BEFORE mutating anything —
+     * a rejected move must leave grid and player state untouched (e.g. it must
+     * not pop open a door whose one-way check then fails).
+     *
+     * @param {number} row   Target row
+     * @param {number} col   Target col
+     * @param {number} moveDir  Direction player is moving: 0=up,1=right,2=down,3=left.
+     *                          Pass -1 when direction doesn't apply (direct placement).
+     * @returns {boolean} true if move succeeded
+     */
+    moveTo(row, col, moveDir = -1) {
+        if (!this.canEnter(row, col, moveDir)) return false;
+
+        const g = this.grid;
+
+        // Door opens (cleared) on entry — door is single-use once key used.
+        // Safe to mutate now: canEnter already confirmed the key requirement.
+        if (g.isDoor(row, col)) {
+            g.clearDoor(row, col);
         }
 
         this.row = row;

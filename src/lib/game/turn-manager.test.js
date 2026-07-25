@@ -182,6 +182,112 @@ describe('TurnManager — throwSystem integration', () => {
     });
 });
 
+describe('TurnManager — mobile guard co-location and swap detection', () => {
+    it('detects the player standing on a stationary patrolling guard', () => {
+        const grid = new GridSystem(3, 3, 50);
+        // Path length 1 — the guard never advances, so this is pure co-location.
+        const guard = new PatrollingGuard(grid, 1, 1, [{ row: 1, col: 1 }]);
+        const player = new Player(grid, 1, 1);
+        const tm = new TurnManager();
+        const result = tm.nextTurn(grid, player, [guard]);
+        expect(result.detected).toBe(true);
+    });
+
+    it('detects a same-turn swap where the player and a patrolling guard exchange cells', () => {
+        const grid = new GridSystem(3, 3, 50);
+        const guard = new PatrollingGuard(grid, 1, 1, [{ row: 1, col: 1 }, { row: 1, col: 2 }]);
+        // Player's move this turn lands exactly on the guard's PRE-move cell,
+        // while the guard advances away from it — a clean crossing that
+        // end-of-turn co-location alone cannot see.
+        const player = new Player(grid, 1, 1);
+        const tm = new TurnManager();
+        const result = tm.nextTurn(grid, player, [guard]);
+        expect(guard.row).toBe(1);
+        expect(guard.col).toBe(2);
+        expect(result.detected).toBe(true);
+    });
+
+    it('does not falsely detect when player and guard never share or cross a cell', () => {
+        const grid = new GridSystem(5, 5, 50);
+        const guard = new PatrollingGuard(grid, 0, 0, [{ row: 0, col: 0 }, { row: 0, col: 1 }]);
+        const player = new Player(grid, 4, 4);
+        const tm = new TurnManager();
+        const result = tm.nextTurn(grid, player, [guard]);
+        expect(result.detected).toBe(false);
+    });
+});
+
+describe('TurnManager — warm tiles are a lethal 1-turn afterglow', () => {
+    it('a cell that goes dark this turn is warm and lethal to enter that same turn', () => {
+        const grid = new GridSystem(5, 5, 50);
+        grid.setDecayEligibleAll();
+        const guard = new RotatingGuard(grid, 2, 0, 1); // facing right
+        guard.updateLight([guard]); // paint initial light, as level load does
+        expect(grid.isLight(2, 2)).toBe(true);
+
+        // Player's move this turn lands on the cell that is about to go dark.
+        const player = new Player(grid, 2, 2);
+        const tm = new TurnManager();
+        const result = tm.nextTurn(grid, player, [guard]);
+
+        // Guard rotated away (now facing down) — (2,2) is no longer directly lit...
+        expect(grid.isLight(2, 2)).toBe(false);
+        // ...but it just went dark this turn, so it's warm, and warm is lethal.
+        expect(result.detected).toBe(true);
+    });
+
+    it('a cell is safe again the turn after its warm afterglow expires', () => {
+        const grid = new GridSystem(5, 5, 50);
+        grid.setDecayEligibleAll();
+        const guard = new RotatingGuard(grid, 2, 0, 1);
+        guard.updateLight([guard]);
+
+        const bystander = new Player(grid, 4, 4); // uninvolved, drives the first turn
+        const tm = new TurnManager();
+        tm.nextTurn(grid, bystander, [guard]); // (2,2) goes dark and becomes warm this turn
+
+        const player = new Player(grid, 2, 2); // arrives one turn later than the warm window
+        const result = tm.nextTurn(grid, player, [guard]);
+        expect(result.detected).toBe(false);
+    });
+});
+
+describe('TurnManager.previewNextTurn — truthful for player-reactive guards', () => {
+    it('flags a cell as hazardous if ANY reachable next move would let a chaser catch it', () => {
+        // Chaser at (0,0), detectionRadius 3. Player currently at (2,1) — out of
+        // the chaser's immediate light — but moving to (2,0) brings the player
+        // within range; the chaser then steps to (1,0) and lights (2,0). A
+        // preview that only simulates the stationary player would miss this.
+        const grid = new GridSystem(5, 5, 50);
+        const player = new Player(grid, 2, 1);
+        const chaser = new ChaserGuard(grid, 0, 0, 3);
+        const tm = new TurnManager();
+
+        const preview = tm.previewNextTurn(grid, player, [chaser]);
+        expect(preview.has('2,0')).toBe(true);
+
+        // Confirm it isn't a false alarm: actually moving there triggers real detection.
+        player.row = 2; player.col = 0;
+        const result = tm.nextTurn(grid, player, [chaser]);
+        expect(result.detected).toBe(true);
+    });
+
+    it('does not leave fabricated warm state on the real grid after the preview runs', () => {
+        const grid = new GridSystem(5, 5, 50);
+        grid.setDecayEligibleAll();
+        const guard = new RotatingGuard(grid, 2, 0, 1);
+        guard.updateLight([guard]); // (2,2) lit
+        const player = new Player(grid, 4, 4);
+        const tm = new TurnManager();
+
+        expect(grid.getWarmSnapshot()).toEqual([]);
+        tm.previewNextTurn(grid, player, [guard]);
+        // previewNextTurn internally calls clearAllLight (which would normally
+        // mark (2,2) warm) — that side effect must not leak onto the real grid.
+        expect(grid.getWarmSnapshot()).toEqual([]);
+    });
+});
+
 describe('TurnManager — property test: capture/apply round-trip over 50 random turns', () => {
     // Build a small deterministic but varied scenario and verify that restoring
     // any mid-sequence snapshot and replaying produces identical state.

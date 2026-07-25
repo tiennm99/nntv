@@ -37,6 +37,17 @@ describe('GridSystem', () => {
         expect(g.isLight(1, 1)).toBe(false);
     });
 
+    it('clearLight resets every cell WITHOUT creating warm cells', () => {
+        const g = new GridSystem(2, 2, 50);
+        g.setDecayEligibleAll();
+        g.setLight(0, 0, true);
+        g.clearLight();
+        expect(g.isLight(0, 0)).toBe(false);
+        // Unlike clearAllLight, clearLight must not trigger the decay side effect
+        expect(g.isWarm(0, 0)).toBe(false);
+        expect(g.getWarmSnapshot()).toEqual([]);
+    });
+
     it('getAllCells returns flat array with positions', () => {
         const g = new GridSystem(2, 3, 50);
         g.setWall(1, 2, true);
