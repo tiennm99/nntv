@@ -9,6 +9,14 @@ allowBuilds:
 # sourceMappingURL comment made PostCSS read that path off disk as a previous
 # source map, so crafted CSS could disclose arbitrary .map files. Also a
 # transitive devDependency of Vite.
+#
+# brace-expansion >= 5.0.8 closes GHSA-mh99-v99m-4gvg: unbounded brace
+# expansion could exhaust memory and crash the process. The advisory has no
+# backport, so the 2.x copy that workbox-build pulls in through
+# minimatch/filelist/jake is vulnerable and only a major bump clears it.
+# 5.x publishes a CommonJS entry alongside ESM, so the CJS consumers in that
+# chain still resolve; verified by a full build, which is what exercises them.
 overrides:
   esbuild: ^0.28.1
   postcss: ^8.5.18
+  brace-expansion: ^5.0.8
