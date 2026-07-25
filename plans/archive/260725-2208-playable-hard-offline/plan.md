@@ -19,7 +19,7 @@ All 11 playable levels are degenerate: deleting every guard changes BFS optimal 
 moves on every level. Not an authoring problem — four engine defects mean the mechanics never execute.
 CI passed because `levels.solvability.test.js:42-48` asserts only *solvable* and *≤ par*, with no lower bound.
 
-Source reports in `plans/reports/`:
+Source reports in `./reports/` (archived alongside this plan):
 - `puzzle-design-difficulty-audit-260725-2150-level-quality-report.md`
 - `engine-correctness-review-260725-2150-solver-sync-and-state-report.md`
 - `playability-and-ux-audit-260725-2150-player-experience-report.md`
