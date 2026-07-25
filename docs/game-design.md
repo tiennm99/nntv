@@ -84,9 +84,10 @@ Some levels disable **undo** and/or **preview** to raise stakes. A banner notifi
 - Creates commitment ratchets — plan the full route before crossing
 
 ### Decay / Warm Tiles
-- A warm cell is temporarily dangerous (flagged `isWarm`); after one turn it cools to safe
-- Visually distinct from lit cells: dim orange glow vs bright yellow
-- Used to create timed hazard zones without persistent guards
+- A warm cell is lethal (flagged `isWarm`), same as a lit cell; after one turn it cools to safe
+- Visually distinct from lit cells: dim orange glow vs bright yellow (visual cue for "cooling")
+- Occurs when a blinking/pulsing guard's light fades: the cell stays warm for one extra turn before becoming dark
+- Used to extend guard area-denial beyond the active light phase, creating timing windows players must count
 
 ## Level Design
 
@@ -116,29 +117,29 @@ Teaches: lit cells = danger, but they fade. Wait or detour.
 One-way tiles introduced. Two one-way gates between map zones. Two static guards flank edges; one rotating guard in middle.
 Teaches: commitment ratchets — plan route before crossing a one-way.
 
-**Level 4 — The Searchlight** (9×9, rotating + blinking + 3 static)
-Blinking guard introduced. Solution requires at least one `wait` action.
-Teaches: counting turns, parity-based movement.
+**Level 4 — The Searchlight** (9×9, rotating + suspicion + static)
+Suspicion guard introduced; its three-tier alert system grows as player lingers in range.
+Teaches: recognizing and managing suspicion before it fires; exit zone to reset tier.
 
-**Level 5 — Fortress Gate** (10×10, static + rotating + blinking + patrolling)
-Patrolling guard introduced on a short circular path.
-Teaches: predicting patrol path, front+right light pattern.
+**Level 5 — Fortress Gate** (10×10, rotating + suspicion + doors + keys)
+Doors and keys introduced. Two-key puzzle: collect key 1 before a one-way pocket, then key 2.
+Teaches: key sequencing; identifying which key unlocks which door.
 
-**Level 6 — The Flickering Corridor** (10×10, 2 blinking + rotating + 2 patrolling + static × 2)
-Two patrollers with interlocking routes.
-Teaches: weaving between multiple moving threats.
+**Level 6 — The Flickering Corridor** (10×10, blinking + static)
+Blinking guard blinks on/off; decay makes warm tiles linger one turn after going dark.
+Teaches: warm afterglow is lethal; wait for full darkness, not just a dark blink-phase.
 
-**Level 7 — The Underground Passage** (11×11, rotating + mirror + blinking + patrolling + 3 static)
-Mirror guard introduced; rotating beam deflects off it.
-Teaches: predicting reflected beam paths.
+**Level 7 — The Underground Passage** (11×11, rotating + 2 mirrors + door + key)
+Mirror guards introduced; rotating beam bounces 90° off each mirror in sequence.
+Teaches: tracing reflected beams; predicting where light lands after each bounce.
 
-**Level 8 — The Gauntlet** (11×11, 2 rotating + 2 mirrors + 2 patrolling + blinking + static)
-Two mirrors form a crossfire pattern.
-Teaches: mastery of reflected beams in open arenas.
+**Level 8 — The Gauntlet** (11×11, sniper + patrolling + static)
+Sniper guard introduced; unlike rotating guards, snipers hold a fixed aim and rotate every 2 turns.
+Teaches: sniper cadence (count turns, not reaction); gap-timing in unbounded beams.
 
-**Level 9 — The Decoy Path** (12×12, chaser + rotating + 2 blinking + 2 static + patrolling)
-Chaser guard introduced, ambushing the central shortcut. Stones introduced.
-Teaches: lure-and-retreat; throwable distraction; perimeter path beats the tempting short route.
+**Level 9 — The Decoy Path** (11×11, 2 patrolling + sniper + suspicion + stones)
+Throwable stones introduced. One patrol blocks the only gap; stones distract it for one turn.
+Teaches: stone targeting (Manhattan ≤ 3, line-of-sight); timing distraction to clear a crossing.
 
 **Level 10 — Hall of Mirrors** (12×12, 2 rotating + 3 mirrors + blinking + static + patrolling + chaser)
 Mirrors create a crossfire with a hunting chaser. Doors + keys introduced.

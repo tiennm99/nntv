@@ -6,10 +6,13 @@
 
 ### Core Concept
 - Turn-based grid movement with lighting-based detection
-- 5 guard AI types with distinct behaviors
-- Progressive difficulty across 12 levels in 6 acts
-- Bilingual support (English/Vietnamese)
-- Narrative twist ending with escalating detection mechanic
+- 8 guard AI types with distinct behaviors and escalating complexity
+- Progressive difficulty across 12 levels in 6 acts (L12 intentionally unsolvable)
+- Throwable stones, doors/keys, one-way tiles, decay/warm tiles
+- Progressive hints and mercy skip for stuck players
+- Fully playable offline; responsive 360px–desktop scaling
+- Bilingual support (English/Vietnamese, vi-by-default on fresh start)
+- Narrative twist: Level 12 princess wave is unbeatable by design
 
 ### Target Audience
 - Casual puzzle game players (10+)
@@ -27,19 +30,26 @@
 
 | Requirement | Description | Status |
 |---|---|---|
-| Grid-based Movement | Player moves one cell per turn via arrow keys, WASD, cell click, or swipe | Complete |
-| Guard AI System | 6 guard types (Static, Rotating, Blinking, Patrolling, Mirror, Chaser) | Complete |
-| Mirror Reflection | Rotating guard beams bounce off mirror guards at 90 degrees | Complete |
-| Detection System | Players lose a life when stepping on lit cells; visual feedback with cell flash + player shake | Complete |
-| Chaser Guard | BFS pathfinding with detection radius; advanced AI for late-game difficulty | Complete |
-| Undo/Redo System | Z/Y keys rewind/forward through up to 50 previous turns | Complete |
-| Level Progression | 12 difficulty-scaled levels with localStorage progress tracking | Complete |
-| Win Condition | Reach goal cell to advance; level 12 is unbeatable (narrative twist) | Complete |
-| Lives System | 3 lives per play session; game over at zero lives | Complete |
-| Escalating Detection | Level 12: light radiates outward from princess when player approaches | Complete |
-| Audio Feedback | Web Audio API procedural sounds for moves, detection, level completion | Complete |
-| Camera-Follow Viewport | Large arenas scroll smoothly to keep the player in view | Complete |
-| Solvability CI Guard | BFS solver asserts L1-L11 solvable, L12 unsolvable on every PR | Complete |
+| Grid-based Movement | Arrow keys, WASD, click/tap adjacent cell, swipe (mobile) — one cell per turn | Complete |
+| Guard AI System | 8 types: Static (wilting), Rotating (beam), Blinking (toggle), Patrolling (path), Mirror (reflect), Chaser (BFS hunt), Sniper (fixed LoS), Suspicion (tier alert) | Complete |
+| Guard Mechanics | Static regrow on cycle; Suspicion persists/decays by tier; Chaser aggro on detection; Sniper unbounded LoS; Patroller lights front+right | Complete |
+| Mirror Reflection | Rotating + Sniper beams bounce off mirrors; up to 3 bounces; beam-before-wall priority | Complete |
+| Detection System | Player on lit/warm cell → restart level only (no lives counter; single-level scope) | Complete |
+| Throwable Stones | E key or on-screen button; Manhattan ≤3, LoS check; distract rotating/patrolling/chaser guards 1 turn | Complete |
+| Doors & Keys | Color-coded, auto-collect, bitmask inventory; door blocks movement until key held | Complete |
+| One-Way Tiles | Arrow tiles enforce entry direction; silent rejection if wrong direction | Complete |
+| Decay / Warm Tiles | Cell stays lethal 1 turn after going dark; distinct visual (dim glow) | Complete |
+| Undo/Redo System | Z/Y keys (when allowed per level); full state snapshots incl. doors/keys/warm/guards | Complete |
+| Turn Preview | V key (when allowed); simulates all candidate actions (move+wait), paints union of threats | Complete |
+| Level Progression | 12 levels, localStorage progress tracking, hints unlock at 3/5/7 attempts | Complete |
+| Progressive Hints | 3 tiers: mechanic hint at 3 attempts, strategy hint at 5, concrete move at 7 | Complete |
+| Mercy Skip | Unlock next level after 8 attempts; marks level "skipped" (no stars) | Complete |
+| Win Condition | Reach goal cell to advance; L12 intentionally unsolvable (easter egg — spiral out on approach) | Complete |
+| Escalating Detection | Level 12: princess senses player at distance ≤4; light wave expands 1 ring/turn (unstoppable) | Complete |
+| Audio Feedback | Web Audio API: moves, detections, throws, key pickup, door unlock, suspicion tiers, level complete | Complete |
+| Responsive Board | Scale transform (not scroll/crop); fits 360px–4K; on-screen controls for stone throw, confirm/cancel | Complete |
+| Offline Play | Service worker + PWA manifest; precaches 56 entries; plays fully offline after 1st visit | Complete |
+| Solvability CI Gate | BFS solver asserts guard tax (optimal-with − optimal-without) ≥ floor per level; per-mechanic necessity check for L1-L11; L12 unsolvable pinned | Complete |
 
 ### Non-Functional Requirements
 
@@ -78,36 +88,48 @@
 6. Goal check (before guard update): level complete, unlock next
 
 **Guard Behaviors:**
-- **Static (red)**: Lights fixed adjacent cells every turn
-- **Rotating (blue)**: Rotates light direction 90 degrees each turn, casts beam of 2 cells
-- **Blinking (yellow)**: Toggles lights on/off each turn
-- **Patrolling (purple)**: Moves along predefined path, lights front + right cells
-- **Mirror (green)**: Redirects rotating guard beams 90 degrees (cw or ccw)
-- **Chaser (cyan)**: Uses BFS pathfinding to chase player, lights all cells within detection radius
-- **Level 12 Special**: Princess detection — light radiates from goal at distance 4, expanding 1 ring per turn
+- **Static (red)**: Manhattan aura shrinks by 1 each turn (`initialRadius` → ... → 0 → -1 → regrow); cycles deterministically
+- **Rotating (blue)**: Rotates beam 90° clockwise each turn; range 5; bounces off mirrors; stops at walls
+- **Blinking (yellow)**: Toggles specific cells on/off each turn; decay makes just-dark cells warm 1 turn
+- **Patrolling (purple)**: Moves along predefined path; lights front + right cells relative to direction
+- **Mirror (green)**: Stationary; reflects rotating/sniper beams 90° (clockwise or counterclockwise)
+- **Sniper (dark red)**: Fixed cardinal aim (up/down/left/right); unbounded range; rotates every 2 turns; instant detection if player in beam
+- **Suspicion (violet)**: 3-tier alert (0=calm, 1=alerted, 2=firing); tier rises when player in range; decays 1 step/turn out of range; tier-2 lights full Manhattan `range` diamond
+- **Chaser (orange)**: BFS pathfinding toward player when within `detectionRadius`; returns home if player escapes radius; lights all cells within radius when active
+- **Level 12 Special**: Princess wave at player distance ≤ 4; light expands 1 ring per turn outward from goal (unstoppable)
 
 **Player Abilities:**
-- **Movement**: Arrow keys, WASD, or adjacent cell click
-- **Undo/Redo**: Z key to undo, Y key to redo (up to 50 turns)
+- **Movement**: Arrow keys, WASD, adjacent cell click, swipe (mobile); wait (Space)
+- **Stone Throw**: E key or on-screen button → targeting mode; confirm/cancel buttons for mobile
+- **Key Collection**: Auto-collects keys on cell contact; bitmask inventory (up to 3 keys)
+- **Undo/Redo**: Z/Y keys (when level allows); full state snapshots incl. warm-state
+- **Preview**: V key (when level allows); shows next-turn threats if player waits
+- **Hint System**: Unlocked at 3/5/7 attempts; mechanic → strategy → concrete move tiers
+- **Mercy Skip**: After 8 attempts, unlock next level (marks as "skipped", grayed out stars)
 
 ### Level Progression (6 Acts)
 
-| Act | Levels | Grid | Focus |
-|-----|--------|------|-------|
-| 1: Outskirts | 1-2 | 8x8 | Movement + static guards |
-| 2: Garden | 3-4 | 9x9 | Rotating + blinking guards |
-| 3: Fortress | 5-6 | 10x10 | Patrolling guards |
-| 4: Underground | 7-8 | 11x11 | Mirror guards (beam deflection) |
-| 5: Palace | 9-10 | 12x12 | Chaser guards |
-| 6: Chamber | 11-12 | 12x12, 13x13 | All types; L12 unsolvable narrative twist |
+| Act | Levels | Grid | Focus | Key Mechanics |
+|-----|--------|------|-------|---|
+| 1: Outskirts | 1-2 | 8×8 | Movement + static guards | L1: pure routing; L2: wilting aura cycles |
+| 2: Garden | 3-4 | 9×9 | One-ways + suspicion | L3: commitment ratchets; L4: suspicion tiers (NEW) |
+| 3: Fortress | 5-6 | 10×10 | Doors/keys + decay | L5: key sequencing; L6: warm-tile afterglow + blinking |
+| 4: Underground | 7-8 | 11×11 | Mirrors + sniper | L7: mirror reflection chains; L8: sniper cadence (NEW) |
+| 5: Palace | 9-10 | 11×12 | Stones + chaser | L9: stone throw targeting (NEW); L10: combo (mirrors+decay+sniper+patrol) |
+| 6: Chamber | 11-12 | 11×13 | All types + finale | L11: all 8 guards + 2 stones; L12: unsolvable princess wave easter egg |
 
 ### Success Metrics
 
-- All 11 levels BFS-verified solvable; L12 BFS-verified unsolvable (CI enforced)
-- Turn-based mechanics execute without delay
-- No memory leaks during extended gameplay sessions
-- UI responsive to keyboard + mouse input
-- Localization string coverage 100%
+- L1–L11 BFS-solvable with guard tax > floor (per-level thresholds asserted in CI ablation harness)
+- L12 BFS-unsolvable pinned by CI; intentional easter egg (console teleport wins)
+- Per-mechanic necessity: removing the named mechanic changes L1–L11 solutions (except L9/L10 stones/mirrors at BFS optimum, which are present but not proof-bearing)
+- Turn mechanics execute <1ms on all guards simultaneously
+- Full offline playback after 1st visit (service worker caches all assets)
+- Responsive 360px–4K (uniform scale transform; no per-component media queries needed)
+- Localization: 167 keys, en/vi parity verified in CI
+- Touch controls: 44px minimum button targets; stone-throw usable without keyboard
+- `pnpm test` green: 243 passing unit + integration tests
+- `pnpm test:solvability` green: 39 solvability tests (11 solvable, 1 unsolvable, 27 status quo)
 
 ### Technical Constraints
 
@@ -119,8 +141,28 @@
 
 ## Project Status
 
-**Current Version:** 0.1.0
-**Repository:** GitHub
-**Last Updated:** 2026-04-12
+**Current Version:** 2.0.0 (Playable, Hard, Offline)
+**Repository:** GitHub (tiennm99/nntv)
+**Last Updated:** 2026-07-26
+**CI:** Node 24, pnpm 11.1.1; all tests passing (243 unit + solvability, 39 level-specific)
 
-All core gameplay features implemented. Svelte 5 rewrite complete with reactivity fix, mirror guard mechanic, redesigned level progression, and escalating final level twist.
+### Completed Phases
+1. **Engine correctness** — All 13 guards.js/turn-manager.js defects fixed; mirrors reflect, warm is lethal, swaps detected, suspicion persists, statics regrow
+2. **Difficulty harness** — BFS ablation asserts guard tax ≥ floor; per-mechanic necessity checks; no level is guard-free anymore
+3. **Level retune** — All L1–L11 now require guard traversal; monotonic difficulty curve by search depth
+4. **UX/Playability** — Responsive 360px+; on-screen throw; hints + mercy skip; fixed preview; all modals accessible; i18n complete
+5. **Offline + deploy** — Service worker + PWA manifest; 5.55 MiB dist (was 9.25 MiB); all CI gates passing
+6. **Documentation sync** — Game design reconciled with levels.js; briefing text accurate L1–L11; README updated with architecture, controls, assets
+
+### Known Limitations (Acceptable)
+- **L11 not strictly hardest** — L5 has 31 optimal moves, L11 has 23; BFS depth not pure difficulty metric (branch-count is). Chaser limitation on detectionRadius=2 for CI budget.
+- **L9/L10 mechanics decorative at optimum** — stones (L9) and mirror chains (L10) are present, functional, and teach mechanics, but BFS finds shorter pathing-only routes at optimal move count
+- **Warm afterglow on L6 only** — other decay levels (L9/L10) don't have solo guards that make warm relevant; warm itself is lethal, just not the primary guard tax
+
+### Next Possible Improvements (Out of Scope)
+- A* search + dominance pruning in solver for deeper difficulty exploration
+- L11 board widening or guard repositioning for second independent chokepoint
+- L9/L10 redesign to make mechanic load-bearing at optimum
+- Chaser detectionRadius 3–4 once solver gains pruning
+- BGM composition + implementation (voice lines wired but unused, saved in unshipped-assets/)
+- "Run complete" ending flow (currently unreachable; L12 is final level)
