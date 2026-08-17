@@ -128,8 +128,8 @@
 - Responsive 360px–4K (uniform scale transform; no per-component media queries needed)
 - Localization: 167 keys, en/vi parity verified in CI
 - Touch controls: 44px minimum button targets; stone-throw usable without keyboard
-- `pnpm test` green: 243 passing unit + integration tests
-- `pnpm test:solvability` green: 39 solvability tests (11 solvable, 1 unsolvable, 27 status quo)
+- `npm test` green: 243 passing unit + integration tests
+- `npm run test:solvability` green: 39 solvability tests (11 solvable, 1 unsolvable, 27 status quo)
 
 ### Technical Constraints
 
@@ -144,7 +144,7 @@
 **Current Version:** 2.0.0 (Playable, Hard, Offline)
 **Repository:** GitHub (tiennm99/nntv)
 **Last Updated:** 2026-07-26
-**CI:** Node 24, pnpm 11.1.1; all tests passing (243 unit + solvability, 39 level-specific)
+**CI:** Node 24, npm; all tests passing (243 unit + solvability, 39 level-specific)
 
 ### Completed Phases
 1. **Engine correctness** — All 13 guards.js/turn-manager.js defects fixed; mirrors reflect, warm is lethal, swaps detected, suspicion persists, statics regrow

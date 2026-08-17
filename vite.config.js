@@ -54,7 +54,7 @@ export default defineConfig({
     // esbuild 0.28.x dropped support for transforming destructuring to very
     // old browser targets (chrome87/firefox78/safari14). Pin a modern target
     // so the Svelte plugin's esbuild transform path stays compatible with
-    // the patched esbuild forced via pnpm-workspace.yaml.
+    // the patched esbuild forced via package.json overrides.
     build: {
         target: 'es2022',
     },
